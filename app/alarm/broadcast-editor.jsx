@@ -149,6 +149,7 @@ export default function BroadcastEditor() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
+        {/* Header - 固定 */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color="#1C1C1E" />
@@ -157,37 +158,37 @@ export default function BroadcastEditor() {
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 输入框区域 */}
-          <View style={styles.editorCard}>
-            <Text style={styles.sectionTitle}>播报内容</Text>
-            <Text style={styles.sectionDescription}>
-              在下方输入文字，点击模块按钮可在光标位置插入动态信息
-            </Text>
-
-            <View style={styles.inputWrapper}>
-              <TextInput
-                ref={inputRef}
-                style={styles.input}
-                value={broadcastContent}
-                onChangeText={setBroadcastContent}
-                onSelectionChange={handleSelectionChange}
-                placeholder="例如：早上好！现在是{时间}，今天{日期}，外面{天气}"
-                placeholderTextColor="#999"
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-
+        {/* 输入框区域 - 固定 */}
+        <View style={styles.editorCard}>
+          <Text style={styles.sectionTitle}>播报内容</Text>
+          <Text style={styles.sectionDescription}>
+            在下方输入文字，点击模块按钮可在光标位置插入动态信息
+          </Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              value={broadcastContent}
+              onChangeText={setBroadcastContent}
+              onSelectionChange={handleSelectionChange}
+              placeholder="例如：早上好！现在是{时间}，今天{日期}，外面{天气}"
+              placeholderTextColor="#999"
+              multiline
+              textAlignVertical="top"
+            />
           </View>
+        </View>
 
-          {/* 模块按钮区域 */}
-          <View style={styles.modulesCard}>
+        {/* 模块按钮区域 - 可滚动 */}
+        <View style={styles.modulesSection}>
+          <View style={styles.modulesSectionHeader}>
             <Text style={styles.sectionTitle}>插入模块</Text>
+          </View>
+          <ScrollView
+            style={styles.modulesScrollView}
+            contentContainerStyle={styles.modulesScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.modulesGrid}>
               {BROADCAST_MODULES.map((module) => {
                 const IconComponent = module.icon;
@@ -204,50 +205,53 @@ export default function BroadcastEditor() {
                 );
               })}
             </View>
-          </View>
+          </ScrollView>
+        </View>
 
-          {/* 语音包选择区域 */}
-          <View style={styles.voicePackageCard}>
-            <Text style={styles.sectionTitle}>选择语音包</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.voiceScrollContainer}
-            >
-              {VOICE_PACKAGES.map((voicePackage) => {
-                const isSelected = selectedVoicePackage === voicePackage.id;
-                return (
-                  <TouchableOpacity
-                    key={voicePackage.id}
+        {/* 语音包选择区域 - 固定 */}
+        <View style={styles.voicePackageCard}>
+          <Text style={styles.sectionTitle}>选择语音包</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.voiceScrollContainer}
+          >
+            {VOICE_PACKAGES.map((voicePackage) => {
+              const isSelected = selectedVoicePackage === voicePackage.id;
+              return (
+                <TouchableOpacity
+                  key={voicePackage.id}
+                  style={[
+                    styles.voiceCard,
+                    isSelected && styles.voiceCardSelected,
+                  ]}
+                  onPress={() => setSelectedVoicePackage(voicePackage.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text
                     style={[
-                      styles.voiceCard,
-                      isSelected && styles.voiceCardSelected,
+                      styles.voiceCardLabel,
+                      isSelected && styles.voiceCardLabelSelected,
                     ]}
-                    onPress={() => setSelectedVoicePackage(voicePackage.id)}
-                    activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
-                        styles.voiceCardLabel,
-                        isSelected && styles.voiceCardLabelSelected,
-                      ]}
-                    >
-                      {voicePackage.label}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.voiceCardDescription,
-                        isSelected && styles.voiceCardDescriptionSelected,
-                      ]}
-                    >
-                      {voicePackage.description}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+                    {voicePackage.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.voiceCardDescription,
+                      isSelected && styles.voiceCardDescriptionSelected,
+                    ]}
+                  >
+                    {voicePackage.description}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
+        {/* 底部按钮区域 - 固定 */}
+        <View style={styles.bottomActions}>
           {/* 语音试听按钮 */}
           {broadcastContent.trim().length > 0 && (
             <TouchableOpacity
@@ -278,7 +282,7 @@ export default function BroadcastEditor() {
           >
             <Text style={styles.confirmButtonText}>完成设置</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -318,17 +322,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1C1C1E',
   },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 40,
-    gap: 20,
-  },
   editorCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    marginHorizontal: 16,
+    marginTop: 8,
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -350,7 +347,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   inputWrapper: {
-    minHeight: 140,
+    height: 120,
     backgroundColor: '#F9F9F9',
     borderRadius: 12,
     padding: 14,
@@ -364,15 +361,31 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     padding: 0,
   },
-  modulesCard: {
+  modulesSection: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginTop: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
-    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 3,
+    overflow: 'hidden',
+  },
+  modulesSectionHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  },
+  modulesScrollView: {
+    flex: 1,
+  },
+  modulesScrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   modulesGrid: {
     flexDirection: 'row',
@@ -397,6 +410,8 @@ const styles = StyleSheet.create({
   },
   voicePackageCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    marginHorizontal: 16,
+    marginTop: 12,
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -438,12 +453,18 @@ const styles = StyleSheet.create({
   voiceCardDescriptionSelected: {
     color: '#0063CC',
   },
+  bottomActions: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    gap: 12,
+  },
   previewButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 16,
     gap: 8,
     borderWidth: 2,
@@ -468,7 +489,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#007AFF',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
     shadowColor: '#007AFF',
