@@ -10,16 +10,13 @@ export default function AlarmScreen() {
   const router = useRouter();
   const alarms = useStore((state) => state.alarms);
   const toggleAlarm = useStore((state) => state.toggleAlarm);
-  const deleteAlarm = useStore((state) => state.deleteAlarm);
-  const loadAlarmForEdit = useStore((state) => state.loadAlarmForEdit);
 
   const handleCreateAlarm = () => {
     router.push('/alarm/create');
   };
 
-  const handleEditAlarm = (alarmId) => {
-    loadAlarmForEdit(alarmId);
-    router.push('/alarm/create');
+  const handleViewAlarm = (alarmId) => {
+    router.push(`/alarm/${alarmId}`);
   };
 
   return (
@@ -45,7 +42,7 @@ export default function AlarmScreen() {
               <AlarmCard
                 key={alarm.id}
                 alarm={alarm}
-                onPress={() => handleEditAlarm(alarm.id)}
+                onPress={() => handleViewAlarm(alarm.id)}
                 onToggle={toggleAlarm}
               />
             ))
