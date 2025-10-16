@@ -365,6 +365,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 16,
     marginTop: 12,
+    marginBottom: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     shadowColor: '#000',
@@ -372,20 +373,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 3,
-    overflow: 'hidden',
   },
   modulesSectionHeader: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingTop: 16,
+    paddingBottom: 8,
   },
   modulesScrollView: {
     flex: 1,
+    maxHeight: '100%',
   },
   modulesScrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 4,
+    paddingBottom: 16,
   },
   modulesGrid: {
     flexDirection: 'row',
