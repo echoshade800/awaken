@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import * as Speech from 'expo-speech';
 import {
   View,
   Text,
@@ -10,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Clock, Calendar, Cloud, Battery, CalendarDays, Palette, Gift } from 'lucide-react-native';
+import { ArrowLeft, Clock, Calendar, Cloud, Battery, CalendarDays, Palette, Gift, Shirt, ThermometerSun, Snowflake, Thermometer, Droplets, Moon, Activity, Volume2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
 
@@ -18,6 +19,13 @@ const BROADCAST_MODULES = [
   { id: 'time', label: '当前时间', icon: Clock, tag: '{时间}' },
   { id: 'date', label: '日期', icon: Calendar, tag: '{日期}' },
   { id: 'weather', label: '天气', icon: Cloud, tag: '{天气}' },
+  { id: 'high-temp', label: '最高温', icon: ThermometerSun, tag: '{最高温}' },
+  { id: 'low-temp', label: '最低温', icon: Snowflake, tag: '{最低温}' },
+  { id: 'avg-temp', label: '平均温', icon: Thermometer, tag: '{平均温}' },
+  { id: 'humidity', label: '湿度', icon: Droplets, tag: '{湿度}' },
+  { id: 'clothing', label: '穿衣提醒', icon: Shirt, tag: '{穿衣}' },
+  { id: 'dream', label: '梦境关键词', icon: Moon, tag: '{梦境}' },
+  { id: 'rhythm', label: '节律状态', icon: Activity, tag: '{节律}' },
   { id: 'battery', label: '电量', icon: Battery, tag: '{电量}' },
   { id: 'schedule', label: '日程提醒', icon: CalendarDays, tag: '{日程}' },
   { id: 'lucky-color', label: '幸运色', icon: Palette, tag: '{幸运色}' },
@@ -43,6 +51,7 @@ export default function BroadcastEditor() {
     currentAlarmDraft?.voicePackage || 'energetic-girl'
   );
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleSelectionChange = (event) => {
     setCursorPosition(event.nativeEvent.selection.start);
@@ -72,53 +81,48 @@ export default function BroadcastEditor() {
     router.back();
   };
 
-  const renderPreview = () => {
-    if (!broadcastContent) return null;
-
-    const parts = [];
-    let lastIndex = 0;
-    const regex = /\{(时间|日期|天气|电量|日程|幸运色|彩蛋)\}/g;
-    let match;
-
-    while ((match = regex.exec(broadcastContent)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({
-          type: 'text',
-          content: broadcastContent.substring(lastIndex, match.index),
-        });
-      }
-
-      parts.push({
-        type: 'tag',
-        content: match[0],
-        label: match[1],
-      });
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < broadcastContent.length) {
-      parts.push({
-        type: 'text',
-        content: broadcastContent.substring(lastIndex),
-      });
-    }
-
-    return parts;
+  const MOCK_DATA = {
+    '{时间}': '7点30分',
+    '{日期}': '2025年10月16日星期三',
+    '{天气}': '晴天',
+    '{最高温}': '28度',
+    '{最低温}': '18度',
+    '{平均温}': '23度',
+    '{湿度}': '65%',
+    '{穿衣}': '适合穿薄外套或长袖',
+    '{梦境}': '你梦到了大海和星空',
+    '{节律}': '当前能量水平高峰期',
+    '{电量}': '80%',
+    '{日程}': '上卜10点有会议',
+    '{幸运色}': '蓝色',
+    '{彩蛋}': '今天会遇到好运',
   };
 
-  const getIconForTag = (label) => {
-    const moduleMap = {
-      '时间': Clock,
-      '日期': Calendar,
-      '天气': Cloud,
-      '电量': Battery,
-      '日程': CalendarDays,
-      '幸运色': Palette,
-      '彩蛋': Gift,
-    };
-    return moduleMap[label] || Clock;
+  const handlePreviewSpeech = async () => {
+    if (!broadcastContent.trim()) {
+      return;
+    }
+
+    if (isPlaying) {
+      Speech.stop();
+      setIsPlaying(false);
+      return;
+    }
+
+    let content = broadcastContent;
+    Object.keys(MOCK_DATA).forEach(tag => {
+      content = content.replace(new RegExp(tag.replace(/[{}]/g, '\\$&'), 'g'), MOCK_DATA[tag]);
+    });
+
+    setIsPlaying(true);
+    Speech.speak(content, {
+      language: 'zh-CN',
+      onDone: () => setIsPlaying(false),
+      onStopped: () => setIsPlaying(false),
+      onError: () => setIsPlaying(false),
+    });
   };
+
 
   return (
     <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
@@ -161,31 +165,6 @@ export default function BroadcastEditor() {
               />
             </View>
 
-            {/* 预览区域 */}
-            {broadcastContent.length > 0 && (
-              <View style={styles.previewContainer}>
-                <Text style={styles.previewLabel}>预览效果</Text>
-                <View style={styles.previewWrapper}>
-                  {renderPreview().map((part, index) => {
-                    if (part.type === 'text') {
-                      return (
-                        <Text key={index} style={styles.previewText}>
-                          {part.content}
-                        </Text>
-                      );
-                    } else {
-                      const IconComponent = getIconForTag(part.label);
-                      return (
-                        <View key={index} style={styles.previewTag}>
-                          <IconComponent size={14} color="#007AFF" />
-                          <Text style={styles.previewTagText}>{part.label}</Text>
-                        </View>
-                      );
-                    }
-                  })}
-                </View>
-              </View>
-            )}
           </View>
 
           {/* 模块按钮区域 */}
@@ -212,61 +191,75 @@ export default function BroadcastEditor() {
           {/* 语音包选择区域 */}
           <View style={styles.voicePackageCard}>
             <Text style={styles.sectionTitle}>选择语音包</Text>
-            <Text style={styles.sectionDescription}>
-              选择你喜欢的播报声音
-            </Text>
-            <View style={styles.voicePackageList}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.voiceScrollContainer}
+            >
               {VOICE_PACKAGES.map((voicePackage) => {
                 const isSelected = selectedVoicePackage === voicePackage.id;
                 return (
                   <TouchableOpacity
                     key={voicePackage.id}
                     style={[
-                      styles.voicePackageItem,
-                      isSelected && styles.voicePackageItemSelected,
+                      styles.voiceCard,
+                      isSelected && styles.voiceCardSelected,
                     ]}
                     onPress={() => setSelectedVoicePackage(voicePackage.id)}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.voicePackageInfo}>
-                      <Text
-                        style={[
-                          styles.voicePackageLabel,
-                          isSelected && styles.voicePackageLabelSelected,
-                        ]}
-                      >
-                        {voicePackage.label}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.voicePackageDescription,
-                          isSelected && styles.voicePackageDescriptionSelected,
-                        ]}
-                      >
-                        {voicePackage.description}
-                      </Text>
-                    </View>
-                    {isSelected && (
-                      <View style={styles.selectedIndicator}>
-                        <View style={styles.selectedDot} />
-                      </View>
-                    )}
+                    <Text
+                      style={[
+                        styles.voiceCardLabel,
+                        isSelected && styles.voiceCardLabelSelected,
+                      ]}
+                    >
+                      {voicePackage.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.voiceCardDescription,
+                        isSelected && styles.voiceCardDescriptionSelected,
+                      ]}
+                    >
+                      {voicePackage.description}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
 
-          {/* 确认按钮 */}
-          <View style={styles.confirmContainer}>
+          {/* 语音试听按钮 */}
+          {broadcastContent.trim().length > 0 && (
             <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={handleConfirm}
+              style={[
+                styles.previewButton,
+                isPlaying && styles.previewButtonPlaying,
+              ]}
+              onPress={handlePreviewSpeech}
               activeOpacity={0.8}
             >
-              <Text style={styles.confirmButtonText}>确认</Text>
+              <Volume2 size={20} color={isPlaying ? '#FFF' : '#007AFF'} />
+              <Text
+                style={[
+                  styles.previewButtonText,
+                  isPlaying && styles.previewButtonTextPlaying,
+                ]}
+              >
+                {isPlaying ? '正在播放...' : '试听播报效果'}
+              </Text>
             </TouchableOpacity>
-          </View>
+          )}
+
+          {/* 确认按钮 */}
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleConfirm}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.confirmButtonText}>完成设置</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -353,43 +346,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     padding: 0,
   },
-  previewContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-  },
-  previewLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#666',
-    marginBottom: 10,
-  },
-  previewWrapper: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 6,
-  },
-  previewText: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 24,
-  },
-  previewTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  previewTagText: {
-    fontSize: 13,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
   modulesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
@@ -431,58 +387,66 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  voicePackageList: {
+  voiceScrollContainer: {
+    paddingVertical: 4,
     gap: 12,
   },
-  voicePackageItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  voiceCard: {
+    width: 200,
     backgroundColor: '#F9F9F9',
-    padding: 16,
-    borderRadius: 14,
+    padding: 18,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  voicePackageItemSelected: {
+  voiceCardSelected: {
     backgroundColor: '#E3F2FD',
     borderColor: '#007AFF',
   },
-  voicePackageInfo: {
-    flex: 1,
-  },
-  voicePackageLabel: {
+  voiceCardLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1C1C1E',
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  voicePackageLabelSelected: {
+  voiceCardLabelSelected: {
     color: '#007AFF',
   },
-  voicePackageDescription: {
+  voiceCardDescription: {
     fontSize: 13,
     color: '#666',
+    lineHeight: 18,
   },
-  voicePackageDescriptionSelected: {
+  voiceCardDescriptionSelected: {
     color: '#0063CC',
   },
-  selectedIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#007AFF',
+  previewButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  selectedDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FFF',
+  previewButtonPlaying: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
   },
-  confirmContainer: {
-    paddingTop: 8,
+  previewButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  previewButtonTextPlaying: {
+    color: '#FFF',
   },
   confirmButton: {
     backgroundColor: '#007AFF',

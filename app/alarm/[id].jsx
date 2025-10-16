@@ -75,7 +75,7 @@ export default function AlarmDetail() {
 
     const parts = [];
     let lastIndex = 0;
-    const regex = /\{(时间|日期|天气|电量|日程|幸运色|彩蛋)\}/g;
+    const regex = /\{(时间|日期|天气|最高温|最低温|平均温|湿度|穿衣|梦境|节律|电量|日程|幸运色|彩蛋)\}/g;
     let match;
 
     while ((match = regex.exec(alarm.broadcastContent)) !== null) {
