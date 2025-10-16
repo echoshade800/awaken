@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import * as Speech from 'expo-speech';
 import {
   View,
   Text,
@@ -104,7 +103,12 @@ export default function BroadcastEditor() {
     }
 
     if (isPlaying) {
-      Speech.stop();
+      if (Platform.OS === 'web') {
+        window.speechSynthesis?.cancel();
+      } else {
+        const Speech = require('expo-speech');
+        Speech.stop();
+      }
       setIsPlaying(false);
       return;
     }
@@ -115,12 +119,26 @@ export default function BroadcastEditor() {
     });
 
     setIsPlaying(true);
-    Speech.speak(content, {
-      language: 'zh-CN',
-      onDone: () => setIsPlaying(false),
-      onStopped: () => setIsPlaying(false),
-      onError: () => setIsPlaying(false),
-    });
+
+    if (Platform.OS === 'web') {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(content);
+        utterance.lang = 'zh-CN';
+        utterance.onend = () => setIsPlaying(false);
+        utterance.onerror = () => setIsPlaying(false);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setIsPlaying(false);
+      }
+    } else {
+      const Speech = require('expo-speech');
+      Speech.speak(content, {
+        language: 'zh-CN',
+        onDone: () => setIsPlaying(false),
+        onStopped: () => setIsPlaying(false),
+        onError: () => setIsPlaying(false),
+      });
+    }
   };
 
 
