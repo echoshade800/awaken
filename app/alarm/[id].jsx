@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, Edit3 } from 'lucide-react-native';
+import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, CreditCard as Edit3 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
 
