@@ -16,6 +16,7 @@ import useStore from '../../lib/store';
 import ChatBubble from '../../components/ChatBubble';
 import TagOptions from '../../components/TagOptions';
 import AlarmInfoCard from '../../components/AlarmInfoCard';
+import VoiceBroadcastEditor from '../../components/VoiceBroadcastEditor';
 
 const TIME_OPTIONS = [
   { label: '明天早上7点', value: '07:00' },
@@ -417,22 +418,26 @@ export default function AlarmCreate() {
         )}
 
         {stepConfig && !isInSummary && stepConfig.isCustom && stepConfig.field === 'voiceModules' && (
-          <View style={styles.customAction}>
-            <TouchableOpacity
-              style={styles.editModulesButton}
-              onPress={() => router.push('/alarm/broadcast-editor')}
-            >
-              <Text style={styles.editModulesText}>编辑播报内容</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={() => {
-                addChatMessage({ role: 'user', content: '使用默认设置' });
-                proceedToNextStep();
-              }}
-            >
-              <Text style={styles.skipButtonText}>使用默认设置</Text>
-            </TouchableOpacity>
+          <View style={styles.editorContainer}>
+            <VoiceBroadcastEditor
+              value={currentAlarmDraft?.broadcastContent || ''}
+              onChange={(content) => updateDraft({ broadcastContent: content })}
+            />
+            <View style={styles.editorActions}>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={() => {
+                  const content = currentAlarmDraft?.broadcastContent;
+                  addChatMessage({
+                    role: 'user',
+                    content: content || '使用默认播报内容',
+                  });
+                  proceedToNextStep();
+                }}
+              >
+                <Text style={styles.confirmButtonText}>确认</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -543,32 +548,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  customAction: {
+  editorContainer: {
+    flex: 1,
     paddingHorizontal: 16,
-    marginTop: 16,
+    paddingVertical: 12,
     gap: 12,
   },
-  editModulesButton: {
+  editorActions: {
+    paddingTop: 8,
+  },
+  confirmButton: {
     backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  editModulesText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  skipButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  skipButtonText: {
-    color: '#1C1C1E',
+  confirmButtonText: {
+    color: '#FFF',
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '600',
   },
   inputContainer: {
     flexDirection: 'row',
