@@ -1,14 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import Svg, { Ellipse, Circle, Defs, RadialGradient, Stop, LinearGradient } from 'react-native-svg';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
-  Easing,
-  withSequence,
-} from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -16,13 +8,11 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function DreamBubble({ keyword = '星空', initialX = 100, initialY = 200 }) {
   const router = useRouter();
 
-  const translateX = useSharedValue(initialX);
-  const translateY = useSharedValue(initialY);
-  const opacity = useSharedValue(0);
+  const translateX = useRef(new Animated.Value(initialX)).current;
+  const translateY = useRef(new Animated.Value(initialY)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 800 });
-
     const path = [
       { x: initialX, y: initialY },
       { x: initialX + 40, y: initialY - 60 },
@@ -32,31 +22,83 @@ export default function DreamBubble({ keyword = '星空', initialX = 100, initia
     ];
 
     const animatePath = () => {
-      translateX.value = -100;
-      translateY.value = initialY;
-      opacity.value = 0;
+      translateX.setValue(-100);
+      translateY.setValue(initialY);
+      opacity.setValue(0);
 
-      translateX.value = withSequence(
-        withTiming(path[0].x, { duration: 0 }),
-        withTiming(path[1].x, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(path[2].x, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(path[3].x, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(path[4].x, { duration: 3000, easing: Easing.inOut(Easing.ease) })
-      );
-
-      translateY.value = withSequence(
-        withTiming(path[0].y, { duration: 0 }),
-        withTiming(path[1].y, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(path[2].y, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(path[3].y, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(path[4].y, { duration: 3000, easing: Easing.inOut(Easing.ease) })
-      );
-
-      opacity.value = withSequence(
-        withTiming(1, { duration: 800 }),
-        withTiming(1, { duration: 10000 }),
-        withTiming(0, { duration: 800 })
-      );
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(translateX, {
+            toValue: path[0].x,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateX, {
+            toValue: path[1].x,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateX, {
+            toValue: path[2].x,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateX, {
+            toValue: path[3].x,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateX, {
+            toValue: path[4].x,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(translateY, {
+            toValue: path[0].y,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: path[1].y,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: path[2].y,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: path[3].y,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: path[4].y,
+            duration: 3000,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 10000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
     };
 
     animatePath();
@@ -68,13 +110,13 @@ export default function DreamBubble({ keyword = '星空', initialX = 100, initia
     return () => clearInterval(interval);
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
+  const animatedStyle = {
     transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
+      { translateX: translateX },
+      { translateY: translateY },
     ],
-    opacity: opacity.value,
-  }));
+    opacity: opacity,
+  };
 
   const handlePress = () => {
     console.log('Dream bubble pressed - navigating to dream records');
