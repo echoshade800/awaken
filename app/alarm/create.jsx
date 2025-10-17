@@ -192,28 +192,36 @@ export default function AlarmCreate() {
 
   const proceedToNextStep = () => {
     setTimeout(() => {
-      const nextStepIndex = currentStep + 1;
+      // 从当前步骤的下一个开始查找
+      let nextStepIndex = currentStep + 1;
 
-      if (nextStepIndex < STEP_CONFIGS.length) {
+      // 循环查找下一个有效步骤
+      while (nextStepIndex < STEP_CONFIGS.length) {
         const nextStepConfig = STEP_CONFIGS[nextStepIndex];
 
+        // 检查条件：如果不满足，继续查找下一个
         if (nextStepConfig.condition && !nextStepConfig.condition(currentAlarmDraft)) {
-          nextStep();
-          proceedToNextStep();
-          return;
+          nextStepIndex++;
+          continue;
         }
 
+        // 找到有效步骤，进入该步骤
         nextStep();
 
+        // 显示 AI 消息
         setTimeout(() => {
           addChatMessage({
             role: 'ai',
             content: nextStepConfig.aiMessage,
           });
         }, 500);
-      } else {
-        showSummary();
+
+        // 停止查找
+        return;
       }
+
+      // 如果没有找到有效步骤，显示总结
+      showSummary();
     }, 300);
   };
 
