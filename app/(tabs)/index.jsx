@@ -26,7 +26,11 @@ export default function HomeScreen() {
 
 
   return (
-    <LinearGradient colors={['#F5F9FC', '#D6EEFF', '#A8D8F0', '#6BA8D0', '#3D5A7F', '#2B4164', '#1A2845', '#0D1525']} style={styles.container}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#F5F9FC', '#D6EEFF', '#A8D8F0', '#6BA8D0', '#3D5A7F', '#2B4164', '#1A2845', '#0D1525']}
+        style={styles.backgroundGradient}
+      />
       <StarBackground />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -105,12 +109,19 @@ export default function HomeScreen() {
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
   safeArea: { flex: 1 },
   scrollView: {
     flex: 1,
