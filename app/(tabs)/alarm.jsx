@@ -61,6 +61,7 @@ export default function AlarmScreen() {
       </SafeAreaView>
 
       <View style={styles.fabContainer}>
+        <Text style={styles.fabLabel}>Create</Text>
         <TouchableOpacity
           style={styles.fab}
           onPress={handleCreateAlarm}
@@ -70,12 +71,9 @@ export default function AlarmScreen() {
             colors={['#FF9A76', '#FFB088']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.fabGradient}
+            style={styles.fabCircle}
           >
-            <View style={styles.fabIconCircle}>
-              <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
-            </View>
-            <Text style={styles.fabText}>Create New Alarm</Text>
+            <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -132,46 +130,36 @@ const styles = StyleSheet.create({
   fabContainer: {
     position: 'absolute',
     bottom: 90,
-    left: 20,
-    right: 20,
-  },
-  fab: {
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  fabGradient: {
+    right: 24,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
     gap: 12,
   },
-  fabIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  fabText: {
-    fontSize: 18,
+  fabLabel: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
     letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
+  },
+  fab: {
+    borderRadius: 32,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  fabCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
 });
