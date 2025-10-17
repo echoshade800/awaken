@@ -82,6 +82,8 @@ export default function AlarmDetail() {
   const [timeModalVisible, setTimeModalVisible] = useState(false);
   const [selectedHour, setSelectedHour] = useState('07');
   const [selectedMinute, setSelectedMinute] = useState('00');
+  const [labelModalVisible, setLabelModalVisible] = useState(false);
+  const [labelInput, setLabelInput] = useState('');
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -100,6 +102,16 @@ export default function AlarmDetail() {
   const handleEdit = () => {
     loadAlarmForEdit(id);
     router.push('/alarm/create');
+  };
+
+  const handleEditLabel = () => {
+    setLabelInput(alarm.label || '');
+    setLabelModalVisible(true);
+  };
+
+  const handleSaveLabel = async () => {
+    await updateAlarm(id, { label: labelInput.trim() });
+    setLabelModalVisible(false);
   };
 
   const openModal = (type, options) => {
@@ -235,14 +247,21 @@ export default function AlarmDetail() {
         showsVerticalScrollIndicator={false}
       >
         {/* 时间卡片 */}
-        <TouchableOpacity style={styles.timeCard} onPress={handleEditTime} activeOpacity={0.7}>
-          <View style={styles.sunIcon}>
-            <View style={styles.sunCore} />
-            <View style={styles.sunRays} />
-          </View>
-          <Text style={styles.timeText}>{alarm.time}</Text>
-          {alarm.label && <Text style={styles.labelText}>{alarm.label}</Text>}
-        </TouchableOpacity>
+        <View style={styles.timeCard}>
+          <TouchableOpacity onPress={handleEditTime} activeOpacity={0.7} style={styles.timeSection}>
+            <View style={styles.sunIcon}>
+              <View style={styles.sunCore} />
+              <View style={styles.sunRays} />
+            </View>
+            <Text style={styles.timeText}>{alarm.time}</Text>
+          </TouchableOpacity>
+          {alarm.label && (
+            <TouchableOpacity onPress={handleEditLabel} activeOpacity={0.7} style={styles.labelSection}>
+              <Text style={styles.labelText}>{alarm.label}</Text>
+              <Edit3 size={14} color="#FF9A76" style={{ marginLeft: 8 }} />
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* 详细信息卡片 */}
         <View style={styles.detailCard}>
@@ -509,6 +528,44 @@ export default function AlarmDetail() {
         </Pressable>
       </Modal>
 
+      {/* 标签编辑模态框 */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={labelModalVisible}
+        onRequestClose={() => setLabelModalVisible(false)}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <Text style={styles.deleteModalTitle}>Edit Label</Text>
+            <TextInput
+              style={styles.labelInput}
+              value={labelInput}
+              onChangeText={setLabelInput}
+              placeholder="Enter alarm label..."
+              placeholderTextColor="#999"
+              autoFocus
+            />
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={[styles.deleteModalButton, styles.cancelButton]}
+                onPress={() => setLabelModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteModalButton, styles.confirmDeleteButton]}
+                onPress={handleSaveLabel}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.confirmDeleteButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* 删除确认模态框 */}
       <Modal
         animationType="fade"
@@ -606,6 +663,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  timeSection: {
+    alignItems: 'center',
+  },
+  labelSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 154, 118, 0.1)',
   },
   sunIcon: {
     width: 60,
@@ -860,6 +929,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4A5F8F',
     marginBottom: 12,
+  },
+  labelInput: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#4A5F8F',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 154, 118, 0.3)',
+    marginBottom: 20,
   },
   deleteModalMessage: {
     fontSize: 16,

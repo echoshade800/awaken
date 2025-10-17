@@ -22,6 +22,15 @@ import {
   getGameLabel,
 } from '../../lib/interactionOptions';
 
+const LABEL_OPTIONS = [
+  { label: '起床闹钟', value: '起床闹钟' },
+  { label: '午睡提醒', value: '午睡提醒' },
+  { label: '上班闹钟', value: '上班闹钟' },
+  { label: '锻炼时间', value: '锻炼时间' },
+  { label: '喝水提醒', value: '喝水提醒' },
+  { label: '自定义...', value: 'custom' },
+];
+
 const TIME_OPTIONS = [
   { label: '明天早上7点', value: '07:00' },
   { label: '明天早上8点', value: '08:00' },
@@ -62,51 +71,58 @@ const VOICE_PACKAGE_OPTIONS = [
 const STEP_CONFIGS = [
   {
     step: 0,
+    aiMessage: '先给这个闹钟起个名字吧～',
+    field: 'label',
+    options: LABEL_OPTIONS,
+    allowCustomInput: true,
+  },
+  {
+    step: 1,
     aiMessage: '你想什么时候起床呢？',
     field: 'time',
     options: TIME_OPTIONS,
   },
   {
-    step: 1,
+    step: 2,
     aiMessage: '好的～需要每天都响吗？',
     field: 'period',
     options: PERIOD_OPTIONS,
   },
   {
-    step: 2,
+    step: 3,
     aiMessage: '想用什么方式叫醒你呢？',
     field: 'wakeMode',
     options: WAKE_MODE_OPTIONS,
   },
   {
-    step: 2.5,
+    step: 3.5,
     aiMessage: '选择你想播报的内容吧～',
     field: 'voiceModules',
     isCustom: true,
     condition: (draft) => draft.wakeMode === 'voice',
   },
   {
-    step: 2.6,
+    step: 3.6,
     aiMessage: '想用什么声音播报呢？',
     field: 'voicePackage',
     options: VOICE_PACKAGE_OPTIONS,
     condition: (draft) => draft.wakeMode === 'voice',
   },
   {
-    step: 2.8,
+    step: 3.8,
     aiMessage: '选择铃声',
     field: 'ringtone',
     options: RINGTONE_OPTIONS,
     condition: (draft) => draft.wakeMode === 'ringtone',
   },
   {
-    step: 3,
+    step: 4,
     aiMessage: '要不要加点互动游戏，让起床更有趣呢？🎮',
     field: 'interactionEnabled',
     options: INTERACTION_ENABLE_OPTIONS,
   },
   {
-    step: 3.5,
+    step: 4.5,
     aiMessage: '选一个你喜欢的游戏吧！',
     field: 'interactionType',
     isGameSelection: true,
@@ -118,6 +134,7 @@ export default function AlarmCreate() {
   const router = useRouter();
   const scrollViewRef = useRef(null);
   const [inputText, setInputText] = useState('');
+  const [isCustomLabelInput, setIsCustomLabelInput] = useState(false);
 
   const {
     currentAlarmDraft,
@@ -169,6 +186,21 @@ export default function AlarmCreate() {
   }, [currentAlarmDraft?.broadcastContent]);
 
   const handleTagSelect = (field, value) => {
+    if (field === 'label' && value === 'custom') {
+      setIsCustomLabelInput(true);
+      addChatMessage({
+        role: 'user',
+        content: '自定义...',
+      });
+      setTimeout(() => {
+        addChatMessage({
+          role: 'ai',
+          content: '好的！请输入你想要的闹钟名字～',
+        });
+      }, 300);
+      return;
+    }
+
     updateDraft({ [field]: value });
 
     addChatMessage({
@@ -265,7 +297,17 @@ export default function AlarmCreate() {
     return summary;
   };
 
+  const generateDefaultLabel = () => {
+    const { time, period } = currentAlarmDraft;
+    const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label || '';
+    return `${time} ${periodLabel}闹钟`;
+  };
+
   const handleSave = async () => {
+    if (!currentAlarmDraft.label || currentAlarmDraft.label.trim() === '') {
+      updateDraft({ label: generateDefaultLabel() });
+    }
+
     await saveAlarmFromDraft();
     addChatMessage({
       role: 'ai',
@@ -285,6 +327,19 @@ export default function AlarmCreate() {
   const handleTextInput = () => {
     if (!inputText.trim()) return;
 
+    if (isCustomLabelInput) {
+      const customLabel = inputText.trim();
+      addChatMessage({
+        role: 'user',
+        content: customLabel,
+      });
+      updateDraft({ label: customLabel });
+      setIsCustomLabelInput(false);
+      setInputText('');
+      proceedToNextStep();
+      return;
+    }
+
     addChatMessage({
       role: 'user',
       content: inputText.trim(),
@@ -300,6 +355,13 @@ export default function AlarmCreate() {
 
   const parseTextInput = (text, stepConfig) => {
     const lowerText = text.toLowerCase().replace(/\s+/g, '');
+
+    // 处理标签输入
+    if (stepConfig.field === 'label') {
+      updateDraft({ label: text.trim() });
+      proceedToNextStep();
+      return;
+    }
 
     // 处理时间输入
     if (stepConfig.field === 'time') {
