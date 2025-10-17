@@ -1,7 +1,9 @@
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon } from 'react-native-svg';
+import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
+import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
+import { BlurView } from 'expo-blur';
+import { useEffect, useRef } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;
@@ -10,6 +12,24 @@ const PADDING = { top: 60, right: 15, bottom: 30, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -3,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 3,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const xScale = (minute) => {
     const clampedMinute = Math.max(0, Math.min(1440, minute));
@@ -35,6 +55,16 @@ export default function RhythmChart({ rhythmData }) {
 
   const currentMinute = getCurrentMinute();
   const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
+
+  const getEnergyColor = (energy) => {
+    if (energy > 80) return { main: '#A3E4FF', glow: '#6DD5FA' };
+    if (energy > 60) return { main: '#FFFFFF', glow: '#E0F7FF' };
+    if (energy > 40) return { main: '#FFE4FF', glow: '#FFD6FF' };
+    if (energy > 20) return { main: '#FFD9A3', glow: '#FFBE76' };
+    return { main: '#FFA3C7', glow: '#FF758C' };
+  };
+
+  const energyColor = getEnergyColor(currentEnergy);
 
   const getEnergyStatus = (energy) => {
     if (energy > 80) return { title: "Peak Energy", subtitle: "You're at your energy peak!" };
@@ -64,45 +94,103 @@ export default function RhythmChart({ rhythmData }) {
     <View style={styles.container}>
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
         <Defs>
-          <RadialGradient id="glowGradient" cx="50%" cy="50%">
-            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
-            <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.2" />
+          <LinearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="#A3E4FF" stopOpacity="0.4" />
+            <Stop offset="15%" stopColor="#FFFFFF" stopOpacity="0.9" />
+            <Stop offset="40%" stopColor="#FFD6FF" stopOpacity="0.7" />
+            <Stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.9" />
+            <Stop offset="85%" stopColor="#A3E4FF" stopOpacity="0.5" />
+            <Stop offset="100%" stopColor="#FFE4FF" stopOpacity="0.4" />
+          </LinearGradient>
+
+          <RadialGradient id="pointGlow" cx="50%" cy="50%">
+            <Stop offset="0%" stopColor={energyColor.main} stopOpacity="1" />
+            <Stop offset="50%" stopColor={energyColor.glow} stopOpacity="0.6" />
+            <Stop offset="100%" stopColor={energyColor.glow} stopOpacity="0" />
+          </RadialGradient>
+
+          <RadialGradient id="auraGlow" cx="50%" cy="50%">
+            <Stop offset="0%" stopColor={energyColor.glow} stopOpacity="0.3" />
+            <Stop offset="100%" stopColor={energyColor.glow} stopOpacity="0" />
           </RadialGradient>
         </Defs>
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="80"
+          fill="url(#auraGlow)"
+        />
 
 
         <Path
           d={pathData}
-          stroke="#FFFFFF"
-          strokeWidth="4"
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth="10"
           fill="none"
-          opacity="0.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ filter: 'blur(8px)' }}
         />
 
-        <Circle
-          cx={currentX}
-          cy={currentY}
-          r="18"
+        <Path
+          d={pathData}
+          stroke="url(#auroraGradient)"
+          strokeWidth="5"
           fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <Path
+          d={pathData}
           stroke="#FFFFFF"
           strokeWidth="2"
-          opacity="0.6"
-        />
-
-        <Circle
-          cx={currentX}
-          cy={currentY}
-          r="10"
           fill="none"
-          stroke="#FFFFFF"
-          strokeWidth="2.5"
-          opacity="0.9"
+          opacity="0.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
 
         <Circle
           cx={currentX}
           cy={currentY}
-          r="6"
+          r="30"
+          fill="url(#pointGlow)"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="20"
+          fill="none"
+          stroke={energyColor.main}
+          strokeWidth="2"
+          opacity="0.4"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="12"
+          fill="none"
+          stroke={energyColor.main}
+          strokeWidth="2.5"
+          opacity="0.7"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="7"
+          fill={energyColor.main}
+          opacity="1"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="3"
           fill="#FFFFFF"
           opacity="1"
         />
@@ -127,18 +215,21 @@ export default function RhythmChart({ rhythmData }) {
 
       </Svg>
 
-      <View
+      <Animated.View
         style={[
           styles.statusBubble,
           {
             left: Math.max(20, Math.min(CHART_WIDTH - 220, bubbleX)),
-            top: Math.max(10, bubbleY)
+            top: Math.max(10, bubbleY),
+            transform: [{ translateY: floatAnim }]
           }
         ]}
       >
-        <Text style={styles.statusTitle}>{energyStatus.title}</Text>
-        <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
-      </View>
+        <BlurView intensity={20} tint="light" style={styles.blurContainer}>
+          <Text style={styles.statusTitle}>{energyStatus.title}</Text>
+          <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
+        </BlurView>
+      </Animated.View>
     </View>
   );
 }
@@ -150,17 +241,23 @@ const styles = StyleSheet.create({
   },
   statusBubble: {
     position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    shadowColor: '#87CEEB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    minWidth: 200,
+    overflow: 'hidden',
+  },
+  blurContainer: {
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    minWidth: 200,
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 20,
   },
   statusTitle: {
     fontSize: 14,
