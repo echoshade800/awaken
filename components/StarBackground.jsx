@@ -8,7 +8,7 @@ const generateStars = (count) => {
     stars.push({
       id: i,
       left: Math.random() * SCREEN_WIDTH,
-      top: Math.random() * SCREEN_HEIGHT,
+      top: (Math.random() * SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 2),
       size: Math.random() * 2 + 1,
       opacity: Math.random() * 0.5 + 0.3,
     });

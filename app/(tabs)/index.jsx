@@ -26,7 +26,7 @@ export default function HomeScreen() {
 
 
   return (
-    <LinearGradient colors={['#87CEEB', '#4A90E2', '#1E3A5F']} style={styles.container}>
+    <LinearGradient colors={['#F5F9FC', '#D6EEFF', '#A8D8F0', '#6BA8D0', '#3D5A7F', '#2B4164', '#1A2845', '#0D1525']} style={styles.container}>
       <StarBackground />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -137,14 +137,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '300',
-    color: '#FFFFFF',
+    color: '#1A2845',
     textAlign: 'center',
     lineHeight: 34,
     marginBottom: 8,
   },
   alarmText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: 'rgba(26, 40, 69, 0.8)',
     marginTop: 2,
     marginBottom: 4,
   },
