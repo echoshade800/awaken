@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect } from 'react-native-svg';
 
 export default function MonsterHornBorder({ children, style }) {
   return (
@@ -32,25 +32,6 @@ export default function MonsterHornBorder({ children, style }) {
       {/* 主体内容区域 */}
       <View style={styles.mainPanel}>
         {children}
-
-        {/* 底部牙齿 */}
-        <Svg
-          height="14"
-          width="50"
-          style={styles.teeth}
-          viewBox="0 0 50 14"
-        >
-          {/* 左边的牙齿（向左倾斜） */}
-          <Path
-            d="M 16 0 L 14 12 L 22 0 Z"
-            fill="rgba(255, 255, 255, 0.35)"
-          />
-          {/* 右边的牙齿（向右倾斜） */}
-          <Path
-            d="M 28 0 L 36 12 L 34 0 Z"
-            fill="rgba(255, 255, 255, 0.35)"
-          />
-        </Svg>
       </View>
     </View>
   );
@@ -70,15 +51,11 @@ const styles = StyleSheet.create({
   },
   mainPanel: {
     backgroundColor: 'rgba(200, 220, 255, 0.12)',
-    paddingTop: 32,
-    paddingBottom: 24,
+    paddingVertical: 32,
     paddingHorizontal: 24,
     borderRadius: 20,
-    borderTopWidth: 0,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#87CEEB',
@@ -87,8 +64,5 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
     width: '100%',
-  },
-  teeth: {
-    marginTop: 8,
   },
 });
