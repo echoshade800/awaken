@@ -22,11 +22,6 @@ export default function HomeScreen() {
     chrono: chronotype,
   });
 
-  const currentTime = new Date().toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
 
   return (
     <LinearGradient colors={['#87CEEB', '#4A90E2', '#1E3A5F']} style={styles.container}>
@@ -40,7 +35,6 @@ export default function HomeScreen() {
         >
           <View style={styles.headerPadded}>
             <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
-            <Text style={styles.currentTime}>{currentTime}</Text>
             {nextAlarm && (
               <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
             )}
@@ -115,12 +109,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 34,
-    marginBottom: 8,
-  },
-  currentTime: {
-    fontSize: 56,
-    fontWeight: '700',
-    color: '#FFFFFF',
     marginBottom: 8,
   },
   alarmText: {
