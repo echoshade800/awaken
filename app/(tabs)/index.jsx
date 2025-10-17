@@ -35,12 +35,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.headerPadded}>
-            <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
-            {nextAlarm && (
-              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
-            )}
-          </View>
+          <View style={styles.topSpacer} />
 
           <View style={styles.chartContainer}>
             <MonsterIcon
@@ -48,6 +43,13 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/alarm')}
             />
             <RhythmChart rhythmData={rhythmData} />
+          </View>
+
+          <View style={styles.headerPadded}>
+            <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
+            {nextAlarm && (
+              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
+            )}
           </View>
 
           <View style={styles.contentPadded}>
@@ -70,9 +72,10 @@ export default function HomeScreen() {
                 </View>
               </View>
 
-              <View style={styles.aiReminderWrapper}>
-                <AIReminderBubble message="Energy's balanced. Keep it calm and consistent" />
-              </View>
+              <AIReminderBubble
+                message="Energy's balanced. Keep it calm and consistent"
+                style={styles.aiReminderBubble}
+              />
             </View>
 
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
@@ -101,8 +104,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 20,
   },
+  topSpacer: {
+    height: 60,
+  },
   headerPadded: {
-    marginTop: 8,
+    marginTop: 16,
     marginBottom: 8,
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -160,7 +166,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  aiReminderWrapper: {
+  aiReminderBubble: {
     flex: 1,
     justifyContent: 'center',
   },

@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 
-export default function AIReminderBubble({ message }) {
+export default function AIReminderBubble({ message, style }) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <View style={styles.iconContainer}>
         <Svg width={16} height={16} viewBox="0 0 24 24">
           <Circle
