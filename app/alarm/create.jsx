@@ -33,6 +33,7 @@ const PERIOD_OPTIONS = [
 const WAKE_MODE_OPTIONS = [
   { label: '语音播报', value: 'voice' },
   { label: '铃声', value: 'ringtone' },
+  { label: '震动', value: 'vibration' },
 ];
 
 const RINGTONE_OPTIONS = [
@@ -324,6 +325,11 @@ export default function AlarmCreate() {
       }
       if (lowerText.includes('铃声') || lowerText.includes('音乐') || lowerText.includes('响')) {
         updateDraft({ wakeMode: 'ringtone' });
+        proceedToNextStep();
+        return;
+      }
+      if (lowerText.includes('震动') || lowerText.includes('振动')) {
+        updateDraft({ wakeMode: 'vibration' });
         proceedToNextStep();
         return;
       }
