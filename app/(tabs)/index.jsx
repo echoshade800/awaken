@@ -52,30 +52,20 @@ export default function HomeScreen() {
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
 
             <View style={styles.energyPanel}>
-              <View style={styles.energyTopRow}>
-                <View style={styles.energyLeft}>
-                  <Text style={styles.energyLabel}>Current</Text>
-                  <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
-                </View>
-
-                <View style={styles.energyPeaksRow}>
-                  <View style={styles.energyPeakItem}>
-                    <Text style={styles.energyTimeLabel}>Peak</Text>
-                    <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                  </View>
-                  <View style={styles.energyPeakItem}>
-                    <Text style={styles.energyTimeLabel}>Low</Text>
-                    <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
-                  </View>
-                </View>
+              <View style={styles.energyLeft}>
+                <Text style={styles.energyLabel}>Current</Text>
+                <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
               </View>
 
-              <View style={styles.energyBottomRow}>
-                <Text style={styles.energyStatus}>
-                  {rhythmData.energyScore > 80 ? 'Peak' :
-                   rhythmData.energyScore > 60 ? 'High' :
-                   rhythmData.energyScore > 40 ? 'Moderate' : 'Low'}
-                </Text>
+              <View style={styles.energyPeaksRow}>
+                <View style={styles.energyPeakItem}>
+                  <Text style={styles.energyTimeLabel}>Peak</Text>
+                  <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                </View>
+                <View style={styles.energyPeakItem}>
+                  <Text style={styles.energyTimeLabel}>Low</Text>
+                  <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                </View>
               </View>
             </View>
 
@@ -141,19 +131,16 @@ const styles = StyleSheet.create({
   },
   energyPanel: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 18,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     marginTop: 12,
     marginBottom: 16,
-  },
-  energyTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
   energyLeft: {
     alignItems: 'flex-start',
@@ -187,18 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  energyBottomRow: {
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  energyStatus: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   dreamKeywordContainer: {
     marginBottom: 16,
