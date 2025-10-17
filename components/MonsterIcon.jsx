@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Svg, { Path, Circle, Defs, RadialGradient, Stop, G } from 'react-native-svg';
 
 export default function MonsterIcon({ size = 48, onPress }) {
+  const width = size * 1.2;
   return (
     <TouchableOpacity
       style={styles.container}
@@ -9,7 +10,7 @@ export default function MonsterIcon({ size = 48, onPress }) {
       activeOpacity={0.7}
     >
       <View style={styles.iconWrapper}>
-        <Svg width={size} height={size} viewBox="0 0 48 48">
+        <Svg width={width} height={size} viewBox="0 0 58 48">
           <Defs>
             <RadialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
               <Stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
@@ -20,17 +21,17 @@ export default function MonsterIcon({ size = 48, onPress }) {
           {/* Outer glow layer - softer */}
           <G opacity="0.3">
             <Path
-              d="M 24 2
-                 C 26 2, 28 3, 29 5
-                 C 30.5 3.5, 32 3.5, 33 5
-                 C 36 8, 38 12, 38 18
-                 L 38 30
-                 C 38 37, 32 42, 24 42
-                 C 16 42, 10 37, 10 30
+              d="M 29 2
+                 C 31 2, 33 3, 34 5
+                 C 36 3.5, 38 3.5, 39.5 5
+                 C 44 8, 48 12, 48 18
+                 L 48 30
+                 C 48 37, 41 42, 29 42
+                 C 17 42, 10 37, 10 30
                  L 10 18
-                 C 10 12, 12 8, 15 5
-                 C 16 3.5, 17.5 3.5, 19 5
-                 C 20 3, 22 2, 24 2 Z"
+                 C 10 12, 14 8, 18.5 5
+                 C 20 3.5, 22 3.5, 24 5
+                 C 25 3, 27 2, 29 2 Z"
               fill="none"
               stroke="rgba(255, 255, 255, 0.6)"
               strokeWidth="4"
@@ -39,19 +40,19 @@ export default function MonsterIcon({ size = 48, onPress }) {
             />
           </G>
 
-          {/* Main monster body outline - pill/capsule shape with cute horns */}
+          {/* Main monster body outline - wider pill/capsule shape with cute horns */}
           <Path
-            d="M 24 4
-               C 25.5 4, 27 4.5, 28 6
-               C 29 5, 30 5, 30.5 6.5
-               C 33 9, 36 13, 36 18
-               L 36 30
-               C 36 36, 31 40, 24 40
-               C 17 40, 12 36, 12 30
+            d="M 29 4
+               C 30.5 4, 32 4.5, 33 6
+               C 34.5 5, 36 5, 37 6.5
+               C 41 9, 46 13, 46 18
+               L 46 30
+               C 46 36, 39 40, 29 40
+               C 19 40, 12 36, 12 30
                L 12 18
-               C 12 13, 15 9, 17.5 6.5
-               C 18 5, 19 5, 20 6
-               C 21 4.5, 22.5 4, 24 4 Z"
+               C 12 13, 16 9, 21 6.5
+               C 22 5, 23.5 5, 25 6
+               C 26 4.5, 27.5 4, 29 4 Z"
             fill="none"
             stroke="url(#glowGradient)"
             strokeWidth="2"
@@ -61,7 +62,7 @@ export default function MonsterIcon({ size = 48, onPress }) {
 
           {/* Center circle - monster eye/clock face */}
           <Circle
-            cx="24"
+            cx="29"
             cy="20"
             r="7"
             fill="none"
@@ -71,7 +72,7 @@ export default function MonsterIcon({ size = 48, onPress }) {
 
           {/* Inner detail - small highlight dot */}
           <Circle
-            cx="26"
+            cx="31"
             cy="18"
             r="1.5"
             fill="rgba(255, 255, 255, 0.8)"
@@ -86,8 +87,8 @@ export default function MonsterIcon({ size = 48, onPress }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 8,
-    left: 0,
+    top: 16,
+    left: 16,
     zIndex: 10,
     alignItems: 'center',
     paddingHorizontal: 8,
