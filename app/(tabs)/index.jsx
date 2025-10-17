@@ -51,26 +51,28 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.contentPadded}>
-            <View style={styles.energyPanel}>
-              <View style={styles.energyLeft}>
-                <Text style={styles.energyLabel}>Current</Text>
-                <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+            <View style={styles.horizontalContainer}>
+              <View style={styles.energyPanel}>
+                <View style={styles.energyLeft}>
+                  <Text style={styles.energyLabel}>Current</Text>
+                  <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+                </View>
+
+                <View style={styles.energyPeaksColumn}>
+                  <View style={styles.energyPeakItem}>
+                    <Text style={styles.energyTimeLabel}>Peak</Text>
+                    <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                  </View>
+                  <View style={styles.energyPeakItem}>
+                    <Text style={styles.energyTimeLabel}>Low</Text>
+                    <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                  </View>
+                </View>
               </View>
 
-              <View style={styles.energyPeaksColumn}>
-                <View style={styles.energyPeakItem}>
-                  <Text style={styles.energyTimeLabel}>Peak</Text>
-                  <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                </View>
-                <View style={styles.energyPeakItem}>
-                  <Text style={styles.energyTimeLabel}>Low</Text>
-                  <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
-                </View>
+              <View style={styles.aiReminderWrapper}>
+                <AIReminderBubble message="Energy's balanced. Keep it calm and consistent" />
               </View>
-            </View>
-
-            <View style={styles.aiReminderContainer}>
-              <AIReminderBubble message="Energy's balanced. Keep it calm and consistent" />
             </View>
 
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
@@ -126,18 +128,23 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 4,
   },
-  energyPanel: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+  horizontalContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
     marginTop: 8,
     marginBottom: 8,
+  },
+  energyPanel: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flex: 0,
+    minWidth: 160,
   },
   energyLeft: {
     alignItems: 'flex-start',
@@ -149,21 +156,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   energyValue: {
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  aiReminderWrapper: {
+    flex: 1,
+  },
   energyPeaksColumn: {
     flexDirection: 'column',
-    gap: 12,
+    gap: 8,
     alignItems: 'flex-end',
+    marginLeft: 8,
   },
   energyPeakItem: {
     alignItems: 'flex-end',
-  },
-  aiReminderContainer: {
-    marginTop: 12,
-    marginBottom: 4,
   },
   energyTimeLabel: {
     fontSize: 10,
