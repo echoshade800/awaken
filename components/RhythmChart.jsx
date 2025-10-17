@@ -39,8 +39,8 @@ export default function RhythmChart({ rhythmData }) {
   const getEnergyStatus = (energy) => {
     if (energy > 80) return "You're at your energy peak!";
     if (energy > 60) return "Your energy is rising!";
-    if (energy > 40) return "Moderate energy level";
-    if (energy > 20) return "Energy is declining";
+    if (energy > 40) return "保持节奏，记得适时休息哦";
+    if (energy > 20) return "能量在下降，建议放慢节奏";
     return "Time to rest and recharge";
   };
 
