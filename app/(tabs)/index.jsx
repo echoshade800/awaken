@@ -130,7 +130,6 @@ const styles = StyleSheet.create({
   },
   horizontalContainer: {
     flexDirection: 'row',
-    alignItems: 'stretch',
     gap: 16,
     marginTop: 8,
     marginBottom: 8,
@@ -145,8 +144,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flex: 0,
-    minWidth: 160,
+    flex: 1,
   },
   energyLeft: {
     alignItems: 'flex-start',
