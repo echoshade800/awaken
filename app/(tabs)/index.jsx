@@ -84,13 +84,20 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
+            <View style={styles.horizontalContainer}>
+              <View style={styles.panelWithLabel}>
+                <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
+                <Text style={styles.panelLabel}>Sleep Debt</Text>
+              </View>
 
-            <View style={styles.dreamKeywordContainer}>
-              <MonsterHornBorder>
-                <Text style={styles.dreamKeywordText}>Starry Sky</Text>
-              </MonsterHornBorder>
-              <Text style={styles.dreamKeywordLabel}>Dream Keyword</Text>
+              <View style={styles.panelWithLabel}>
+                <View style={styles.dreamKeywordContent}>
+                  <MonsterHornBorder>
+                    <Text style={styles.dreamKeywordText}>Starry Sky</Text>
+                  </MonsterHornBorder>
+                </View>
+                <Text style={styles.panelLabel}>Dream Keyword</Text>
+              </View>
             </View>
           </View>
 
@@ -205,26 +212,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  dreamKeywordContainer: {
-    marginBottom: 8,
-    marginTop: 8,
+  dreamKeywordContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
   },
   dreamKeywordText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
     letterSpacing: 0.5,
-  },
-  dreamKeywordLabel: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 8,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 16,
   },
   bottomSpacer: {
     height: 100,
