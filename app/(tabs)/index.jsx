@@ -74,6 +74,13 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            <View style={styles.dreamKeywordPanel}>
+              <Text style={styles.dreamKeywordLabel}>Dream Keyword</Text>
+              <View style={styles.dreamKeywordBubble}>
+                <Text style={styles.dreamKeywordText}>Starry Sky</Text>
+              </View>
+            </View>
+
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
 
             <TouchableOpacity
@@ -186,6 +193,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  dreamKeywordPanel: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  dreamKeywordLabel: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 12,
+    fontWeight: '500',
+  },
+  dreamKeywordBubble: {
+    backgroundColor: 'rgba(200, 220, 255, 0.3)',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  dreamKeywordText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   ctaButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
