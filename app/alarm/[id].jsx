@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, CreditCard as Edit3 } from 'lucide-react-native';
+import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, CreditCard as Edit3, ChevronRight, Check } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
 import useStore from '../../lib/store';
 import StarBackground from '../../components/StarBackground';
 
@@ -31,10 +32,40 @@ const TASK_LABELS = {
   'quick-tap': '快速点击',
 };
 
+const PERIOD_OPTIONS = [
+  { label: '每天', value: 'everyday' },
+  { label: '工作日', value: 'workday' },
+  { label: '周末', value: 'weekend' },
+  { label: '只一次', value: 'tomorrow' },
+];
+
+const WAKE_MODE_OPTIONS = [
+  { label: '语音播报', value: 'voice' },
+  { label: '铃声', value: 'ringtone' },
+];
+
+const VOICE_PACKAGE_OPTIONS = [
+  { label: '元气少女', value: 'energetic-girl' },
+  { label: '沉稳大叔', value: 'calm-man' },
+  { label: '温柔姐姐', value: 'gentle-lady' },
+  { label: '阳光男孩', value: 'cheerful-boy' },
+];
+
+const TASK_OPTIONS = [
+  { label: '不需要游戏', value: 'none' },
+  { label: '数学挑战', value: 'quiz' },
+  { label: '记忆配对', value: 'click' },
+  { label: '快速反应', value: 'quick-tap' },
+];
+
 export default function AlarmDetail() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { alarms, deleteAlarm, loadAlarmForEdit } = useStore();
+  const { alarms, deleteAlarm, loadAlarmForEdit, updateAlarm } = useStore();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState(null);
+  const [modalOptions, setModalOptions] = useState([]);
 
   const alarm = alarms.find((a) => a.id === id);
 
@@ -49,6 +80,22 @@ export default function AlarmDetail() {
   const handleEdit = () => {
     loadAlarmForEdit(id);
     router.push('/alarm/create');
+  };
+
+  const openModal = (type, options) => {
+    setModalType(type);
+    setModalOptions(options);
+    setModalVisible(true);
+  };
+
+  const handleSelectOption = async (value) => {
+    await updateAlarm(id, { [modalType]: value });
+    setModalVisible(false);
+  };
+
+  const handleEditBroadcast = () => {
+    loadAlarmForEdit(id);
+    router.push('/alarm/broadcast-editor');
   };
 
   const handleDelete = () => {
@@ -153,33 +200,48 @@ export default function AlarmDetail() {
 
         {/* 详细信息卡片 */}
         <View style={styles.detailCard}>
-          <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.detailRow}
+            onPress={() => openModal('period', PERIOD_OPTIONS)}
+            activeOpacity={0.7}
+          >
             <View style={styles.detailLeft}>
               <Calendar size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Repeat</Text>
             </View>
-            <Text style={styles.detailValue}>{PERIOD_LABELS[alarm.period] || 'Everyday'}</Text>
+            <View style={styles.detailRight}>
+              <Text style={styles.detailValue}>{PERIOD_LABELS[alarm.period] || 'Everyday'}</Text>
+              <ChevronRight size={16} color="#999" />
+            </View>
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.detailRow}
+            onPress={() => openModal('wakeMode', WAKE_MODE_OPTIONS)}
+            activeOpacity={0.7}
+          >
             <View style={styles.detailLeft}>
               <Bell size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Wake Mode</Text>
             </View>
-            <Text style={styles.detailValue}>
-              {WAKE_MODE_LABELS[alarm.wakeMode] || 'Voice'}
-            </Text>
+            <View style={styles.detailRight}>
+              <Text style={styles.detailValue}>
+                {WAKE_MODE_LABELS[alarm.wakeMode] || 'Voice'}
+              </Text>
+              <ChevronRight size={16} color="#999" />
+            </View>
           </TouchableOpacity>
 
           {alarm.wakeMode === 'voice' && (
             <>
               <View style={styles.divider} />
-              <TouchableOpacity style={styles.detailColumn} onPress={handleEdit} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.detailColumn} onPress={handleEditBroadcast} activeOpacity={0.7}>
                 <View style={styles.detailLeft}>
                   <Volume2 size={20} color="#FF9A76" />
                   <Text style={styles.detailLabel}>Broadcast</Text>
+                  <ChevronRight size={16} color="#999" style={{ marginLeft: 'auto' }} />
                 </View>
                 <View style={styles.detailValueContainer}>
                   {renderBroadcastPreview()}
@@ -187,28 +249,42 @@ export default function AlarmDetail() {
               </TouchableOpacity>
 
               <View style={styles.divider} />
-              <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.detailRow}
+                onPress={() => openModal('voicePackage', VOICE_PACKAGE_OPTIONS)}
+                activeOpacity={0.7}
+              >
                 <View style={styles.detailLeft}>
                   <Volume2 size={20} color="#FF9A76" />
                   <Text style={styles.detailLabel}>Voice Pack</Text>
                 </View>
-                <Text style={styles.detailValue}>
-                  {VOICE_PACKAGE_LABELS[alarm.voicePackage] || 'Energetic Girl'}
-                </Text>
+                <View style={styles.detailRight}>
+                  <Text style={styles.detailValue}>
+                    {VOICE_PACKAGE_LABELS[alarm.voicePackage] || 'Energetic Girl'}
+                  </Text>
+                  <ChevronRight size={16} color="#999" />
+                </View>
               </TouchableOpacity>
             </>
           )}
 
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.detailRow}
+            onPress={() => openModal('task', TASK_OPTIONS)}
+            activeOpacity={0.7}
+          >
             <View style={styles.detailLeft}>
               <Zap size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Task</Text>
             </View>
-            <Text style={styles.detailValue}>
-              {TASK_LABELS[alarm.task] || 'None'}
-            </Text>
+            <View style={styles.detailRight}>
+              <Text style={styles.detailValue}>
+                {TASK_LABELS[alarm.task] || 'None'}
+              </Text>
+              <ChevronRight size={16} color="#999" />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -224,6 +300,48 @@ export default function AlarmDetail() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* 选项模态框 */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {modalType === 'period' && '重复周期'}
+                {modalType === 'wakeMode' && '唤醒模式'}
+                {modalType === 'voicePackage' && '语音包'}
+                {modalType === 'task' && '起床任务'}
+              </Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalClose}>×</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalOptionsContainer}>
+              {modalOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption(option.value)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalOptionText}>{option.label}</Text>
+                  {alarm[modalType] === option.value && (
+                    <Check size={20} color="#FF9A76" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -335,6 +453,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  detailRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   detailColumn: {
     gap: 12,
   },
@@ -403,5 +526,51 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 17,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#4A5F8F',
+  },
+  modalClose: {
+    fontSize: 36,
+    color: '#999',
+    fontWeight: '300',
+    lineHeight: 36,
+  },
+  modalOptionsContainer: {
+    paddingHorizontal: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
