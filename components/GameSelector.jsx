@@ -43,7 +43,7 @@ export default function GameSelector({ selectedValue, onSelect }) {
         onPress={() => setIsExpanded(!isExpanded)}
       >
         <Text style={styles.expandButtonText}>
-          {isExpanded ? '收起' : `查看更多游戏（+${moreGames.length}）`}
+          {isExpanded ? 'Show Less' : `Show More Games (+${moreGames.length})`}
         </Text>
         {isExpanded ? (
           <ChevronUp size={18} color="#007AFF" />

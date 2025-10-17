@@ -22,7 +22,7 @@ export default function MonsterHornBorder({ children, style }) {
           </LinearGradient>
         </Defs>
 
-        {/* 怪兽形状边框 - 带尖角的圆角矩形，透明背景 */}
+        {/* Monster horn border - rounded rectangle with sharp corners */}
         <Path
           d="M 30 10
              L 60 10 L 70 2 L 80 10
@@ -40,7 +40,7 @@ export default function MonsterHornBorder({ children, style }) {
           strokeWidth="2.5"
         />
 
-        {/* 外发光效果 */}
+        {/* Outer glow effect */}
         <Path
           d="M 30 10
              L 60 10 L 70 2 L 80 10
@@ -60,11 +60,11 @@ export default function MonsterHornBorder({ children, style }) {
           style={{ filter: 'blur(4px)' }}
         />
 
-        {/* 装饰点 - 眼睛效果 */}
+        {/* Decorative dots - eye effect */}
         <Circle cx="70" cy="35" r="3" fill="rgba(255, 255, 255, 0.7)" />
         <Circle cx="210" cy="35" r="3" fill="rgba(255, 255, 255, 0.7)" />
 
-        {/* 内部高光 */}
+        {/* Inner highlight */}
         <Circle cx="70" cy="33" r="1.5" fill="rgba(255, 255, 255, 0.95)" />
         <Circle cx="210" cy="33" r="1.5" fill="rgba(255, 255, 255, 0.95)" />
       </Svg>

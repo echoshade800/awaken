@@ -107,20 +107,20 @@ export default function BroadcastEditor() {
 
   return (
     <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
-      {/* Header - 固定 */}
+      {/* Header - fixed */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1C1C1E" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>编辑播报内容</Text>
+        <Text style={styles.headerTitle}>Edit Broadcast</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      {/* 输入框区域 - 固定在顶部 */}
+      {/* Input area - fixed at top */}
       <View style={styles.editorCard}>
-        <Text style={styles.sectionTitle}>播报内容</Text>
+        <Text style={styles.sectionTitle}>Broadcast Content</Text>
         <Text style={styles.sectionDescription}>
-          在下方输入文字，点击模块按钮可在光标位置插入动态信息
+          Enter text below, click module buttons to insert dynamic info at cursor
         </Text>
         <View style={styles.inputWrapper}>
           <TextInput
@@ -129,7 +129,7 @@ export default function BroadcastEditor() {
             value={broadcastContent}
             onChangeText={setBroadcastContent}
             onSelectionChange={handleSelectionChange}
-            placeholder="例如：早上好！现在是{时间}，今天{日期}，外面{天气}"
+            placeholder="Example: Good morning! It's {time}, today is {date}, weather is {weather}"
             placeholderTextColor="#999"
             multiline
             textAlignVertical="top"
@@ -137,15 +137,15 @@ export default function BroadcastEditor() {
         </View>
       </View>
 
-      {/* 中间滚动区域 - 包含模块和语音包 */}
+      {/* Middle scroll area - modules and voice packages */}
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
-        {/* 插入模块区域 */}
+        {/* Insert modules area */}
         <View style={styles.modulesCard}>
-          <Text style={styles.sectionTitle}>插入模块</Text>
+          <Text style={styles.sectionTitle}>Insert Modules</Text>
           <View style={styles.modulesGrid}>
             {BROADCAST_MODULES.map((module) => {
               const IconComponent = module.icon;
@@ -164,9 +164,9 @@ export default function BroadcastEditor() {
           </View>
         </View>
 
-        {/* 语音包选择区域 */}
+        {/* Voice package selection area */}
         <View style={styles.voicePackageCard}>
-          <Text style={styles.sectionTitle}>选择语音包</Text>
+          <Text style={styles.sectionTitle}>Select Voice</Text>
           <View style={styles.voicePackageGrid}>
             {VOICE_PACKAGES.map((voicePackage) => {
               const isSelected = selectedVoicePackage === voicePackage.id;
@@ -203,9 +203,9 @@ export default function BroadcastEditor() {
         </View>
       </ScrollView>
 
-      {/* 底部按钮区域 - 固定 */}
+      {/* Bottom actions - fixed */}
       <View style={styles.bottomActions}>
-        {/* 语音试听按钮 */}
+        {/* Voice preview button */}
         {broadcastContent.trim().length > 0 && (
           <TouchableOpacity
             style={[
@@ -226,18 +226,18 @@ export default function BroadcastEditor() {
                 isPlaying && styles.previewButtonTextPlaying,
               ]}
             >
-              {isPlaying ? '停止播放' : '试听播报'}
+              {isPlaying ? 'Stop' : 'Preview'}
             </Text>
           </TouchableOpacity>
         )}
 
-        {/* 完成设置按钮 */}
+        {/* Complete button */}
         <TouchableOpacity
           style={styles.completeButton}
           onPress={handleComplete}
           activeOpacity={0.8}
         >
-          <Text style={styles.completeButtonText}>完成设置</Text>
+          <Text style={styles.completeButtonText}>Complete</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>

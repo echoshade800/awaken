@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function DreamBubble({ keyword = '星空', initialX = 100, initialY = 200 }) {
+export default function DreamBubble({ keyword = 'Starry Sky', initialX = 100, initialY = 200 }) {
   const router = useRouter();
 
   const translateX = useRef(new Animated.Value(initialX)).current;

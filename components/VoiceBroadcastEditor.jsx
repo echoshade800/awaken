@@ -3,13 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import { Clock, Calendar, Cloud, Battery, CalendarDays, Palette, Gift } from 'lucide-react-native';
 
 const BROADCAST_MODULES = [
-  { id: 'time', label: '当前时间', icon: Clock, tag: '{时间}' },
-  { id: 'date', label: '日期', icon: Calendar, tag: '{日期}' },
-  { id: 'weather', label: '天气', icon: Cloud, tag: '{天气}' },
-  { id: 'battery', label: '电量', icon: Battery, tag: '{电量}' },
-  { id: 'schedule', label: '日程提醒', icon: CalendarDays, tag: '{日程}' },
-  { id: 'lucky-color', label: '幸运色', icon: Palette, tag: '{幸运色}' },
-  { id: 'random', label: '随机彩蛋', icon: Gift, tag: '{彩蛋}' },
+  { id: 'time', label: 'Time', icon: Clock, tag: '{time}' },
+  { id: 'date', label: 'Date', icon: Calendar, tag: '{date}' },
+  { id: 'weather', label: 'Weather', icon: Cloud, tag: '{weather}' },
+  { id: 'battery', label: 'Battery', icon: Battery, tag: '{battery}' },
+  { id: 'schedule', label: 'Schedule', icon: CalendarDays, tag: '{schedule}' },
+  { id: 'lucky-color', label: 'Lucky Color', icon: Palette, tag: '{lucky}' },
+  { id: 'random', label: 'Random', icon: Gift, tag: '{random}' },
 ];
 
 export default function VoiceBroadcastEditor({ value = '', onChange }) {
@@ -42,7 +42,7 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
   const renderModuleTag = (text) => {
     const parts = [];
     let lastIndex = 0;
-    const regex = /\{(时间|日期|天气|电量|日程|幸运色|彩蛋)\}/g;
+    const regex = /\{(time|date|weather|battery|schedule|lucky|random)\}/g;
     let match;
 
     while ((match = regex.exec(text)) !== null) {
@@ -74,13 +74,13 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
 
   const getIconForTag = (label) => {
     const moduleMap = {
-      '时间': Clock,
-      '日期': Calendar,
-      '天气': Cloud,
-      '电量': Battery,
-      '日程': CalendarDays,
-      '幸运色': Palette,
-      '彩蛋': Gift,
+      'time': Clock,
+      'date': Calendar,
+      'weather': Cloud,
+      'battery': Battery,
+      'schedule': CalendarDays,
+      'lucky': Palette,
+      'random': Gift,
     };
     return moduleMap[label] || Clock;
   };
@@ -88,7 +88,7 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
   return (
     <View style={styles.container}>
       <View style={styles.editorCard}>
-        <Text style={styles.label}>播报内容</Text>
+        <Text style={styles.label}>Broadcast Content</Text>
 
         <View style={styles.inputWrapper}>
           <TextInput
@@ -97,7 +97,7 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
             value={value}
             onChangeText={handleTextChange}
             onSelectionChange={handleSelectionChange}
-            placeholder="输入播报内容，点击下方模块插入动态信息..."
+            placeholder="Enter broadcast content, tap modules below to insert..."
             placeholderTextColor="#999"
             multiline
             textAlignVertical="top"
@@ -133,7 +133,7 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
       </View>
 
       <View style={styles.modulesCard}>
-        <Text style={styles.modulesTitle}>插入模块</Text>
+        <Text style={styles.modulesTitle}>Insert Modules</Text>
         <View style={styles.modulesGrid}>
           {BROADCAST_MODULES.map((module) => {
             const IconComponent = module.icon;

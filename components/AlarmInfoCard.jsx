@@ -3,18 +3,18 @@ import { Clock, Calendar, Music, Gamepad2, Mic } from 'lucide-react-native';
 import { getGameLabel } from '../lib/interactionOptions';
 
 const PERIOD_LABELS = {
-  everyday: '每天',
-  workday: '工作日',
-  weekend: '周末',
-  tomorrow: '明天',
-  custom: '自定义',
+  everyday: 'Everyday',
+  workday: 'Weekdays',
+  weekend: 'Weekend',
+  tomorrow: 'Tomorrow',
+  custom: 'Custom',
 };
 
 const VOICE_PACKAGE_LABELS = {
-  'energetic-girl': '元气少女',
-  'calm-man': '沉稳大叔',
-  'gentle-lady': '温柔姐姐',
-  'cheerful-boy': '阳光男孩',
+  'energetic-girl': 'Energetic Girl',
+  'calm-man': 'Calm Man',
+  'gentle-lady': 'Gentle Lady',
+  'cheerful-boy': 'Cheerful Boy',
 };
 
 export default function AlarmInfoCard({ alarm }) {
@@ -43,7 +43,7 @@ export default function AlarmInfoCard({ alarm }) {
           <>
             <View style={styles.detailItem}>
               <Mic size={20} color="#666" />
-              <Text style={styles.detailText}>语音播报</Text>
+              <Text style={styles.detailText}>Voice Broadcast</Text>
             </View>
             <View style={styles.detailItem}>
               <Music size={20} color="#666" />
@@ -53,12 +53,12 @@ export default function AlarmInfoCard({ alarm }) {
         ) : alarm.wakeMode === 'ringtone' ? (
           <View style={styles.detailItem}>
             <Music size={20} color="#666" />
-            <Text style={styles.detailText}>{alarm.ringtone || '默认铃声'}</Text>
+            <Text style={styles.detailText}>{alarm.ringtone || 'Default Ringtone'}</Text>
           </View>
         ) : alarm.wakeMode === 'vibration' ? (
           <View style={styles.detailItem}>
             <Music size={20} color="#666" />
-            <Text style={styles.detailText}>震动</Text>
+            <Text style={styles.detailText}>Vibration</Text>
           </View>
         ) : null}
 
@@ -72,7 +72,7 @@ export default function AlarmInfoCard({ alarm }) {
         {alarm.broadcastContent && (
           <View style={[styles.detailItem, styles.broadcastPreview]}>
             <Text style={styles.broadcastText} numberOfLines={2}>
-              播报: {alarm.broadcastContent}
+              Broadcast: {alarm.broadcastContent}
             </Text>
           </View>
         )}
