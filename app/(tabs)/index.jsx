@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    height: 110,
   },
   panelLabel: {
     fontSize: 16,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   aiReminderBubble: {
-    flex: 1,
+    height: 110,
     justifyContent: 'center',
   },
   energyPeaksColumn: {
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    minHeight: 80,
+    height: 110,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    minHeight: 80,
+    height: 110,
     justifyContent: 'center',
     alignItems: 'center',
   },
