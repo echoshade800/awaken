@@ -69,17 +69,17 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 16,
+    marginTop: 16,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '600',
     color: '#1C1C1E',
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#8E8E93',
   },
   scrollContent: {
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 16,
     left: 24,
     right: 24,
   },
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#007AFF',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 24,
     shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 4 },
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   fabText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFF',
     marginLeft: 8,

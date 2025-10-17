@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.88)',
     borderRadius: 16,
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginVertical: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -84,10 +84,10 @@ const styles = StyleSheet.create({
   },
   clickableArea: {
     flex: 1,
-    padding: 16,
+    padding: 12,
   },
   content: {
-    gap: 12,
+    gap: 8,
   },
   header: {
     flexDirection: 'row',
@@ -95,29 +95,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   time: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '700',
     color: '#1C1C1E',
   },
   details: {
-    gap: 8,
+    gap: 6,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   detailText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8E8E93',
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#C7C7CC',
     fontStyle: 'italic',
   },
   switchContainer: {
-    paddingRight: 16,
+    paddingRight: 12,
     paddingLeft: 8,
   },
 });
