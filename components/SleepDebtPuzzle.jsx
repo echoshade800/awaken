@@ -92,120 +92,157 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.puzzleArea}>
-        <View style={styles.mainPuzzle}>
-          <Svg width={puzzleWidth + 40} height={puzzleHeight + 40} viewBox={`-20 -20 ${puzzleWidth + 40} ${puzzleHeight + 40}`}>
-            <Defs>
-              <LinearGradient id="puzzleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor="#5A9FD4" stopOpacity="1" />
-                <Stop offset="100%" stopColor="#4A8FC4" stopOpacity="1" />
-              </LinearGradient>
+      <Svg width={160} height={100} viewBox="0 0 160 100">
+        <Defs>
+          <LinearGradient id="puzzleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#5A9FD4" stopOpacity="1" />
+            <Stop offset="100%" stopColor="#4A8FC4" stopOpacity="1" />
+          </LinearGradient>
 
-              <ClipPath id="textClip">
-                {pieces.map((piece, idx) => {
-                  if (idx === missingPieceIndex) return null;
-                  return (
-                    <Path
-                      key={idx}
-                      d={createPuzzlePiece(
-                        piece.col,
-                        piece.row,
-                        piece.rightTab,
-                        piece.bottomTab,
-                        piece.leftSocket,
-                        piece.topSocket
-                      )}
-                    />
-                  );
-                })}
-              </ClipPath>
-            </Defs>
+          <LinearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="rgba(255, 255, 255, 0.5)" stopOpacity="1" />
+            <Stop offset="50%" stopColor="rgba(200, 230, 255, 0.6)" stopOpacity="1" />
+            <Stop offset="100%" stopColor="rgba(255, 255, 255, 0.5)" stopOpacity="1" />
+          </LinearGradient>
 
+          <ClipPath id="textClip">
             {pieces.map((piece, idx) => {
-              if (idx === missingPieceIndex) {
-                return (
-                  <Path
-                    key={idx}
-                    d={createPuzzlePiece(
-                      piece.col,
-                      piece.row,
-                      piece.rightTab,
-                      piece.bottomTab,
-                      piece.leftSocket,
-                      piece.topSocket
-                    )}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.15)"
-                    strokeWidth="2"
-                    strokeDasharray="6,6"
-                  />
-                );
-              }
-
+              if (idx === missingPieceIndex) return null;
               return (
-                <G key={idx}>
-                  <Path
-                    d={createPuzzlePiece(
-                      piece.col,
-                      piece.row,
-                      piece.rightTab,
-                      piece.bottomTab,
-                      piece.leftSocket,
-                      piece.topSocket
-                    )}
-                    fill="url(#puzzleGradient)"
-                  />
-                  <Path
-                    d={createPuzzlePiece(
-                      piece.col,
-                      piece.row,
-                      piece.rightTab,
-                      piece.bottomTab,
-                      piece.leftSocket,
-                      piece.topSocket
-                    )}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.4)"
-                    strokeWidth="1.5"
-                  />
-                  <Path
-                    d={createPuzzlePiece(
-                      piece.col,
-                      piece.row,
-                      piece.rightTab,
-                      piece.bottomTab,
-                      piece.leftSocket,
-                      piece.topSocket
-                    )}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.2)"
-                    strokeWidth="3"
-                    style={{ filter: 'blur(2px)' }}
-                  />
-                </G>
+                <Path
+                  key={idx}
+                  d={createPuzzlePiece(
+                    piece.col,
+                    piece.row,
+                    piece.rightTab,
+                    piece.bottomTab,
+                    piece.leftSocket,
+                    piece.topSocket
+                  )}
+                  transform="translate(20, 20)"
+                />
               );
             })}
+          </ClipPath>
+        </Defs>
 
-            <SvgText
-              x={puzzleWidth / 2}
-              y={puzzleHeight / 2 + 8}
-              fontSize="24"
-              fontWeight="700"
-              fill="rgba(220, 240, 255, 0.98)"
-              textAnchor="middle"
-              clipPath="url(#textClip)"
-              transform={`rotate(-3, ${puzzleWidth / 2}, ${puzzleHeight / 2})`}
-              letterSpacing="2"
-            >
-              SLEEP
-            </SvgText>
-          </Svg>
-        </View>
-      </View>
+        <G transform="translate(20, 20)">
+          {pieces.map((piece, idx) => {
+            if (idx === missingPieceIndex) {
+              return (
+                <Path
+                  key={idx}
+                  d={createPuzzlePiece(
+                    piece.col,
+                    piece.row,
+                    piece.rightTab,
+                    piece.bottomTab,
+                    piece.leftSocket,
+                    piece.topSocket
+                  )}
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.15)"
+                  strokeWidth="2"
+                  strokeDasharray="6,6"
+                />
+              );
+            }
 
-      <Text style={styles.debtText}>
-        Sleep Debt: {sleepDebt}h
-      </Text>
+            return (
+              <G key={idx}>
+                <Path
+                  d={createPuzzlePiece(
+                    piece.col,
+                    piece.row,
+                    piece.rightTab,
+                    piece.bottomTab,
+                    piece.leftSocket,
+                    piece.topSocket
+                  )}
+                  fill="url(#puzzleGradient)"
+                />
+                <Path
+                  d={createPuzzlePiece(
+                    piece.col,
+                    piece.row,
+                    piece.rightTab,
+                    piece.bottomTab,
+                    piece.leftSocket,
+                    piece.topSocket
+                  )}
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.4)"
+                  strokeWidth="1.5"
+                />
+                <Path
+                  d={createPuzzlePiece(
+                    piece.col,
+                    piece.row,
+                    piece.rightTab,
+                    piece.bottomTab,
+                    piece.leftSocket,
+                    piece.topSocket
+                  )}
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.2)"
+                  strokeWidth="3"
+                  style={{ filter: 'blur(2px)' }}
+                />
+              </G>
+            );
+          })}
+
+          <SvgText
+            x={puzzleWidth / 2}
+            y={puzzleHeight / 2 + 8}
+            fontSize="24"
+            fontWeight="700"
+            fill="rgba(220, 240, 255, 0.98)"
+            textAnchor="middle"
+            clipPath="url(#textClip)"
+            transform={`rotate(-3, ${puzzleWidth / 2}, ${puzzleHeight / 2})`}
+            letterSpacing="2"
+          >
+            SLEEP
+          </SvgText>
+        </G>
+
+        <Path
+          d="M 20 10
+             L 50 10 L 58 4 L 66 10
+             L 94 10 L 102 4 L 110 10
+             L 140 10
+             Q 150 10 150 20
+             L 150 80
+             Q 150 90 140 90
+             L 20 90
+             Q 10 90 10 80
+             L 10 20
+             Q 10 10 20 10 Z"
+          fill="transparent"
+          stroke="url(#glowGradient)"
+          strokeWidth="2.5"
+        />
+
+        <Path
+          d="M 20 10
+             L 50 10 L 58 4 L 66 10
+             L 94 10 L 102 4 L 110 10
+             L 140 10
+             Q 150 10 150 20
+             L 150 80
+             Q 150 90 140 90
+             L 20 90
+             Q 10 90 10 80
+             L 10 20
+             Q 10 10 20 10 Z"
+          fill="none"
+          stroke="rgba(180, 220, 255, 0.4)"
+          strokeWidth="5"
+          opacity="0.4"
+          style={{ filter: 'blur(4px)' }}
+        />
+      </Svg>
     </View>
   );
 }
@@ -214,26 +251,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-  },
-  puzzleArea: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mainPuzzle: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  debtText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(200, 230, 255, 0.95)',
-    letterSpacing: 0.5,
-    marginTop: 6,
+    width: 160,
+    height: 100,
   },
 });
