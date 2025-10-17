@@ -1,11 +1,21 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { useState } from 'react';
 
 export default function AIReminderBubble({ message, style }) {
+  const [fontSize, setFontSize] = useState(13);
+
+  const handleLayout = (event) => {
+    const { width, height } = event.nativeEvent.layout;
+    const minDimension = Math.min(width, height);
+    const calculatedSize = Math.max(11, Math.min(14, minDimension * 0.08));
+    setFontSize(calculatedSize);
+  };
+
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, style]} onLayout={handleLayout}>
       <View style={styles.iconContainer}>
-        <Svg width={16} height={16} viewBox="0 0 24 24">
+        <Svg width={20} height={20} viewBox="0 0 24 24">
           <Circle
             cx="12"
             cy="12"
@@ -25,7 +35,7 @@ export default function AIReminderBubble({ message, style }) {
           <Circle cx="12" cy="17" r="0.8" fill="rgba(255, 255, 255, 0.9)" />
         </Svg>
       </View>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.message, { fontSize, lineHeight: fontSize * 1.4 }]}>{message}</Text>
     </View>
   );
 }
@@ -33,14 +43,14 @@ export default function AIReminderBubble({ message, style }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    gap: 6,
+    gap: 8,
     shadowColor: 'rgba(255, 255, 255, 0.3)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -48,17 +58,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   iconContainer: {
-    width: 16,
-    height: 16,
+    width: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 1,
   },
   message: {
     flex: 1,
-    fontSize: 10,
     color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 14,
     fontWeight: '500',
   },
 });

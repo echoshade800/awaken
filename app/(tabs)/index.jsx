@@ -73,7 +73,7 @@ export default function HomeScreen() {
               </View>
 
               <AIReminderBubble
-                message="Energy's balanced. Keep it calm and consistent"
+                message="✨ Energy's balanced. Keep it calm and consistent 🌙"
                 style={styles.aiReminderBubble}
               />
             </View>
