@@ -6,41 +6,17 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Clock, Calendar, Cloud, Battery, CalendarDays, Palette, Gift, Shirt, ThermometerSun, Snowflake, Thermometer, Droplets, Moon, Activity, Volume2 } from 'lucide-react-native';
+import { ArrowLeft, Volume2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
-
-const BROADCAST_MODULES = [
-  { id: 'time', label: '当前时间', icon: Clock, tag: '{时间}' },
-  { id: 'date', label: '日期', icon: Calendar, tag: '{日期}' },
-  { id: 'weather', label: '天气', icon: Cloud, tag: '{天气}' },
-  { id: 'high-temp', label: '最高温', icon: ThermometerSun, tag: '{最高温}' },
-  { id: 'low-temp', label: '最低温', icon: Snowflake, tag: '{最低温}' },
-  { id: 'avg-temp', label: '平均温', icon: Thermometer, tag: '{平均温}' },
-  { id: 'humidity', label: '湿度', icon: Droplets, tag: '{湿度}' },
-  { id: 'clothing', label: '穿衣提醒', icon: Shirt, tag: '{穿衣}' },
-  { id: 'dream', label: '梦境关键词', icon: Moon, tag: '{梦境}' },
-  { id: 'rhythm', label: '节律状态', icon: Activity, tag: '{节律}' },
-  { id: 'battery', label: '电量', icon: Battery, tag: '{电量}' },
-  { id: 'schedule', label: '日程提醒', icon: CalendarDays, tag: '{日程}' },
-  { id: 'lucky-color', label: '幸运色', icon: Palette, tag: '{幸运色}' },
-  { id: 'random', label: '随机彩蛋', icon: Gift, tag: '{彩蛋}' },
-];
-
-const VOICE_PACKAGES = [
-  { id: 'energetic-girl', label: '元气少女', description: '活力满满的甜美女声' },
-  { id: 'calm-man', label: '沉稳大叔', description: '温暖有力的男声' },
-  { id: 'gentle-lady', label: '温柔姐姐', description: '轻柔舒缓的女声' },
-  { id: 'cheerful-boy', label: '阳光男孩', description: '热情开朗的男声' },
-];
+import { BROADCAST_MODULES, VOICE_PACKAGES, generateMockData, replaceTags } from '../../lib/broadcastModules';
 
 export default function BroadcastEditor() {
   const router = useRouter();
-  const { currentAlarmDraft, updateDraft, addChatMessage } = useStore();
+  const { currentAlarmDraft, updateDraft } = useStore();
   const inputRef = useRef(null);
 
   const [broadcastContent, setBroadcastContent] = useState(
@@ -68,33 +44,10 @@ export default function BroadcastEditor() {
 
     setTimeout(() => {
       inputRef.current?.focus();
+      inputRef.current?.setNativeProps({
+        selection: { start: newCursorPos, end: newCursorPos }
+      });
     }, 100);
-  };
-
-  const handleConfirm = () => {
-    updateDraft({
-      broadcastContent: broadcastContent,
-      voicePackage: selectedVoicePackage,
-    });
-
-    router.back();
-  };
-
-  const MOCK_DATA = {
-    '{时间}': '7点30分',
-    '{日期}': '2025年10月16日星期三',
-    '{天气}': '晴天',
-    '{最高温}': '28度',
-    '{最低温}': '18度',
-    '{平均温}': '23度',
-    '{湿度}': '65%',
-    '{穿衣}': '适合穿薄外套或长袖',
-    '{梦境}': '你梦到了大海和星空',
-    '{节律}': '当前能量水平高峰期',
-    '{电量}': '80%',
-    '{日程}': '上卜10点有会议',
-    '{幸运色}': '蓝色',
-    '{彩蛋}': '今天会遇到好运',
   };
 
   const handlePreviewSpeech = async () => {
@@ -113,11 +66,7 @@ export default function BroadcastEditor() {
       return;
     }
 
-    let content = broadcastContent;
-    Object.keys(MOCK_DATA).forEach(tag => {
-      content = content.replace(new RegExp(tag.replace(/[{}]/g, '\\$&'), 'g'), MOCK_DATA[tag]);
-    });
-
+    const content = replaceTags(broadcastContent);
     setIsPlaying(true);
 
     if (Platform.OS === 'web') {
@@ -141,84 +90,77 @@ export default function BroadcastEditor() {
     }
   };
 
+  const handleComplete = () => {
+    updateDraft({
+      broadcastContent,
+      voicePackage: selectedVoicePackage,
+    });
+    router.back();
+  };
 
   return (
     <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+      {/* Header - 固定 */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={24} color="#1C1C1E" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>编辑播报内容</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* 输入框区域 - 固定在顶部 */}
+      <View style={styles.editorCard}>
+        <Text style={styles.sectionTitle}>播报内容</Text>
+        <Text style={styles.sectionDescription}>
+          在下方输入文字，点击模块按钮可在光标位置插入动态信息
+        </Text>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            ref={inputRef}
+            style={styles.input}
+            value={broadcastContent}
+            onChangeText={setBroadcastContent}
+            onSelectionChange={handleSelectionChange}
+            placeholder="例如：早上好！现在是{时间}，今天{日期}，外面{天气}"
+            placeholderTextColor="#999"
+            multiline
+            textAlignVertical="top"
+          />
+        </View>
+      </View>
+
+      {/* 中间滚动区域 - 包含模块和语音包 */}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
       >
-        {/* Header - 固定 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#1C1C1E" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>编辑播报内容</Text>
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* 输入框区域 - 固定 */}
-        <View style={styles.editorCard}>
-          <Text style={styles.sectionTitle}>播报内容</Text>
-          <Text style={styles.sectionDescription}>
-            在下方输入文字，点击模块按钮可在光标位置插入动态信息
-          </Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              ref={inputRef}
-              style={styles.input}
-              value={broadcastContent}
-              onChangeText={setBroadcastContent}
-              onSelectionChange={handleSelectionChange}
-              placeholder="例如：早上好！现在是{时间}，今天{日期}，外面{天气}"
-              placeholderTextColor="#999"
-              multiline
-              textAlignVertical="top"
-            />
+        {/* 插入模块区域 */}
+        <View style={styles.modulesCard}>
+          <Text style={styles.sectionTitle}>插入模块</Text>
+          <View style={styles.modulesGrid}>
+            {BROADCAST_MODULES.map((module) => {
+              const IconComponent = module.icon;
+              return (
+                <TouchableOpacity
+                  key={module.id}
+                  style={styles.moduleButton}
+                  onPress={() => insertModule(module)}
+                  activeOpacity={0.7}
+                >
+                  <IconComponent size={20} color="#007AFF" strokeWidth={2} />
+                  <Text style={styles.moduleLabel}>{module.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* 模块按钮区域 - 可滚动 */}
-        <View style={styles.modulesSection}>
-          <View style={styles.modulesSectionCard}>
-            <View style={styles.modulesSectionHeader}>
-              <Text style={styles.sectionTitle}>插入模块</Text>
-            </View>
-            <ScrollView
-              style={styles.modulesScrollView}
-              contentContainerStyle={styles.modulesScrollContent}
-              showsVerticalScrollIndicator={true}
-              nestedScrollEnabled={true}
-            >
-              <View style={styles.modulesGrid}>
-                {BROADCAST_MODULES.map((module) => {
-                  const IconComponent = module.icon;
-                  return (
-                    <TouchableOpacity
-                      key={module.id}
-                      style={styles.moduleButton}
-                      onPress={() => insertModule(module)}
-                      activeOpacity={0.7}
-                    >
-                      <IconComponent size={20} color="#007AFF" strokeWidth={2} />
-                      <Text style={styles.moduleLabel}>{module.label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-
-        {/* 语音包选择区域 - 固定 */}
+        {/* 语音包选择区域 */}
         <View style={styles.voicePackageCard}>
           <Text style={styles.sectionTitle}>选择语音包</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.voiceScrollContainer}
-          >
+          <View style={styles.voicePackageGrid}>
             {VOICE_PACKAGES.map((voicePackage) => {
               const isSelected = selectedVoicePackage === voicePackage.id;
               return (
@@ -250,52 +192,53 @@ export default function BroadcastEditor() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
+      </ScrollView>
 
-        {/* 底部按钮区域 - 固定 */}
-        <View style={styles.bottomActions}>
-          {/* 语音试听按钮 */}
-          {broadcastContent.trim().length > 0 && (
-            <TouchableOpacity
-              style={[
-                styles.previewButton,
-                isPlaying && styles.previewButtonPlaying,
-              ]}
-              onPress={handlePreviewSpeech}
-              activeOpacity={0.8}
-            >
-              <Volume2 size={20} color={isPlaying ? '#FFF' : '#007AFF'} />
-              <Text
-                style={[
-                  styles.previewButtonText,
-                  isPlaying && styles.previewButtonTextPlaying,
-                ]}
-              >
-                {isPlaying ? '正在播放...' : '试听播报效果'}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* 确认按钮 */}
+      {/* 底部按钮区域 - 固定 */}
+      <View style={styles.bottomActions}>
+        {/* 语音试听按钮 */}
+        {broadcastContent.trim().length > 0 && (
           <TouchableOpacity
-            style={styles.confirmButton}
-            onPress={handleConfirm}
+            style={[
+              styles.previewButton,
+              isPlaying && styles.previewButtonPlaying,
+            ]}
+            onPress={handlePreviewSpeech}
             activeOpacity={0.8}
           >
-            <Text style={styles.confirmButtonText}>完成设置</Text>
+            <Volume2
+              size={20}
+              color={isPlaying ? '#FFFFFF' : '#007AFF'}
+              strokeWidth={2}
+            />
+            <Text
+              style={[
+                styles.previewButtonText,
+                isPlaying && styles.previewButtonTextPlaying,
+              ]}
+            >
+              {isPlaying ? '停止播放' : '试听播报'}
+            </Text>
           </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        )}
+
+        {/* 完成设置按钮 */}
+        <TouchableOpacity
+          style={styles.completeButton}
+          onPress={handleComplete}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.completeButtonText}>完成设置</Text>
+        </TouchableOpacity>
+      </View>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  keyboardView: {
     flex: 1,
   },
   header: {
@@ -329,6 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     marginHorizontal: 16,
     marginTop: 8,
+    marginBottom: 12,
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -341,16 +285,16 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#1C1C1E',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 13,
     color: '#666',
-    marginBottom: 16,
+    marginBottom: 12,
     lineHeight: 18,
   },
   inputWrapper: {
-    height: 120,
+    height: 100,
     backgroundColor: '#F9F9F9',
     borderRadius: 12,
     padding: 14,
@@ -364,36 +308,23 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     padding: 0,
   },
-  modulesSection: {
+  scrollContainer: {
     flex: 1,
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
   },
-  modulesSectionCard: {
-    flex: 1,
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  modulesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    marginHorizontal: 16,
+    marginBottom: 12,
     borderRadius: 20,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 3,
-    overflow: 'hidden',
-  },
-  modulesSectionHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  modulesScrollView: {
-    flex: 1,
-  },
-  modulesScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 80,
-    flexGrow: 1,
   },
   modulesGrid: {
     flexDirection: 'row',
@@ -419,7 +350,7 @@ const styles = StyleSheet.create({
   voicePackageCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     marginHorizontal: 16,
-    marginTop: 12,
+    marginBottom: 12,
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -428,27 +359,25 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  voiceScrollContainer: {
-    paddingVertical: 4,
+  voicePackageGrid: {
     gap: 12,
   },
   voiceCard: {
-    width: 200,
-    backgroundColor: '#F9F9F9',
-    padding: 18,
+    backgroundColor: '#F5F5F7',
+    padding: 16,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: 'transparent',
   },
   voiceCardSelected: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#E3F2FF',
     borderColor: '#007AFF',
   },
   voiceCardLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1C1C1E',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   voiceCardLabelSelected: {
     color: '#007AFF',
@@ -456,32 +385,34 @@ const styles = StyleSheet.create({
   voiceCardDescription: {
     fontSize: 13,
     color: '#666',
-    lineHeight: 18,
   },
   voiceCardDescriptionSelected: {
-    color: '#0063CC',
+    color: '#0051A8',
   },
   bottomActions: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 32,
     gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   previewButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 14,
-    borderRadius: 16,
+    borderRadius: 14,
     gap: 8,
     borderWidth: 2,
     borderColor: '#007AFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
   },
   previewButtonPlaying: {
     backgroundColor: '#007AFF',
@@ -493,12 +424,12 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   previewButtonTextPlaying: {
-    color: '#FFF',
+    color: '#FFFFFF',
   },
-  confirmButton: {
+  completeButton: {
     backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    borderRadius: 16,
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
     shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 4 },
@@ -506,9 +437,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  confirmButtonText: {
-    color: '#FFF',
-    fontSize: 17,
+  completeButtonText: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
