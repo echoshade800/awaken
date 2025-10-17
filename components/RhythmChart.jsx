@@ -1,159 +1,44 @@
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import Svg, { Path, Circle, Defs, RadialGradient, Stop, G } from 'react-native-svg';
+import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
+import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
-import { useState, useEffect } from 'react';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing
-} from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
+import { useEffect, useRef } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;
-const CHART_HEIGHT = 300;
+const CHART_HEIGHT = 180;
+const PADDING = { top: 60, right: 15, bottom: 30, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
-  const { points, peak, valley } = rhythmData;
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const scale1 = useSharedValue(1);
-  const scale2 = useSharedValue(1);
-  const scale3 = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0.6);
+  const { points, peak, valley, melatoninWindow } = rhythmData;
+  const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    scale1.value = withRepeat(
-      withSequence(
-        withTiming(1.2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      false
-    );
-
-    scale2.value = withRepeat(
-      withSequence(
-        withTiming(1.3, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      false
-    );
-
-    scale3.value = withRepeat(
-      withSequence(
-        withTiming(1.4, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      false
-    );
-
-    pulseOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.8, { duration: 1500 }),
-        withTiming(0.4, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -3,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 3,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
-
-  const animatedStyle1 = useAnimatedStyle(() => ({
-    transform: [{ scale: scale1.value }],
-    opacity: pulseOpacity.value * 0.3,
-  }));
-
-  const animatedStyle2 = useAnimatedStyle(() => ({
-    transform: [{ scale: scale2.value }],
-    opacity: pulseOpacity.value * 0.2,
-  }));
-
-  const animatedStyle3 = useAnimatedStyle(() => ({
-    transform: [{ scale: scale3.value }],
-    opacity: pulseOpacity.value * 0.15,
-  }));
-
-  const currentMinute = getCurrentMinute();
-  const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
-
-  const getEnergyColor = (energy) => {
-    if (energy > 80) return {
-      primary: '#6DD5FA',
-      secondary: '#2193B0',
-      glow: '#A3E4FF',
-      text: '☀️'
-    };
-    if (energy > 60) return {
-      primary: '#A8EDEA',
-      secondary: '#FED6E3',
-      glow: '#FFFFFF',
-      text: '🌤️'
-    };
-    if (energy > 40) return {
-      primary: '#FBD786',
-      secondary: '#F7797D',
-      glow: '#FFE4A3',
-      text: '🌆'
-    };
-    if (energy > 20) return {
-      primary: '#FEB47B',
-      secondary: '#FF7E5F',
-      glow: '#FFD9A3',
-      text: '🌙'
-    };
-    return {
-      primary: '#667EEA',
-      secondary: '#764BA2',
-      glow: '#A3B3FF',
-      text: '🌃'
-    };
-  };
-
-  const getEnergyStatus = (energy) => {
-    if (energy > 80) return {
-      title: "Your Energy is Soaring",
-      subtitle: `Best time for focus between ${peak.time}`,
-      emoji: '☀️'
-    };
-    if (energy > 60) return {
-      title: "Energy is Rising",
-      subtitle: `Peak coming at ${peak.time}`,
-      emoji: '🌤️'
-    };
-    if (energy > 40) return {
-      title: "Steady Energy Flow",
-      subtitle: "Maintain your current rhythm",
-      emoji: '🌆'
-    };
-    if (energy > 20) return {
-      title: "Energy Winding Down",
-      subtitle: `Low point at ${valley.time}`,
-      emoji: '🌙'
-    };
-    return {
-      title: "Time to Recharge",
-      subtitle: "Rest and restore your energy",
-      emoji: '🌃'
-    };
-  };
-
-  const energyColor = getEnergyColor(currentEnergy);
-  const energyStatus = getEnergyStatus(currentEnergy);
-  const brightness = currentEnergy / 100;
 
   const xScale = (minute) => {
     const clampedMinute = Math.max(0, Math.min(1440, minute));
-    return 40 + ((clampedMinute / 1440) * (CHART_WIDTH - 80));
+    return PADDING.left + ((clampedMinute / 1440) * (CHART_WIDTH - PADDING.left - PADDING.right));
   };
 
   const yScale = (energy) => {
     const clampedEnergy = Math.max(0, Math.min(100, energy));
-    return 200 - ((clampedEnergy / 100) * 120);
+    return CHART_HEIGHT - PADDING.bottom - ((clampedEnergy / 100) * (CHART_HEIGHT - PADDING.top - PADDING.bottom));
   };
 
   const clampedPoints = points.map((p) => ({
@@ -168,131 +53,183 @@ export default function RhythmChart({ rhythmData }) {
 
   const pathData = lineGenerator(clampedPoints);
 
+  const currentMinute = getCurrentMinute();
+  const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
+
+  const getEnergyColor = (energy) => {
+    if (energy > 80) return { main: '#A3E4FF', glow: '#6DD5FA' };
+    if (energy > 60) return { main: '#FFFFFF', glow: '#E0F7FF' };
+    if (energy > 40) return { main: '#FFE4FF', glow: '#FFD6FF' };
+    if (energy > 20) return { main: '#FFD9A3', glow: '#FFBE76' };
+    return { main: '#FFA3C7', glow: '#FF758C' };
+  };
+
+  const energyColor = getEnergyColor(currentEnergy);
+
+  const getEnergyStatus = (energy) => {
+    if (energy > 80) return { title: "Peak Energy", subtitle: "You're at your energy peak!" };
+    if (energy > 60) return { title: "Rising", subtitle: "Your energy is rising!" };
+    if (energy > 40) return { title: "Moderate", subtitle: "保持节奏，记得适时休息哦" };
+    if (energy > 20) return { title: "Declining", subtitle: "能量在下降，建议放慢节奏" };
+    return { title: "Low", subtitle: "Time to rest and recharge" };
+  };
+
+  const timeLabels = [
+    { time: '0:00', minute: 0 },
+    { time: '6:00', minute: 360 },
+    { time: '12:00', minute: 720 },
+    { time: '18:00', minute: 1080 },
+    { time: '23:59', minute: 1439 },
+  ];
+
+  const currentX = xScale(currentMinute);
+  const currentY = yScale(currentEnergy);
+  const energyStatus = getEnergyStatus(currentEnergy);
+  const bubbleWidth = 200;
+  const bubbleHeight = 60;
+  const bubbleX = currentX - bubbleWidth / 2;
+  const bubbleY = currentY - bubbleHeight - 30;
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => setIsExpanded(!isExpanded)}
-        style={styles.touchable}
+      <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
+        <Defs>
+          <LinearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="#A3E4FF" stopOpacity="0.4" />
+            <Stop offset="15%" stopColor="#FFFFFF" stopOpacity="0.9" />
+            <Stop offset="40%" stopColor="#FFD6FF" stopOpacity="0.7" />
+            <Stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.9" />
+            <Stop offset="85%" stopColor="#A3E4FF" stopOpacity="0.5" />
+            <Stop offset="100%" stopColor="#FFE4FF" stopOpacity="0.4" />
+          </LinearGradient>
+
+          <RadialGradient id="pointGlow" cx="50%" cy="50%">
+            <Stop offset="0%" stopColor={energyColor.main} stopOpacity="1" />
+            <Stop offset="50%" stopColor={energyColor.glow} stopOpacity="0.6" />
+            <Stop offset="100%" stopColor={energyColor.glow} stopOpacity="0" />
+          </RadialGradient>
+
+          <RadialGradient id="auraGlow" cx="50%" cy="50%">
+            <Stop offset="0%" stopColor={energyColor.glow} stopOpacity="0.3" />
+            <Stop offset="100%" stopColor={energyColor.glow} stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="80"
+          fill="url(#auraGlow)"
+        />
+
+
+        <Path
+          d={pathData}
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth="10"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ filter: 'blur(8px)' }}
+        />
+
+        <Path
+          d={pathData}
+          stroke="url(#auroraGradient)"
+          strokeWidth="5"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <Path
+          d={pathData}
+          stroke="#FFFFFF"
+          strokeWidth="2"
+          fill="none"
+          opacity="0.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="30"
+          fill="url(#pointGlow)"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="20"
+          fill="none"
+          stroke={energyColor.main}
+          strokeWidth="2"
+          opacity="0.4"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="12"
+          fill="none"
+          stroke={energyColor.main}
+          strokeWidth="2.5"
+          opacity="0.7"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="7"
+          fill={energyColor.main}
+          opacity="1"
+        />
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="3"
+          fill="#FFFFFF"
+          opacity="1"
+        />
+
+        <Polygon
+          points={`${currentX},${currentY - 24} ${currentX - 8},${currentY - 32} ${currentX + 8},${currentY - 32}`}
+          fill="rgba(255, 255, 255, 0.95)"
+        />
+
+        {timeLabels.map((label) => (
+          <SvgText
+            key={label.time}
+            x={xScale(label.minute)}
+            y={CHART_HEIGHT - 10}
+            fontSize="11"
+            fill="rgba(255, 255, 255, 0.6)"
+            textAnchor="middle"
+          >
+            {label.time}
+          </SvgText>
+        ))}
+
+      </Svg>
+
+      <Animated.View
+        style={[
+          styles.statusBubble,
+          {
+            left: Math.max(20, Math.min(CHART_WIDTH - 220, bubbleX)),
+            top: Math.max(10, bubbleY),
+            transform: [{ translateY: floatAnim }]
+          }
+        ]}
       >
-        <View style={styles.orbContainer}>
-          <Animated.View
-            style={[
-              styles.waveRing,
-              {
-                backgroundColor: energyColor.glow,
-                width: 200,
-                height: 200,
-                borderRadius: 100,
-              },
-              animatedStyle3
-            ]}
-          />
-          <Animated.View
-            style={[
-              styles.waveRing,
-              {
-                backgroundColor: energyColor.primary,
-                width: 160,
-                height: 160,
-                borderRadius: 80,
-              },
-              animatedStyle2
-            ]}
-          />
-          <Animated.View
-            style={[
-              styles.waveRing,
-              {
-                backgroundColor: energyColor.secondary,
-                width: 120,
-                height: 120,
-                borderRadius: 60,
-              },
-              animatedStyle1
-            ]}
-          />
-
-          <View style={[
-            styles.energyOrb,
-            {
-              backgroundColor: energyColor.primary,
-              shadowColor: energyColor.glow,
-              opacity: 0.5 + (brightness * 0.5),
-            }
-          ]}>
-            <View style={[
-              styles.orbCore,
-              { backgroundColor: energyColor.secondary }
-            ]}>
-              <Text style={styles.energyValue}>{Math.round(currentEnergy)}</Text>
-              <Text style={styles.energyEmoji}>{energyStatus.emoji}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.statusContainer}>
+        <BlurView intensity={20} tint="light" style={styles.blurContainer}>
           <Text style={styles.statusTitle}>{energyStatus.title}</Text>
           <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
-          <Text style={styles.expandHint}>
-            {isExpanded ? '↑ Tap to collapse' : '↓ Tap to see rhythm details'}
-          </Text>
-        </View>
-
-        {isExpanded && (
-          <View style={styles.chartContainer}>
-            <Svg width={CHART_WIDTH} height={250} viewBox={`0 0 ${CHART_WIDTH} 250`}>
-              <Defs>
-                <RadialGradient id="lineGlow" cx="50%" cy="50%">
-                  <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
-                  <Stop offset="100%" stopColor={energyColor.primary} stopOpacity="0.2" />
-                </RadialGradient>
-              </Defs>
-
-              <Path
-                d={pathData}
-                stroke="rgba(255, 255, 255, 0.1)"
-                strokeWidth="12"
-                fill="none"
-                strokeLinecap="round"
-              />
-
-              <Path
-                d={pathData}
-                stroke={energyColor.primary}
-                strokeWidth="4"
-                fill="none"
-                strokeLinecap="round"
-                opacity={0.8}
-              />
-
-              <Path
-                d={pathData}
-                stroke="#FFFFFF"
-                strokeWidth="2"
-                fill="none"
-                strokeLinecap="round"
-                opacity={0.9}
-              />
-
-              <G>
-                <Circle
-                  cx={CHART_WIDTH / 2}
-                  cy={yScale(currentEnergy)}
-                  r="8"
-                  fill={energyColor.secondary}
-                />
-                <Circle
-                  cx={CHART_WIDTH / 2}
-                  cy={yScale(currentEnergy)}
-                  r="4"
-                  fill="#FFFFFF"
-                />
-              </G>
-            </Svg>
-          </View>
-        )}
-      </TouchableOpacity>
+        </BlurView>
+      </Animated.View>
     </View>
   );
 }
@@ -300,90 +237,40 @@ export default function RhythmChart({ rhythmData }) {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
-    alignItems: 'center',
+    position: 'relative',
   },
-  touchable: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  orbContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  waveRing: {
+  statusBubble: {
     position: 'absolute',
-  },
-  energyOrb: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 40,
-    elevation: 10,
-  },
-  orbCore: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    borderRadius: 20,
+    shadowColor: '#87CEEB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    elevation: 5,
+    minWidth: 200,
+    overflow: 'hidden',
   },
-  energyValue: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  energyEmoji: {
-    fontSize: 24,
-    marginTop: 4,
-  },
-  statusContainer: {
+  blurContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    paddingHorizontal: 40,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 20,
   },
   statusTitle: {
-    fontSize: 20,
+    fontSize: 14,
+    color: '#1C1C1E',
     fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    marginBottom: 2,
   },
   statusSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
-    textAlign: 'center',
-    lineHeight: 20,
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '400',
   },
-  expandHint: {
-    fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 12,
-    fontWeight: '500',
-  },
-  chartContainer: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+  chart: {
+    marginVertical: 4,
   },
 });
