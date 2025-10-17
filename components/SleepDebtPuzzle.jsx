@@ -2,6 +2,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText, ClipPath, Rect } from 'react-native-svg';
 
 export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
+  const containerWidth = '100%';
+  const containerHeight = 110;
   const puzzleWidth = 120;
   const puzzleHeight = 60;
   const pieceWidth = puzzleWidth / 4;
@@ -92,7 +94,7 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
 
   return (
     <View style={styles.container}>
-      <Svg width={160} height={100} viewBox="0 0 160 100">
+      <Svg width="100%" height={containerHeight} viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
         <Defs>
           <LinearGradient id="puzzleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor="#5A9FD4" stopOpacity="1" />
@@ -119,14 +121,14 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
                     piece.leftSocket,
                     piece.topSocket
                   )}
-                  transform="translate(20, 20)"
+                  transform="translate(40, 25)"
                 />
               );
             })}
           </ClipPath>
         </Defs>
 
-        <G transform="translate(20, 20)">
+        <G transform="translate(40, 25)">
           {pieces.map((piece, idx) => {
             if (idx === missingPieceIndex) {
               return (
@@ -208,34 +210,34 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
         </G>
 
         <Path
-          d="M 20 10
-             L 50 10 L 58 4 L 66 10
-             L 94 10 L 102 4 L 110 10
-             L 140 10
-             Q 150 10 150 20
-             L 150 80
-             Q 150 90 140 90
-             L 20 90
-             Q 10 90 10 80
-             L 10 20
-             Q 10 10 20 10 Z"
+          d="M 16 5
+             L 70 5 L 82 0 L 94 5
+             L 118 5 L 130 0 L 142 5
+             L 184 5
+             Q 195 5 195 16
+             L 195 94
+             Q 195 105 184 105
+             L 16 105
+             Q 5 105 5 94
+             L 5 16
+             Q 5 5 16 5 Z"
           fill="transparent"
           stroke="url(#glowGradient)"
           strokeWidth="2.5"
         />
 
         <Path
-          d="M 20 10
-             L 50 10 L 58 4 L 66 10
-             L 94 10 L 102 4 L 110 10
-             L 140 10
-             Q 150 10 150 20
-             L 150 80
-             Q 150 90 140 90
-             L 20 90
-             Q 10 90 10 80
-             L 10 20
-             Q 10 10 20 10 Z"
+          d="M 16 5
+             L 70 5 L 82 0 L 94 5
+             L 118 5 L 130 0 L 142 5
+             L 184 5
+             Q 195 5 195 16
+             L 195 94
+             Q 195 105 184 105
+             L 16 105
+             Q 5 105 5 94
+             L 5 16
+             Q 5 5 16 5 Z"
           fill="none"
           stroke="rgba(180, 220, 255, 0.4)"
           strokeWidth="5"
@@ -251,7 +253,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 160,
-    height: 100,
+    width: '100%',
+    height: 110,
   },
 });
