@@ -89,6 +89,7 @@ export default function HomeScreen() {
                 <View style={styles.puzzleContainer}>
                   <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
                 </View>
+                <Text style={styles.panelLabel}>Sleep Debt</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
