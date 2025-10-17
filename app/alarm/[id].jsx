@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Pressable, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, CreditCard as Edit3, ChevronRight, Check } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -79,6 +79,9 @@ export default function AlarmDetail() {
   const [modalType, setModalType] = useState(null);
   const [modalOptions, setModalOptions] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
+  const [timeModalVisible, setTimeModalVisible] = useState(false);
+  const [selectedHour, setSelectedHour] = useState('07');
+  const [selectedMinute, setSelectedMinute] = useState('00');
 
   const alarm = alarms.find((a) => a.id === id);
 
@@ -120,6 +123,19 @@ export default function AlarmDetail() {
   const saveCustomDays = async () => {
     await updateAlarm(id, { period: 'custom', customDays: selectedDays });
     setModalVisible(false);
+  };
+
+  const handleEditTime = () => {
+    const [hour, minute] = alarm.time.split(':');
+    setSelectedHour(hour);
+    setSelectedMinute(minute);
+    setTimeModalVisible(true);
+  };
+
+  const saveTime = async () => {
+    const newTime = `${selectedHour}:${selectedMinute}`;
+    await updateAlarm(id, { time: newTime });
+    setTimeModalVisible(false);
   };
 
   const handleEditBroadcast = () => {
@@ -218,7 +234,7 @@ export default function AlarmDetail() {
         showsVerticalScrollIndicator={false}
       >
         {/* 时间卡片 */}
-        <TouchableOpacity style={styles.timeCard} onPress={handleEdit} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.timeCard} onPress={handleEditTime} activeOpacity={0.7}>
           <View style={styles.sunIcon}>
             <View style={styles.sunCore} />
             <View style={styles.sunRays} />
@@ -394,6 +410,100 @@ export default function AlarmDetail() {
                 ))
               )}
             </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* 时间选择模态框 */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={timeModalVisible}
+        onRequestClose={() => setTimeModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setTimeModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>设置时间</Text>
+              <TouchableOpacity onPress={() => setTimeModalVisible(false)}>
+                <Text style={styles.modalClose}>×</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.timePickerContainer}>
+              <View style={styles.timePickerRow}>
+                <View style={styles.timePickerColumn}>
+                  <Text style={styles.timePickerLabel}>小时</Text>
+                  <ScrollView
+                    style={styles.timePickerScroll}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.timePickerScrollContent}
+                  >
+                    {Array.from({ length: 24 }, (_, i) => {
+                      const hour = i.toString().padStart(2, '0');
+                      return (
+                        <TouchableOpacity
+                          key={hour}
+                          style={[
+                            styles.timePickerOption,
+                            selectedHour === hour && styles.timePickerOptionSelected
+                          ]}
+                          onPress={() => setSelectedHour(hour)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[
+                            styles.timePickerOptionText,
+                            selectedHour === hour && styles.timePickerOptionTextSelected
+                          ]}>
+                            {hour}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+                <Text style={styles.timeSeparator}>:</Text>
+                <View style={styles.timePickerColumn}>
+                  <Text style={styles.timePickerLabel}>分钟</Text>
+                  <ScrollView
+                    style={styles.timePickerScroll}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.timePickerScrollContent}
+                  >
+                    {Array.from({ length: 60 }, (_, i) => {
+                      const minute = i.toString().padStart(2, '0');
+                      return (
+                        <TouchableOpacity
+                          key={minute}
+                          style={[
+                            styles.timePickerOption,
+                            selectedMinute === minute && styles.timePickerOptionSelected
+                          ]}
+                          onPress={() => setSelectedMinute(minute)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[
+                            styles.timePickerOptionText,
+                            selectedMinute === minute && styles.timePickerOptionTextSelected
+                          ]}>
+                            {minute}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={saveTime}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.saveButtonText}>确认</Text>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -640,5 +750,55 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  timePickerContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  timePickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  timePickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  timePickerLabel: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 10,
+  },
+  timePickerScroll: {
+    maxHeight: 200,
+    width: '100%',
+  },
+  timePickerScrollContent: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  timePickerOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    minWidth: 60,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  timePickerOptionSelected: {
+    backgroundColor: 'rgba(255, 154, 118, 0.2)',
+  },
+  timePickerOptionText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  timePickerOptionTextSelected: {
+    color: '#FF9A76',
+    fontWeight: '600',
+  },
+  timeSeparator: {
+    fontSize: 32,
+    color: '#4A5F8F',
+    fontWeight: '300',
   },
 });
