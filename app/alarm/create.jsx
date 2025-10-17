@@ -16,6 +16,11 @@ import useStore from '../../lib/store';
 import ChatBubble from '../../components/ChatBubble';
 import TagOptions from '../../components/TagOptions';
 import AlarmInfoCard from '../../components/AlarmInfoCard';
+import GameSelector from '../../components/GameSelector';
+import {
+  INTERACTION_ENABLE_OPTIONS,
+  getGameLabel,
+} from '../../lib/interactionOptions';
 
 const TIME_OPTIONS = [
   { label: '明天早上7点', value: '07:00' },
@@ -97,8 +102,15 @@ const STEP_CONFIGS = [
   {
     step: 3,
     aiMessage: '要不要加点互动游戏，让起床更有趣呢？🎮',
-    field: 'task',
-    options: TASK_OPTIONS,
+    field: 'interactionEnabled',
+    options: INTERACTION_ENABLE_OPTIONS,
+  },
+  {
+    step: 3.5,
+    aiMessage: '选一个你喜欢的游戏吧！',
+    field: 'interactionType',
+    isGameSelection: true,
+    condition: (draft) => draft.interactionEnabled === true,
   },
 ];
 
@@ -168,8 +180,13 @@ export default function AlarmCreate() {
   };
 
   const getSelectedOptionLabel = (field, value) => {
+    // 处理游戏选择
+    if (field === 'interactionType') {
+      return getGameLabel(value);
+    }
+
     const stepConfig = STEP_CONFIGS.find((s) => s.field === field);
-    const option = stepConfig?.options.find((o) => o.value === value);
+    const option = stepConfig?.options?.find((o) => o.value === value);
     return option?.label || value;
   };
 
@@ -212,7 +229,7 @@ export default function AlarmCreate() {
   };
 
   const generateSummary = () => {
-    const { time, period, wakeMode, task, voicePackage, ringtone } = currentAlarmDraft;
+    const { time, period, wakeMode, voicePackage, ringtone, interactionEnabled, interactionType } = currentAlarmDraft;
     const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label;
 
     let summary = `好的！我帮你总结一下：\n\n`;
@@ -222,13 +239,19 @@ export default function AlarmCreate() {
     if (wakeMode === 'voice') {
       const voiceLabel = VOICE_PACKAGE_OPTIONS.find((o) => o.value === voicePackage)?.label;
       summary += `🎙️ 方式：语音播报（${voiceLabel}）\n`;
-    } else {
+    } else if (wakeMode === 'ringtone') {
       const ringtoneLabel = RINGTONE_OPTIONS.find((o) => o.value === ringtone)?.label;
       summary += `🎵 方式：铃声（${ringtoneLabel || '默认'}）\n`;
+    } else if (wakeMode === 'vibration') {
+      summary += `📳 方式：震动\n`;
     }
 
-    const taskLabel = TASK_OPTIONS.find((o) => o.value === task)?.label;
-    summary += `🎮 任务：${taskLabel}\n`;
+    if (interactionEnabled && interactionType) {
+      const gameLabel = getGameLabel(interactionType);
+      summary += `🎮 互动：${gameLabel}\n`;
+    } else {
+      summary += `🎮 互动：无\n`;
+    }
 
     summary += `\n确认保存吗？`;
     return summary;
@@ -335,25 +358,39 @@ export default function AlarmCreate() {
       }
     }
 
-    // 处理任务/游戏类型
-    if (stepConfig.field === 'task') {
-      if (lowerText.includes('无') || lowerText.includes('不要') || lowerText.includes('不需要') || lowerText.includes('不用')) {
-        updateDraft({ task: 'none' });
+    // 处理互动游戏开关
+    if (stepConfig.field === 'interactionEnabled') {
+      if (lowerText.includes('不要') || lowerText.includes('不需要') || lowerText.includes('不用') || lowerText.includes('无')) {
+        updateDraft({ interactionEnabled: false });
         proceedToNextStep();
         return;
       }
-      if (lowerText.includes('算数') || lowerText.includes('数学') || lowerText.includes('计算') || lowerText.includes('挑战')) {
-        updateDraft({ task: 'quiz' });
+      if (lowerText.includes('要') || lowerText.includes('需要') || lowerText.includes('加') || lowerText.includes('游戏')) {
+        updateDraft({ interactionEnabled: true });
         proceedToNextStep();
         return;
       }
-      if (lowerText.includes('记忆') || lowerText.includes('配对') || lowerText.includes('翻牌')) {
-        updateDraft({ task: 'memory' });
+    }
+
+    // 处理游戏类型选择
+    if (stepConfig.field === 'interactionType') {
+      if (lowerText.includes('算数') || lowerText.includes('数学')) {
+        updateDraft({ interactionType: 'math-quiz' });
         proceedToNextStep();
         return;
       }
-      if (lowerText.includes('快速') || lowerText.includes('反应') || lowerText.includes('点击')) {
-        updateDraft({ task: 'quick-tap' });
+      if (lowerText.includes('点击挑战') || lowerText.includes('光点')) {
+        updateDraft({ interactionType: 'click-challenge' });
+        proceedToNextStep();
+        return;
+      }
+      if (lowerText.includes('颜色') || lowerText.includes('方块')) {
+        updateDraft({ interactionType: 'color-finder' });
+        proceedToNextStep();
+        return;
+      }
+      if (lowerText.includes('打字') || lowerText.includes('输入')) {
+        updateDraft({ interactionType: 'typing-challenge' });
         proceedToNextStep();
         return;
       }
@@ -433,11 +470,18 @@ export default function AlarmCreate() {
           <ChatBubble key={message.id} role={message.role} content={message.content} />
         ))}
 
-        {stepConfig && !isInSummary && !stepConfig.isCustom && stepConfig.options && (
+        {stepConfig && !isInSummary && !stepConfig.isCustom && !stepConfig.isGameSelection && stepConfig.options && (
           <TagOptions
             options={stepConfig.options}
             selectedValue={currentAlarmDraft?.[stepConfig.field]}
             onSelect={(value) => handleTagSelect(stepConfig.field, value)}
+          />
+        )}
+
+        {stepConfig && !isInSummary && stepConfig.isGameSelection && (
+          <GameSelector
+            selectedValue={currentAlarmDraft?.interactionType}
+            onSelect={(value) => handleTagSelect('interactionType', value)}
           />
         )}
 

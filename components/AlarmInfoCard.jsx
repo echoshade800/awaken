@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Clock, Calendar, Music, Gamepad2, Mic } from 'lucide-react-native';
+import { getGameLabel } from '../lib/interactionOptions';
 
 const PERIOD_LABELS = {
   everyday: '每天',
@@ -16,19 +17,12 @@ const VOICE_PACKAGE_LABELS = {
   'cheerful-boy': '阳光男孩',
 };
 
-const TASK_LABELS = {
-  'none': '无游戏',
-  'quiz': '数学挑战',
-  'memory': '记忆配对',
-  'quick-tap': '快速反应',
-};
-
 export default function AlarmInfoCard({ alarm }) {
   if (!alarm) return null;
 
   const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
   const voiceLabel = VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage;
-  const taskLabel = TASK_LABELS[alarm.task] || alarm.task;
+  const gameLabel = alarm.interactionType ? getGameLabel(alarm.interactionType) : null;
 
   return (
     <View style={styles.card}>
@@ -56,17 +50,22 @@ export default function AlarmInfoCard({ alarm }) {
               <Text style={styles.detailText}>{voiceLabel}</Text>
             </View>
           </>
-        ) : (
+        ) : alarm.wakeMode === 'ringtone' ? (
           <View style={styles.detailItem}>
             <Music size={20} color="#666" />
             <Text style={styles.detailText}>{alarm.ringtone || '默认铃声'}</Text>
           </View>
-        )}
+        ) : alarm.wakeMode === 'vibration' ? (
+          <View style={styles.detailItem}>
+            <Music size={20} color="#666" />
+            <Text style={styles.detailText}>震动</Text>
+          </View>
+        ) : null}
 
-        {alarm.task && alarm.task !== 'none' && (
+        {alarm.interactionEnabled && gameLabel && (
           <View style={styles.detailItem}>
             <Gamepad2 size={20} color="#666" />
-            <Text style={styles.detailText}>{taskLabel}</Text>
+            <Text style={styles.detailText}>{gameLabel}</Text>
           </View>
         )}
 
