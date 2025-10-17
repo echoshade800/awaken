@@ -169,12 +169,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   panelLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: 'rgba(200, 230, 255, 0.95)',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 8,
     textAlign: 'center',
+    textShadowColor: 'rgba(200, 230, 255, 0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   energyLeft: {
     alignItems: 'flex-start',
