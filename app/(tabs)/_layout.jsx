@@ -11,7 +11,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
           style={styles.tabItem}
           onPress={() => navigation.navigate('alarm')}
         >
-          <Sun size={24} color={state.index === 0 ? '#FFD700' : 'rgba(255, 255, 255, 0.6)'} />
+          <Sun size={22} color={state.index === 0 ? '#FFD700' : 'rgba(255, 255, 255, 0.6)'} />
           <Text style={[styles.tabLabel, state.index === 0 && styles.tabLabelActive]}>Alarm</Text>
         </TouchableOpacity>
 
@@ -20,7 +20,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
           onPress={() => navigation.navigate('index')}
         >
           <View style={styles.homeButtonInner}>
-            <Home size={28} color="#FFFFFF" strokeWidth={2.5} />
+            <Home size={24} color="#FFFFFF" strokeWidth={2.5} />
           </View>
           <Text style={styles.homeLabel}>Home</Text>
         </TouchableOpacity>
@@ -29,7 +29,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
           style={styles.tabItem}
           onPress={() => navigation.navigate('sleep')}
         >
-          <Moon size={24} color={state.index === 2 ? '#87CEEB' : 'rgba(255, 255, 255, 0.6)'} />
+          <Moon size={22} color={state.index === 2 ? '#87CEEB' : 'rgba(255, 255, 255, 0.6)'} />
           <Text style={[styles.tabLabel, state.index === 2 && styles.tabLabelActive]}>Sleep</Text>
         </TouchableOpacity>
       </View>
@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 20,
-    paddingTop: 12,
+    paddingBottom: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -75,9 +75,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 4,
+    marginTop: 3,
     fontWeight: '500',
   },
   tabLabelActive: {
@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   homeButtonInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 2.5,
+    borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -104,9 +104,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   homeLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#FFFFFF',
-    marginTop: 6,
+    marginTop: 4,
     fontWeight: '600',
   },
 });

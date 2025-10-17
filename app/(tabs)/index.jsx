@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,10 +31,13 @@ export default function HomeScreen() {
     <LinearGradient colors={['#87CEEB', '#4A90E2', '#1E3A5F']} style={styles.container}>
       <StarBackground />
       <DreamBubble keyword="星空" initialX={50} initialY={300} />
-      <DreamBubble keyword="海洋" initialX={280} initialY={400} />
 
-      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        <View style={styles.content}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
             <Text style={styles.currentTime}>{currentTime}</Text>
@@ -63,7 +66,9 @@ export default function HomeScreen() {
           >
             <Text style={styles.ctaButtonText}>Awake Me</Text>
           </TouchableOpacity>
-        </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -72,9 +77,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   header: {
     marginTop: 8,
@@ -151,5 +159,8 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  bottomSpacer: {
+    height: 100,
   },
 });

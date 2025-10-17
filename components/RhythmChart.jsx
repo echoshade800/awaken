@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
 
 const CHART_WIDTH = Dimensions.get('window').width - 40;
 const CHART_HEIGHT = 180;
-const PADDING = { top: 40, right: 20, bottom: 30, left: 40 };
+const PADDING = { top: 60, right: 20, bottom: 30, left: 40 };
 
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
@@ -51,12 +51,15 @@ export default function RhythmChart({ rhythmData }) {
     { time: '23:59', minute: 1439 },
   ];
 
+  const currentX = xScale(currentMinute);
+  const currentY = yScale(currentEnergy);
+  const bubbleWidth = 200;
+  const bubbleHeight = 40;
+  const bubbleX = currentX - bubbleWidth / 2;
+  const bubbleY = currentY - bubbleHeight - 30;
+
   return (
     <View style={styles.container}>
-      <View style={styles.statusBadge}>
-        <Text style={styles.statusText}>{getEnergyStatus(currentEnergy)}</Text>
-      </View>
-
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
         <Defs>
           <RadialGradient id="glowGradient" cx="50%" cy="50%">
@@ -85,8 +88,8 @@ export default function RhythmChart({ rhythmData }) {
         />
 
         <Circle
-          cx={xScale(currentMinute)}
-          cy={yScale(currentEnergy)}
+          cx={currentX}
+          cy={currentY}
           r="18"
           fill="none"
           stroke="#FFFFFF"
@@ -95,8 +98,8 @@ export default function RhythmChart({ rhythmData }) {
         />
 
         <Circle
-          cx={xScale(currentMinute)}
-          cy={yScale(currentEnergy)}
+          cx={currentX}
+          cy={currentY}
           r="10"
           fill="none"
           stroke="#FFFFFF"
@@ -105,11 +108,16 @@ export default function RhythmChart({ rhythmData }) {
         />
 
         <Circle
-          cx={xScale(currentMinute)}
-          cy={yScale(currentEnergy)}
+          cx={currentX}
+          cy={currentY}
           r="6"
           fill="#FFFFFF"
           opacity="1"
+        />
+
+        <Polygon
+          points={`${currentX},${currentY - 24} ${currentX - 8},${currentY - 32} ${currentX + 8},${currentY - 32}`}
+          fill="rgba(255, 255, 255, 0.95)"
         />
 
         {timeLabels.map((label) => (
@@ -153,6 +161,18 @@ export default function RhythmChart({ rhythmData }) {
           0
         </SvgText>
       </Svg>
+
+      <View
+        style={[
+          styles.statusBubble,
+          {
+            left: Math.max(20, Math.min(CHART_WIDTH - 220, bubbleX)),
+            top: Math.max(10, bubbleY)
+          }
+        ]}
+      >
+        <Text style={styles.statusText}>{getEnergyStatus(currentEnergy)}</Text>
+      </View>
     </View>
   );
 }
@@ -160,23 +180,24 @@ export default function RhythmChart({ rhythmData }) {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
+    position: 'relative',
   },
-  statusBadge: {
+  statusBubble: {
+    position: 'absolute',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    minWidth: 200,
+    alignItems: 'center',
   },
   statusText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#1C1C1E',
     fontWeight: '500',
   },
