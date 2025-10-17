@@ -19,7 +19,7 @@ export default function SleepScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  safeArea: { flex: 1 },
+  safeArea: { flex: 1, paddingTop: 20 },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   title: { fontSize: 28, fontWeight: '600', color: '#1C1C1E', marginTop: 24, marginBottom: 8 },
   subtitle: { fontSize: 16, color: '#8E8E93', marginBottom: 16 },
