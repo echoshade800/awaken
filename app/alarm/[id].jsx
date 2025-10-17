@@ -84,10 +84,12 @@ export default function AlarmDetail() {
   const [selectedMinute, setSelectedMinute] = useState('00');
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletedAlarm, setDeletedAlarm] = useState(null);
 
-  const alarm = alarms.find((a) => a.id === id);
+  const alarm = alarms.find((a) => a.id === id) || deletedAlarm;
 
-  if (!alarm) {
+  if (!alarm && !isDeleting) {
     return (
       <View style={styles.container}>
         <Text>闹钟不存在</Text>
@@ -151,6 +153,8 @@ export default function AlarmDetail() {
 
   const confirmDelete = async () => {
     setDeleteModalVisible(false);
+    setIsDeleting(true);
+    setDeletedAlarm(alarm);
     await deleteAlarm(id);
     setShowSuccessToast(true);
     setTimeout(() => {
