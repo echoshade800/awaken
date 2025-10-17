@@ -49,29 +49,33 @@ export default function HomeScreen() {
           <RhythmChart rhythmData={rhythmData} />
 
           <View style={styles.contentPadded}>
+            <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
+
             <View style={styles.energyPanel}>
-              <View style={styles.energyLeft}>
-                <Text style={styles.energyLabel}>Current</Text>
-                <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+              <View style={styles.energyTopRow}>
+                <View style={styles.energyLeft}>
+                  <Text style={styles.energyLabel}>Current</Text>
+                  <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+                </View>
+
+                <View style={styles.energyPeaksRow}>
+                  <View style={styles.energyPeakItem}>
+                    <Text style={styles.energyTimeLabel}>Peak</Text>
+                    <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                  </View>
+                  <View style={styles.energyPeakItem}>
+                    <Text style={styles.energyTimeLabel}>Low</Text>
+                    <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                  </View>
+                </View>
               </View>
 
-              <View style={styles.energyCenter}>
+              <View style={styles.energyBottomRow}>
                 <Text style={styles.energyStatus}>
                   {rhythmData.energyScore > 80 ? 'Peak' :
                    rhythmData.energyScore > 60 ? 'High' :
                    rhythmData.energyScore > 40 ? 'Moderate' : 'Low'}
                 </Text>
-              </View>
-
-              <View style={styles.energyRight}>
-                <View style={styles.energyTimeRow}>
-                  <Text style={styles.energyTimeLabel}>Peak</Text>
-                  <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                </View>
-                <View style={styles.energyTimeRow}>
-                  <Text style={styles.energyTimeLabel}>Low</Text>
-                  <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
-                </View>
               </View>
             </View>
 
@@ -81,8 +85,6 @@ export default function HomeScreen() {
               </MonsterHornBorder>
               <Text style={styles.dreamKeywordLabel}>Dream Keyword</Text>
             </View>
-
-            <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
 
             <TouchableOpacity
               style={styles.ctaButton}
@@ -139,20 +141,22 @@ const styles = StyleSheet.create({
   },
   energyPanel: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 20,
+    paddingVertical: 18,
     paddingHorizontal: 20,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     marginTop: 12,
     marginBottom: 16,
+  },
+  energyTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 16,
   },
   energyLeft: {
     alignItems: 'flex-start',
-    flex: 1,
   },
   energyLabel: {
     fontSize: 12,
@@ -165,35 +169,36 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  energyCenter: {
-    flex: 1,
+  energyPeaksRow: {
+    flexDirection: 'row',
+    gap: 24,
     alignItems: 'center',
-    paddingHorizontal: 8,
   },
-  energyStatus: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  energyRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  energyTimeRow: {
-    alignItems: 'flex-end',
+  energyPeakItem: {
+    alignItems: 'center',
   },
   energyTimeLabel: {
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 2,
+    marginBottom: 4,
     fontWeight: '500',
   },
   energyTimeValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  energyBottomRow: {
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  energyStatus: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   dreamKeywordContainer: {
     marginBottom: 16,
