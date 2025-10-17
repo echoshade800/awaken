@@ -12,32 +12,67 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
   const createPuzzlePiece = (col, row, hasRightTab, hasBottomTab, hasLeftSocket, hasTopSocket) => {
     const x = col * pieceWidth;
     const y = row * pieceHeight;
+    const cornerRadius = 8;
+    const isTopLeft = col === 0 && row === 0;
+    const isTopRight = col === 3 && row === 0;
+    const isBottomLeft = col === 0 && row === 1;
+    const isBottomRight = col === 3 && row === 1;
 
-    let path = `M ${x} ${y}`;
+    let path = '';
+
+    if (isTopLeft) {
+      path = `M ${x + cornerRadius} ${y}`;
+    } else {
+      path = `M ${x} ${y}`;
+    }
 
     if (hasTopSocket) {
       path += ` L ${x + pieceWidth / 2 - tabSize} ${y}`;
       path += ` Q ${x + pieceWidth / 2} ${y - tabSize} ${x + pieceWidth / 2 + tabSize} ${y}`;
     }
-    path += ` L ${x + pieceWidth} ${y}`;
+
+    if (isTopRight) {
+      path += ` L ${x + pieceWidth - cornerRadius} ${y}`;
+      path += ` Q ${x + pieceWidth} ${y} ${x + pieceWidth} ${y + cornerRadius}`;
+    } else {
+      path += ` L ${x + pieceWidth} ${y}`;
+    }
 
     if (hasRightTab) {
       path += ` L ${x + pieceWidth} ${y + pieceHeight / 2 - tabSize}`;
       path += ` Q ${x + pieceWidth + tabSize} ${y + pieceHeight / 2} ${x + pieceWidth} ${y + pieceHeight / 2 + tabSize}`;
     }
-    path += ` L ${x + pieceWidth} ${y + pieceHeight}`;
+
+    if (isBottomRight) {
+      path += ` L ${x + pieceWidth} ${y + pieceHeight - cornerRadius}`;
+      path += ` Q ${x + pieceWidth} ${y + pieceHeight} ${x + pieceWidth - cornerRadius} ${y + pieceHeight}`;
+    } else {
+      path += ` L ${x + pieceWidth} ${y + pieceHeight}`;
+    }
 
     if (hasBottomTab) {
       path += ` L ${x + pieceWidth / 2 + tabSize} ${y + pieceHeight}`;
       path += ` Q ${x + pieceWidth / 2} ${y + pieceHeight + tabSize} ${x + pieceWidth / 2 - tabSize} ${y + pieceHeight}`;
     }
-    path += ` L ${x} ${y + pieceHeight}`;
+
+    if (isBottomLeft) {
+      path += ` L ${x + cornerRadius} ${y + pieceHeight}`;
+      path += ` Q ${x} ${y + pieceHeight} ${x} ${y + pieceHeight - cornerRadius}`;
+    } else {
+      path += ` L ${x} ${y + pieceHeight}`;
+    }
 
     if (hasLeftSocket) {
       path += ` L ${x} ${y + pieceHeight / 2 + tabSize}`;
       path += ` Q ${x - tabSize} ${y + pieceHeight / 2} ${x} ${y + pieceHeight / 2 - tabSize}`;
     }
-    path += ` L ${x} ${y}`;
+
+    if (isTopLeft) {
+      path += ` L ${x} ${y + cornerRadius}`;
+      path += ` Q ${x} ${y} ${x + cornerRadius} ${y}`;
+    } else {
+      path += ` L ${x} ${y}`;
+    }
 
     return path;
   };
