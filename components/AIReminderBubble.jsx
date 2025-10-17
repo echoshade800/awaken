@@ -2,18 +2,18 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useState } from 'react';
 
 export default function AIReminderBubble({ message, style }) {
-  const [fontSize, setFontSize] = useState(13);
+  const [fontSize, setFontSize] = useState(16);
 
   const handleLayout = (event) => {
     const { width, height } = event.nativeEvent.layout;
     const minDimension = Math.min(width, height);
-    const calculatedSize = Math.max(11, Math.min(14, minDimension * 0.08));
+    const calculatedSize = Math.max(15, Math.min(20, minDimension * 0.12));
     setFontSize(calculatedSize);
   };
 
   return (
     <View style={[styles.container, style]} onLayout={handleLayout}>
-      <Text style={[styles.message, { fontSize, lineHeight: fontSize * 1.4 }]}>{message}</Text>
+      <Text style={[styles.message, { fontSize, lineHeight: fontSize * 1.35 }]}>{message}</Text>
     </View>
   );
 }
@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   message: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '600',
     textAlign: 'center',
   },
 });
