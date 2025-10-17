@@ -35,20 +35,20 @@ export default function MonsterHornBorder({ children, style }) {
 
         {/* 底部牙齿 */}
         <Svg
-          height="12"
-          width="60"
+          height="14"
+          width="50"
           style={styles.teeth}
-          viewBox="0 0 60 12"
+          viewBox="0 0 50 14"
         >
-          {/* 左边的牙齿 */}
+          {/* 左边的牙齿（向左倾斜） */}
           <Path
-            d="M 20 0 L 24 10 L 28 0"
-            fill="rgba(255, 255, 255, 0.3)"
+            d="M 16 0 L 14 12 L 22 0 Z"
+            fill="rgba(255, 255, 255, 0.35)"
           />
-          {/* 右边的牙齿 */}
+          {/* 右边的牙齿（向右倾斜） */}
           <Path
-            d="M 32 0 L 36 10 L 40 0"
-            fill="rgba(255, 255, 255, 0.3)"
+            d="M 28 0 L 36 12 L 34 0 Z"
+            fill="rgba(255, 255, 255, 0.35)"
           />
         </Svg>
       </View>
@@ -75,10 +75,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 20,
     borderTopWidth: 0,
-    borderLeftWidth: 2,
-    borderRightWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#87CEEB',
