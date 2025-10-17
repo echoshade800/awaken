@@ -50,11 +50,29 @@ export default function HomeScreen() {
           <RhythmChart rhythmData={rhythmData} />
 
           <View style={styles.contentPadded}>
-            <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Text style={styles.statLabel}>Energy</Text>
-                <Text style={styles.statValue}>{rhythmData.energyScore}<Text style={styles.statValueSmall}> / 100</Text></Text>
-                <Text style={styles.statSubtext}>Stable and balanced</Text>
+            <View style={styles.energyPanel}>
+              <View style={styles.energyLeft}>
+                <Text style={styles.energyLabel}>Current</Text>
+                <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+              </View>
+
+              <View style={styles.energyCenter}>
+                <Text style={styles.energyStatus}>
+                  {rhythmData.energyScore > 80 ? 'Peak' :
+                   rhythmData.energyScore > 60 ? 'High' :
+                   rhythmData.energyScore > 40 ? 'Moderate' : 'Low'}
+                </Text>
+              </View>
+
+              <View style={styles.energyRight}>
+                <View style={styles.energyTimeRow}>
+                  <Text style={styles.energyTimeLabel}>Peak</Text>
+                  <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                </View>
+                <View style={styles.energyTimeRow}>
+                  <Text style={styles.energyTimeLabel}>Low</Text>
+                  <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                </View>
               </View>
             </View>
 
@@ -113,42 +131,63 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 4,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+  energyPanel: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    marginTop: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  statLabel: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    marginBottom: 8,
-    fontWeight: '400',
+  energyLeft: {
+    alignItems: 'flex-start',
+    flex: 1,
   },
-  statValue: {
-    fontSize: 32,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  statValueSmall: {
-    fontSize: 20,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  statSubtext: {
+  energyLabel: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.7)',
-    marginTop: 2,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  energyValue: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  energyCenter: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  energyStatus: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  energyRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  energyTimeRow: {
+    alignItems: 'flex-end',
+  },
+  energyTimeLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 2,
+    fontWeight: '500',
+  },
+  energyTimeValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   ctaButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
