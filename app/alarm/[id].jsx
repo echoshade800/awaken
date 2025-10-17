@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, Modal, Pressable, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Pressable, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, CreditCard as Edit3, ChevronRight, Check } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -82,6 +82,8 @@ export default function AlarmDetail() {
   const [timeModalVisible, setTimeModalVisible] = useState(false);
   const [selectedHour, setSelectedHour] = useState('07');
   const [selectedMinute, setSelectedMinute] = useState('00');
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const alarm = alarms.find((a) => a.id === id);
 
@@ -144,21 +146,16 @@ export default function AlarmDetail() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      '删除闹钟',
-      '确定要删除这个闹钟吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteAlarm(id);
-            router.back();
-          },
-        },
-      ]
-    );
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    setDeleteModalVisible(false);
+    await deleteAlarm(id);
+    setShowSuccessToast(true);
+    setTimeout(() => {
+      router.back();
+    }, 1500);
   };
 
   const renderBroadcastPreview = () => {
@@ -507,6 +504,45 @@ export default function AlarmDetail() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* 删除确认模态框 */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={deleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <Text style={styles.deleteModalTitle}>删除闹钟</Text>
+            <Text style={styles.deleteModalMessage}>确定要删除这个闹钟吗？</Text>
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={[styles.deleteModalButton, styles.cancelButton]}
+                onPress={() => setDeleteModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelButtonText}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteModalButton, styles.confirmDeleteButton]}
+                onPress={confirmDelete}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.confirmDeleteButtonText}>删除</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 删除成功提示 */}
+      {showSuccessToast && (
+        <View style={styles.successToast}>
+          <Check size={20} color="#FFF" />
+          <Text style={styles.successToastText}>闹钟已删除</Text>
+        </View>
+      )}
     </LinearGradient>
   );
 }
@@ -800,5 +836,81 @@ const styles = StyleSheet.create({
     fontSize: 32,
     color: '#4A5F8F',
     fontWeight: '300',
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '80%',
+    maxWidth: 340,
+    alignItems: 'center',
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#4A5F8F',
+    marginBottom: 12,
+  },
+  deleteModalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  deleteModalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F0F0F0',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmDeleteButton: {
+    backgroundColor: '#FF4444',
+  },
+  confirmDeleteButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  successToast: {
+    position: 'absolute',
+    top: 100,
+    left: '50%',
+    transform: [{ translateX: -80 }],
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  successToastText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
