@@ -72,7 +72,7 @@ export default function HomeScreen() {
                     </View>
                   </View>
                 </View>
-                <Text style={styles.panelLabel}>能量状况</Text>
+                <Text style={styles.panelLabel}>Energy Status</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
