@@ -6,7 +6,7 @@ import { BlurView } from 'expo-blur';
 import { useEffect, useRef } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CHART_WIDTH = SCREEN_WIDTH;
+const CHART_WIDTH = SCREEN_WIDTH - 32;
 const CHART_HEIGHT = 180;
 const PADDING = { top: 60, right: 15, bottom: 30, left: 15 };
 
@@ -91,8 +91,9 @@ export default function RhythmChart({ rhythmData }) {
   const bubbleY = currentY - bubbleHeight - 30;
 
   return (
-    <View style={styles.container}>
-      <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
+    <View style={styles.containerWrapper}>
+      <View style={styles.container}>
+        <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
         <Defs>
           <LinearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <Stop offset="0%" stopColor="#A3E4FF" stopOpacity="0.4" />
@@ -230,14 +231,20 @@ export default function RhythmChart({ rhythmData }) {
           <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
         </BlurView>
       </Animated.View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  containerWrapper: {
+    width: '100%',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  container: {
     position: 'relative',
+    width: CHART_WIDTH,
   },
   statusBubble: {
     position: 'absolute',
