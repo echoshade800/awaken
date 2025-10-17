@@ -142,28 +142,28 @@ export default function AlarmDetail() {
         showsVerticalScrollIndicator={false}
       >
         {/* 时间卡片 */}
-        <View style={styles.timeCard}>
+        <TouchableOpacity style={styles.timeCard} onPress={handleEdit} activeOpacity={0.7}>
           <View style={styles.sunIcon}>
             <View style={styles.sunCore} />
             <View style={styles.sunRays} />
           </View>
           <Text style={styles.timeText}>{alarm.time}</Text>
           {alarm.label && <Text style={styles.labelText}>{alarm.label}</Text>}
-        </View>
+        </TouchableOpacity>
 
         {/* 详细信息卡片 */}
         <View style={styles.detailCard}>
-          <View style={styles.detailRow}>
+          <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
             <View style={styles.detailLeft}>
               <Calendar size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Repeat</Text>
             </View>
             <Text style={styles.detailValue}>{PERIOD_LABELS[alarm.period] || 'Everyday'}</Text>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.divider} />
 
-          <View style={styles.detailRow}>
+          <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
             <View style={styles.detailLeft}>
               <Bell size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Wake Mode</Text>
@@ -171,12 +171,12 @@ export default function AlarmDetail() {
             <Text style={styles.detailValue}>
               {WAKE_MODE_LABELS[alarm.wakeMode] || 'Voice'}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {alarm.wakeMode === 'voice' && (
             <>
               <View style={styles.divider} />
-              <View style={styles.detailColumn}>
+              <TouchableOpacity style={styles.detailColumn} onPress={handleEdit} activeOpacity={0.7}>
                 <View style={styles.detailLeft}>
                   <Volume2 size={20} color="#FF9A76" />
                   <Text style={styles.detailLabel}>Broadcast</Text>
@@ -184,10 +184,10 @@ export default function AlarmDetail() {
                 <View style={styles.detailValueContainer}>
                   {renderBroadcastPreview()}
                 </View>
-              </View>
+              </TouchableOpacity>
 
               <View style={styles.divider} />
-              <View style={styles.detailRow}>
+              <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
                 <View style={styles.detailLeft}>
                   <Volume2 size={20} color="#FF9A76" />
                   <Text style={styles.detailLabel}>Voice Pack</Text>
@@ -195,13 +195,13 @@ export default function AlarmDetail() {
                 <Text style={styles.detailValue}>
                   {VOICE_PACKAGE_LABELS[alarm.voicePackage] || 'Energetic Girl'}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </>
           )}
 
           <View style={styles.divider} />
 
-          <View style={styles.detailRow}>
+          <TouchableOpacity style={styles.detailRow} onPress={handleEdit} activeOpacity={0.7}>
             <View style={styles.detailLeft}>
               <Zap size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Task</Text>
@@ -209,7 +209,7 @@ export default function AlarmDetail() {
             <Text style={styles.detailValue}>
               {TASK_LABELS[alarm.task] || 'None'}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* 操作按钮 */}
