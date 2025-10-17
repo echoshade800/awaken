@@ -43,10 +43,17 @@ export default function BroadcastEditor() {
     setCursorPosition(newCursorPos);
 
     setTimeout(() => {
-      inputRef.current?.focus();
-      inputRef.current?.setNativeProps({
-        selection: { start: newCursorPos, end: newCursorPos }
-      });
+      if (inputRef.current) {
+        inputRef.current.focus();
+
+        if (Platform.OS === 'web') {
+          inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        } else {
+          inputRef.current.setNativeProps({
+            selection: { start: newCursorPos, end: newCursorPos }
+          });
+        }
+      }
     }, 100);
   };
 
