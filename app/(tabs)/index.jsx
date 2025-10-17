@@ -216,12 +216,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   puzzleContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
     height: 110,
     justifyContent: 'center',
     alignItems: 'center',
