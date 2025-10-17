@@ -25,11 +25,9 @@ export default function MonsterHornBorder({ children, style }) {
           </LinearGradient>
         </Defs>
 
-        {/* Monster horn border - rounded rectangle with sharp corners */}
+        {/* Monster horn border - rounded rectangle */}
         <Path
           d="M 20 10
-             L 50 10 L 58 4 L 66 10
-             L 94 10 L 102 4 L 110 10
              L 140 10
              Q 150 10 150 20
              L 150 80
@@ -46,8 +44,6 @@ export default function MonsterHornBorder({ children, style }) {
         {/* Outer glow effect */}
         <Path
           d="M 20 10
-             L 50 10 L 58 4 L 66 10
-             L 94 10 L 102 4 L 110 10
              L 140 10
              Q 150 10 150 20
              L 150 80
