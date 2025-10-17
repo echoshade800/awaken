@@ -3,9 +3,9 @@ import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, P
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
 
-const CHART_WIDTH = Dimensions.get('window').width - 40;
+const CHART_WIDTH = Dimensions.get('window').width;
 const CHART_HEIGHT = 180;
-const PADDING = { top: 60, right: 20, bottom: 30, left: 40 };
+const PADDING = { top: 60, right: 0, bottom: 30, left: 0 };
 
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
@@ -68,15 +68,6 @@ export default function RhythmChart({ rhythmData }) {
           </RadialGradient>
         </Defs>
 
-        <Line
-          x1={PADDING.left}
-          y1={yScale(50)}
-          x2={CHART_WIDTH - PADDING.right}
-          y2={yScale(50)}
-          stroke="rgba(255, 255, 255, 0.2)"
-          strokeWidth="1"
-          strokeDasharray="4,4"
-        />
 
         <Path
           d={pathData}
@@ -84,7 +75,6 @@ export default function RhythmChart({ rhythmData }) {
           strokeWidth="4"
           fill="none"
           opacity="0.9"
-          clipPath={`inset(0 ${PADDING.right}px 0 0)`}
         />
 
         <Circle
@@ -133,33 +123,6 @@ export default function RhythmChart({ rhythmData }) {
           </SvgText>
         ))}
 
-        <SvgText
-          x={PADDING.left - 10}
-          y={yScale(100) + 5}
-          fontSize="11"
-          fill="rgba(255, 255, 255, 0.6)"
-          textAnchor="end"
-        >
-          100
-        </SvgText>
-        <SvgText
-          x={PADDING.left - 10}
-          y={yScale(50) + 5}
-          fontSize="11"
-          fill="rgba(255, 255, 255, 0.6)"
-          textAnchor="end"
-        >
-          50
-        </SvgText>
-        <SvgText
-          x={PADDING.left - 10}
-          y={yScale(0) + 5}
-          fontSize="11"
-          fill="rgba(255, 255, 255, 0.6)"
-          textAnchor="end"
-        >
-          0
-        </SvgText>
       </Svg>
 
       <View

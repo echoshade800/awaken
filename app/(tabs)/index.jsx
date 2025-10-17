@@ -38,7 +38,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
+          <View style={styles.headerPadded}>
             <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
             <Text style={styles.currentTime}>{currentTime}</Text>
             {nextAlarm && (
@@ -48,24 +48,26 @@ export default function HomeScreen() {
 
           <RhythmChart rhythmData={rhythmData} />
 
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Energy</Text>
-              <Text style={styles.statValue}>{rhythmData.energyScore}<Text style={styles.statValueSmall}> / 100</Text></Text>
-              <Text style={styles.statSubtext}>Stable and balanced</Text>
+          <View style={styles.contentPadded}>
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>Energy</Text>
+                <Text style={styles.statValue}>{rhythmData.energyScore}<Text style={styles.statValueSmall}> / 100</Text></Text>
+                <Text style={styles.statSubtext}>Stable and balanced</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>Sleep Debt</Text>
+                <Text style={styles.statValue}>{appData?.sleepDebt || '-2'}h</Text>
+              </View>
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>Sleep Debt</Text>
-              <Text style={styles.statValue}>{appData?.sleepDebt || '-2'}h</Text>
-            </View>
-          </View>
 
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => router.push('/(tabs)/alarm')}
-          >
-            <Text style={styles.ctaButtonText}>Awake Me</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.ctaButton}
+              onPress={() => router.push('/(tabs)/alarm')}
+            >
+              <Text style={styles.ctaButtonText}>Awake Me</Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
@@ -81,13 +83,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  header: {
+  headerPadded: {
     marginTop: 8,
     marginBottom: 8,
     alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  contentPadded: {
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 28,
