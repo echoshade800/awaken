@@ -50,28 +50,32 @@ export default function HomeScreen() {
           <RhythmChart rhythmData={rhythmData} />
 
           <View style={styles.contentPadded}>
-            <View style={styles.energyPanel}>
-              <View style={styles.energyLeft}>
-                <Text style={styles.energyLabel}>Current</Text>
-                <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
-              </View>
-
-              <View style={styles.energyCenter}>
+            <View style={styles.infoRow}>
+              <View style={styles.energyCard}>
+                <Text style={styles.cardLabel}>Energy Score</Text>
+                <Text style={styles.energyValue}>{rhythmData.energyScore}<Text style={styles.energyUnit}> / 100</Text></Text>
                 <Text style={styles.energyStatus}>
                   {rhythmData.energyScore > 80 ? 'Peak' :
                    rhythmData.energyScore > 60 ? 'High' :
                    rhythmData.energyScore > 40 ? 'Moderate' : 'Low'}
                 </Text>
+                <View style={styles.peakTimesContainer}>
+                  <View style={styles.peakTimeItem}>
+                    <Text style={styles.peakTimeLabel}>Peak</Text>
+                    <Text style={styles.peakTimeValue}>{rhythmData.peak.time}</Text>
+                  </View>
+                  <View style={styles.peakTimeItem}>
+                    <Text style={styles.peakTimeLabel}>Low</Text>
+                    <Text style={styles.peakTimeValue}>{rhythmData.valley.time}</Text>
+                  </View>
+                </View>
               </View>
 
-              <View style={styles.energyRight}>
-                <View style={styles.energyTimeRow}>
-                  <Text style={styles.energyTimeLabel}>Peak</Text>
-                  <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                </View>
-                <View style={styles.energyTimeRow}>
-                  <Text style={styles.energyTimeLabel}>Low</Text>
-                  <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+              <View style={styles.dreamCard}>
+                <Text style={styles.cardLabel}>Dream Keyword</Text>
+                <View style={styles.dreamKeywordContainer}>
+                  <Text style={styles.dreamKeyword}>Forest</Text>
+                  <View style={styles.dreamBubbleIcon} />
                 </View>
               </View>
             </View>
@@ -131,63 +135,89 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 4,
   },
-  energyPanel: {
+  infoRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  energyCard: {
+    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  dreamCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 18,
     paddingHorizontal: 20,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    marginTop: 12,
-    marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    minWidth: 150,
     justifyContent: 'space-between',
   },
-  energyLeft: {
-    alignItems: 'flex-start',
-    flex: 1,
-  },
-  energyLabel: {
-    fontSize: 12,
+  cardLabel: {
+    fontSize: 13,
     color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 4,
+    marginBottom: 8,
     fontWeight: '500',
   },
   energyValue: {
-    fontSize: 48,
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 6,
+  },
+  energyUnit: {
+    fontSize: 20,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  energyStatus: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  peakTimesContainer: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  peakTimeItem: {
+    flex: 1,
+  },
+  peakTimeLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  peakTimeValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  dreamKeywordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dreamKeyword: {
+    fontSize: 28,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  energyCenter: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 8,
-  },
-  energyStatus: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  energyRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  energyTimeRow: {
-    alignItems: 'flex-end',
-  },
-  energyTimeLabel: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginBottom: 2,
-    fontWeight: '500',
-  },
-  energyTimeValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  dreamBubbleIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(100, 150, 200, 0.4)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   ctaButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
