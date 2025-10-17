@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
-import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
+import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient, G, Rect } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
 import { BlurView } from 'expo-blur';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -13,6 +14,8 @@ const PADDING = { top: 60, right: 15, bottom: 30, left: 15 };
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
   const floatAnim = useRef(new Animated.Value(0)).current;
+  const raysAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
@@ -26,6 +29,29 @@ export default function RhythmChart({ rhythmData }) {
           toValue: 3,
           duration: 2000,
           useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.timing(raysAnim, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: false,
         }),
       ])
     ).start();
@@ -57,14 +83,26 @@ export default function RhythmChart({ rhythmData }) {
   const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
 
   const getEnergyColor = (energy) => {
-    if (energy > 80) return { main: '#A3E4FF', glow: '#6DD5FA' };
-    if (energy > 60) return { main: '#FFFFFF', glow: '#E0F7FF' };
-    if (energy > 40) return { main: '#FFE4FF', glow: '#FFD6FF' };
-    if (energy > 20) return { main: '#FFD9A3', glow: '#FFBE76' };
-    return { main: '#FFA3C7', glow: '#FF758C' };
+    if (energy > 80) return { main: '#FFD700', glow: '#FFA500' };
+    if (energy > 60) return { main: '#FFE5B4', glow: '#FFB347' };
+    if (energy > 40) return { main: '#FFFFFF', glow: '#E0E7FF' };
+    if (energy > 20) return { main: '#E0E7FF', glow: '#B8C5FF' };
+    return { main: '#9FB4FF', glow: '#7B90FF' };
   };
 
   const energyColor = getEnergyColor(currentEnergy);
+
+  const getDawnGradientByTime = (minute) => {
+    const progress = minute / 1440;
+    if (progress < 0.25) return { from: '#1A1A3E', to: '#2A3A6E' };
+    if (progress < 0.35) return { from: '#2A3A6E', to: '#4A5A8E' };
+    if (progress < 0.45) return { from: '#4A5A8E', to: '#FF9966' };
+    if (progress < 0.6) return { from: '#FFB88C', to: '#FFD7A3' };
+    if (progress < 0.75) return { from: '#FFE5B4', to: '#FFF4D4' };
+    return { from: '#FFF4D4', to: '#4A5A8E' };
+  };
+
+  const backgroundGradient = getDawnGradientByTime(currentMinute);
 
   const getEnergyStatus = (energy) => {
     if (energy > 80) return { title: "Peak Energy", subtitle: "You're at your energy peak!" };
@@ -90,30 +128,64 @@ export default function RhythmChart({ rhythmData }) {
   const bubbleX = currentX - bubbleWidth / 2;
   const bubbleY = currentY - bubbleHeight - 30;
 
+  const valleyX = xScale(valley.time ? timeToMinutes(valley.time) : 0);
+  const valleyY = yScale(valley.energy);
+  const peakX = xScale(peak.time ? timeToMinutes(peak.time) : 720);
+  const peakY = yScale(peak.energy);
+
+  const timeToMinutes = (time) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const interpolatedGlowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.4, 0.9]
+  });
+
   return (
     <View style={styles.container}>
+      <ExpoLinearGradient
+        colors={[backgroundGradient.from, backgroundGradient.to]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
         <Defs>
-          <LinearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <Stop offset="0%" stopColor="#A3E4FF" stopOpacity="0.4" />
-            <Stop offset="15%" stopColor="#FFFFFF" stopOpacity="0.9" />
-            <Stop offset="40%" stopColor="#FFD6FF" stopOpacity="0.7" />
-            <Stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.9" />
-            <Stop offset="85%" stopColor="#A3E4FF" stopOpacity="0.5" />
-            <Stop offset="100%" stopColor="#FFE4FF" stopOpacity="0.4" />
+          <LinearGradient id="dawnCurveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <Stop offset="0%" stopColor="#9FB4FF" stopOpacity="0.6" />
+            <Stop offset="20%" stopColor="#C8D5FF" stopOpacity="0.75" />
+            <Stop offset="40%" stopColor="#FFFFFF" stopOpacity="0.95" />
+            <Stop offset="60%" stopColor="#FFE5B4" stopOpacity="0.95" />
+            <Stop offset="80%" stopColor="#FFB347" stopOpacity="0.85" />
+            <Stop offset="100%" stopColor="#FF8C42" stopOpacity="0.75" />
           </LinearGradient>
 
           <RadialGradient id="pointGlow" cx="50%" cy="50%">
             <Stop offset="0%" stopColor={energyColor.main} stopOpacity="1" />
-            <Stop offset="50%" stopColor={energyColor.glow} stopOpacity="0.6" />
+            <Stop offset="50%" stopColor={energyColor.glow} stopOpacity="0.7" />
             <Stop offset="100%" stopColor={energyColor.glow} stopOpacity="0" />
           </RadialGradient>
 
           <RadialGradient id="auraGlow" cx="50%" cy="50%">
-            <Stop offset="0%" stopColor={energyColor.glow} stopOpacity="0.3" />
+            <Stop offset="0%" stopColor={energyColor.glow} stopOpacity="0.5" />
             <Stop offset="100%" stopColor={energyColor.glow} stopOpacity="0" />
           </RadialGradient>
+
+          <RadialGradient id="horizonGlow" cx="50%" cy="50%">
+            <Stop offset="0%" stopColor="#FFA500" stopOpacity="0.8" />
+            <Stop offset="50%" stopColor="#FFD700" stopOpacity="0.4" />
+            <Stop offset="100%" stopColor="#FFE5B4" stopOpacity="0" />
+          </RadialGradient>
         </Defs>
+
+        <Circle
+          cx={currentX}
+          cy={currentY}
+          r="120"
+          fill="url(#horizonGlow)"
+        />
 
         <Circle
           cx={currentX}
@@ -122,21 +194,20 @@ export default function RhythmChart({ rhythmData }) {
           fill="url(#auraGlow)"
         />
 
-
         <Path
           d={pathData}
-          stroke="rgba(255, 255, 255, 0.15)"
-          strokeWidth="10"
+          stroke="rgba(255, 255, 255, 0.2)"
+          strokeWidth="12"
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ filter: 'blur(8px)' }}
+          style={{ filter: 'blur(10px)' }}
         />
 
         <Path
           d={pathData}
-          stroke="url(#auroraGradient)"
-          strokeWidth="5"
+          stroke="url(#dawnCurveGradient)"
+          strokeWidth="6"
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -144,10 +215,9 @@ export default function RhythmChart({ rhythmData }) {
 
         <Path
           d={pathData}
-          stroke="#FFFFFF"
-          strokeWidth="2"
+          stroke="rgba(255, 255, 255, 0.9)"
+          strokeWidth="2.5"
           fill="none"
-          opacity="0.8"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -200,20 +270,93 @@ export default function RhythmChart({ rhythmData }) {
           fill="rgba(255, 255, 255, 0.95)"
         />
 
+        <G opacity="0.85">
+          <SvgText x={valleyX} y={valleyY + 35} fontSize="20" textAnchor="middle">
+            🌙
+          </SvgText>
+          <SvgText x={valleyX} y={valleyY + 50} fontSize="9" fill="rgba(255, 255, 255, 0.7)" textAnchor="middle">
+            Low Energy
+          </SvgText>
+        </G>
+
+        <G opacity="0.85">
+          <SvgText x={peakX} y={peakY - 20} fontSize="24" textAnchor="middle">
+            ☀️
+          </SvgText>
+          <SvgText x={peakX} y={peakY - 5} fontSize="9" fill="rgba(255, 255, 255, 0.9)" textAnchor="middle">
+            Peak Energy
+          </SvgText>
+        </G>
+
         {timeLabels.map((label) => (
           <SvgText
             key={label.time}
             x={xScale(label.minute)}
             y={CHART_HEIGHT - 10}
             fontSize="11"
-            fill="rgba(255, 255, 255, 0.6)"
+            fill="rgba(255, 255, 255, 0.75)"
             textAnchor="middle"
+            fontWeight="500"
           >
             {label.time}
           </SvgText>
         ))}
 
       </Svg>
+
+      <View
+        style={[
+          styles.lightRaysContainer,
+          {
+            left: Math.max(20, Math.min(CHART_WIDTH - 220, bubbleX)) + 100,
+            top: Math.max(10, bubbleY) - 15,
+          }
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.lightRay,
+            {
+              opacity: raysAnim.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [0.2, 0.6, 0.2]
+              }),
+              transform: [
+                {
+                  scaleY: raysAnim.interpolate({
+                    inputRange: [0, 0.5, 1],
+                    outputRange: [0.8, 1.2, 0.8]
+                  })
+                }
+              ]
+            }
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.lightRay,
+            styles.lightRay2,
+            {
+              opacity: raysAnim.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [0.15, 0.5, 0.15]
+              }),
+            }
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.lightRay,
+            styles.lightRay3,
+            {
+              opacity: raysAnim.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [0.1, 0.4, 0.1]
+              }),
+            }
+          ]}
+        />
+      </View>
 
       <Animated.View
         style={[
@@ -225,7 +368,7 @@ export default function RhythmChart({ rhythmData }) {
           }
         ]}
       >
-        <BlurView intensity={20} tint="light" style={styles.blurContainer}>
+        <BlurView intensity={25} tint="light" style={styles.blurContainer}>
           <Text style={styles.statusTitle}>{energyStatus.title}</Text>
           <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
         </BlurView>
@@ -238,14 +381,16 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 8,
     position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 20,
   },
   statusBubble: {
     position: 'absolute',
     borderRadius: 20,
-    shadowColor: '#87CEEB',
+    shadowColor: '#FFB347',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
     elevation: 5,
     minWidth: 200,
     overflow: 'hidden',
@@ -254,23 +399,54 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 20,
   },
   statusTitle: {
     fontSize: 14,
     color: '#1C1C1E',
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 2,
   },
   statusSubtitle: {
     fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '400',
+    color: '#4B5563',
+    fontWeight: '500',
   },
   chart: {
     marginVertical: 4,
+  },
+  lightRaysContainer: {
+    position: 'absolute',
+    width: 2,
+    height: 30,
+    alignItems: 'center',
+  },
+  lightRay: {
+    position: 'absolute',
+    width: 2,
+    height: 30,
+    backgroundColor: '#FFD700',
+    borderRadius: 1,
+    shadowColor: '#FFA500',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+  lightRay2: {
+    width: 1.5,
+    height: 25,
+    left: -6,
+    transform: [{ rotate: '-15deg' }],
+    backgroundColor: '#FFE5B4',
+  },
+  lightRay3: {
+    width: 1.5,
+    height: 25,
+    left: 6,
+    transform: [{ rotate: '15deg' }],
+    backgroundColor: '#FFE5B4',
   },
 });
