@@ -7,6 +7,7 @@ import { generateMockRhythm } from '@/lib/rhythm';
 import RhythmChart from '@/components/RhythmChart';
 import StarBackground from '@/components/StarBackground';
 import DreamBubble from '@/components/DreamBubble';
+import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -55,11 +56,9 @@ export default function HomeScreen() {
                 <Text style={styles.statValue}>{rhythmData.energyScore}<Text style={styles.statValueSmall}> / 100</Text></Text>
                 <Text style={styles.statSubtext}>Stable and balanced</Text>
               </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statLabel}>Sleep Debt</Text>
-                <Text style={styles.statValue}>{appData?.sleepDebt || '-2'}h</Text>
-              </View>
             </View>
+
+            <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
 
             <TouchableOpacity
               style={styles.ctaButton}
