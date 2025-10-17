@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText, ClipPath, Rect } from 'react-native-svg';
 
-export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
+export default function SleepDebtPuzzle() {
   const puzzleWidth = 120;
   const puzzleHeight = 60;
   const pieceWidth = puzzleWidth / 4;
@@ -184,10 +184,6 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
           SLEEP
         </SvgText>
       </Svg>
-
-      <Text style={styles.debtText}>
-        {sleepDebt}h
-      </Text>
     </View>
   );
 }
@@ -197,12 +193,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-  },
-  debtText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.95)',
-    letterSpacing: 0.5,
-    marginTop: 4,
   },
 });

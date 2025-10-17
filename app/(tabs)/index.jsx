@@ -88,9 +88,9 @@ export default function HomeScreen() {
             <View style={styles.horizontalContainer}>
               <View style={styles.panelWithLabel}>
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
-                  <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
+                  <SleepDebtPuzzle />
                 </UnifiedPanelBorder>
-                <Text style={styles.panelLabel}>Sleep Debt</Text>
+                <Text style={styles.panelLabel}>Sleep Debt: {appData?.sleepDebt || -2}h</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
