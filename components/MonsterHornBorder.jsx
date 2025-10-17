@@ -15,11 +15,6 @@ export default function MonsterHornBorder({ children, style }) {
         preserveAspectRatio="xMidYMid meet"
       >
         <Defs>
-          <LinearGradient id="monsterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="rgba(180, 210, 255, 0.35)" stopOpacity="1" />
-            <Stop offset="50%" stopColor="rgba(200, 220, 255, 0.25)" stopOpacity="1" />
-            <Stop offset="100%" stopColor="rgba(220, 240, 255, 0.35)" stopOpacity="1" />
-          </LinearGradient>
           <LinearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <Stop offset="0%" stopColor="rgba(255, 255, 255, 0.5)" stopOpacity="1" />
             <Stop offset="50%" stopColor="rgba(200, 230, 255, 0.6)" stopOpacity="1" />
@@ -27,7 +22,7 @@ export default function MonsterHornBorder({ children, style }) {
           </LinearGradient>
         </Defs>
 
-        {/* 怪兽形状边框 - 带尖角的圆角矩形 */}
+        {/* 怪兽形状边框 - 带尖角的圆角矩形，透明背景 */}
         <Path
           d="M 30 10
              L 60 10 L 70 2 L 80 10
@@ -40,7 +35,7 @@ export default function MonsterHornBorder({ children, style }) {
              Q 10 80 10 60
              L 10 30
              Q 10 10 30 10 Z"
-          fill="url(#monsterGradient)"
+          fill="transparent"
           stroke="url(#glowGradient)"
           strokeWidth="2.5"
         />
