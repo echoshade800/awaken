@@ -58,27 +58,27 @@ export default function AlarmScreen() {
             ))
           )}
         </ScrollView>
-
-        <View style={styles.fabContainer}>
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={handleCreateAlarm}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.15)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.fabGradient}
-            >
-              <View style={styles.fabIconCircle}>
-                <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={styles.fabText}>Create New Alarm</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
+
+      <View style={styles.fabContainer}>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleCreateAlarm}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.15)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.fabGradient}
+          >
+            <View style={styles.fabIconCircle}>
+              <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+            </View>
+            <Text style={styles.fabText}>Create New Alarm</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </LinearGradient>
   );
 }
