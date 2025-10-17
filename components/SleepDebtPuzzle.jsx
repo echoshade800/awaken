@@ -168,7 +168,7 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
       </View>
 
       <Text style={styles.debtText}>
-        Sleep Debt: {Math.abs(sleepDebt)}h
+        Sleep Debt: {sleepDebt}h
       </Text>
     </View>
   );
