@@ -54,8 +54,9 @@ export default function RhythmChart({ rhythmData }) {
 
   const currentX = xScale(currentMinute);
   const currentY = yScale(currentEnergy);
+  const energyStatus = getEnergyStatus(currentEnergy);
   const bubbleWidth = 200;
-  const bubbleHeight = 40;
+  const bubbleHeight = 60;
   const bubbleX = currentX - bubbleWidth / 2;
   const bubbleY = currentY - bubbleHeight - 30;
 
@@ -135,8 +136,8 @@ export default function RhythmChart({ rhythmData }) {
           }
         ]}
       >
-        <Text style={styles.statusTitle}>{getEnergyStatus(currentEnergy).title}</Text>
-        <Text style={styles.statusSubtitle}>{getEnergyStatus(currentEnergy).subtitle}</Text>
+        <Text style={styles.statusTitle}>{energyStatus.title}</Text>
+        <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
       </View>
     </View>
   );
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
   statusBubble: {
     position: 'absolute',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 20,
     shadowColor: '#000',
