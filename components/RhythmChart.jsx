@@ -37,11 +37,11 @@ export default function RhythmChart({ rhythmData }) {
   const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
 
   const getEnergyStatus = (energy) => {
-    if (energy > 80) return "You're at your energy peak!";
-    if (energy > 60) return "Your energy is rising!";
-    if (energy > 40) return "保持节奏，记得适时休息哦";
-    if (energy > 20) return "能量在下降，建议放慢节奏";
-    return "Time to rest and recharge";
+    if (energy > 80) return { title: "Peak Energy", subtitle: "You're at your energy peak!" };
+    if (energy > 60) return { title: "Rising", subtitle: "Your energy is rising!" };
+    if (energy > 40) return { title: "Moderate", subtitle: "保持节奏，记得适时休息哦" };
+    if (energy > 20) return { title: "Declining", subtitle: "能量在下降，建议放慢节奏" };
+    return { title: "Low", subtitle: "Time to rest and recharge" };
   };
 
   const timeLabels = [
@@ -135,7 +135,8 @@ export default function RhythmChart({ rhythmData }) {
           }
         ]}
       >
-        <Text style={styles.statusText}>{getEnergyStatus(currentEnergy)}</Text>
+        <Text style={styles.statusTitle}>{getEnergyStatus(currentEnergy).title}</Text>
+        <Text style={styles.statusSubtitle}>{getEnergyStatus(currentEnergy).subtitle}</Text>
       </View>
     </View>
   );
@@ -160,10 +161,16 @@ const styles = StyleSheet.create({
     minWidth: 200,
     alignItems: 'center',
   },
-  statusText: {
-    fontSize: 13,
+  statusTitle: {
+    fontSize: 14,
     color: '#1C1C1E',
-    fontWeight: '500',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  statusSubtitle: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '400',
   },
   chart: {
     marginVertical: 4,
