@@ -514,22 +514,22 @@ export default function AlarmDetail() {
       >
         <View style={styles.deleteModalOverlay}>
           <View style={styles.deleteModalContent}>
-            <Text style={styles.deleteModalTitle}>删除闹钟</Text>
-            <Text style={styles.deleteModalMessage}>确定要删除这个闹钟吗？</Text>
+            <Text style={styles.deleteModalTitle}>Delete Alarm</Text>
+            <Text style={styles.deleteModalMessage}>Are you sure you want to delete this alarm?</Text>
             <View style={styles.deleteModalButtons}>
               <TouchableOpacity
                 style={[styles.deleteModalButton, styles.cancelButton]}
                 onPress={() => setDeleteModalVisible(false)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.cancelButtonText}>取消</Text>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.deleteModalButton, styles.confirmDeleteButton]}
                 onPress={confirmDelete}
                 activeOpacity={0.7}
               >
-                <Text style={styles.confirmDeleteButtonText}>删除</Text>
+                <Text style={styles.confirmDeleteButtonText}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -540,7 +540,7 @@ export default function AlarmDetail() {
       {showSuccessToast && (
         <View style={styles.successToast}>
           <Check size={20} color="#FFF" />
-          <Text style={styles.successToastText}>闹钟已删除</Text>
+          <Text style={styles.successToastText}>Alarm deleted</Text>
         </View>
       )}
     </LinearGradient>
