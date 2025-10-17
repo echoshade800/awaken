@@ -27,9 +27,9 @@ const VOICE_PACKAGE_LABELS = {
 
 const TASK_LABELS = {
   none: '无任务',
-  quiz: '算数题',
-  click: '点击挑战',
-  'quick-tap': '快速点击',
+  quiz: '数学挑战',
+  memory: '记忆配对',
+  'quick-tap': '快速反应',
 };
 
 const PERIOD_OPTIONS = [
@@ -37,11 +37,13 @@ const PERIOD_OPTIONS = [
   { label: '工作日', value: 'workday' },
   { label: '周末', value: 'weekend' },
   { label: '只一次', value: 'tomorrow' },
+  { label: '自定义', value: 'custom' },
 ];
 
 const WAKE_MODE_OPTIONS = [
   { label: '语音播报', value: 'voice' },
   { label: '铃声', value: 'ringtone' },
+  { label: '震动', value: 'vibration' },
 ];
 
 const VOICE_PACKAGE_OPTIONS = [
@@ -54,8 +56,18 @@ const VOICE_PACKAGE_OPTIONS = [
 const TASK_OPTIONS = [
   { label: '不需要游戏', value: 'none' },
   { label: '数学挑战', value: 'quiz' },
-  { label: '记忆配对', value: 'click' },
+  { label: '记忆配对', value: 'memory' },
   { label: '快速反应', value: 'quick-tap' },
+];
+
+const WEEKDAY_OPTIONS = [
+  { label: '周一', value: 'monday' },
+  { label: '周二', value: 'tuesday' },
+  { label: '周三', value: 'wednesday' },
+  { label: '周四', value: 'thursday' },
+  { label: '周五', value: 'friday' },
+  { label: '周六', value: 'saturday' },
+  { label: '周日', value: 'sunday' },
 ];
 
 export default function AlarmDetail() {
@@ -66,6 +78,7 @@ export default function AlarmDetail() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [modalOptions, setModalOptions] = useState([]);
+  const [selectedDays, setSelectedDays] = useState([]);
 
   const alarm = alarms.find((a) => a.id === id);
 
@@ -89,7 +102,23 @@ export default function AlarmDetail() {
   };
 
   const handleSelectOption = async (value) => {
+    if (modalType === 'period' && value === 'custom') {
+      setSelectedDays(alarm.customDays || []);
+      setModalType('customDays');
+      return;
+    }
     await updateAlarm(id, { [modalType]: value });
+    setModalVisible(false);
+  };
+
+  const toggleDay = (day) => {
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
+  const saveCustomDays = async () => {
+    await updateAlarm(id, { period: 'custom', customDays: selectedDays });
     setModalVisible(false);
   };
 
@@ -316,6 +345,7 @@ export default function AlarmDetail() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {modalType === 'period' && '重复周期'}
+                {modalType === 'customDays' && '选择星期'}
                 {modalType === 'wakeMode' && '唤醒模式'}
                 {modalType === 'voicePackage' && '语音包'}
                 {modalType === 'task' && '起床任务'}
@@ -325,19 +355,44 @@ export default function AlarmDetail() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalOptionsContainer}>
-              {modalOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={styles.modalOption}
-                  onPress={() => handleSelectOption(option.value)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.modalOptionText}>{option.label}</Text>
-                  {alarm[modalType] === option.value && (
-                    <Check size={20} color="#FF9A76" />
-                  )}
-                </TouchableOpacity>
-              ))}
+              {modalType === 'customDays' ? (
+                <>
+                  {WEEKDAY_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={styles.modalOption}
+                      onPress={() => toggleDay(option.value)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.modalOptionText}>{option.label}</Text>
+                      {selectedDays.includes(option.value) && (
+                        <Check size={20} color="#FF9A76" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={saveCustomDays}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.saveButtonText}>确认</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                modalOptions.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.modalOption}
+                    onPress={() => handleSelectOption(option.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.modalOptionText}>{option.label}</Text>
+                    {alarm[modalType] === option.value && (
+                      <Check size={20} color="#FF9A76" />
+                    )}
+                  </TouchableOpacity>
+                ))
+              )}
             </ScrollView>
           </Pressable>
         </Pressable>
@@ -572,5 +627,18 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontSize: 16,
     color: '#333',
+  },
+  saveButton: {
+    backgroundColor: '#FF9A76',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  saveButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
