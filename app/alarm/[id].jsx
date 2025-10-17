@@ -3,6 +3,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Clock, Calendar, Bell, Volume2, Zap, Trash2, CreditCard as Edit3 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
+import StarBackground from '../../components/StarBackground';
 
 const PERIOD_LABELS = {
   everyday: '每天',
@@ -123,14 +124,15 @@ export default function AlarmDetail() {
   };
 
   return (
-    <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
+    <LinearGradient colors={['#FFE4B5', '#FFFAF0']} style={styles.container}>
+      <StarBackground opacity={0.15} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1C1C1E" />
+          <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>闹钟详情</Text>
+        <Text style={styles.headerTitle}>Alarm Details</Text>
         <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-          <Trash2 size={22} color="#FF3B30" />
+          <Trash2 size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -141,6 +143,10 @@ export default function AlarmDetail() {
       >
         {/* 时间卡片 */}
         <View style={styles.timeCard}>
+          <View style={styles.sunIcon}>
+            <View style={styles.sunCore} />
+            <View style={styles.sunRays} />
+          </View>
           <Text style={styles.timeText}>{alarm.time}</Text>
           {alarm.label && <Text style={styles.labelText}>{alarm.label}</Text>}
         </View>
@@ -149,21 +155,21 @@ export default function AlarmDetail() {
         <View style={styles.detailCard}>
           <View style={styles.detailRow}>
             <View style={styles.detailLeft}>
-              <Calendar size={20} color="#007AFF" />
-              <Text style={styles.detailLabel}>重复</Text>
+              <Calendar size={20} color="#FF9A76" />
+              <Text style={styles.detailLabel}>Repeat</Text>
             </View>
-            <Text style={styles.detailValue}>{PERIOD_LABELS[alarm.period] || '每天'}</Text>
+            <Text style={styles.detailValue}>{PERIOD_LABELS[alarm.period] || 'Everyday'}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.detailRow}>
             <View style={styles.detailLeft}>
-              <Bell size={20} color="#007AFF" />
-              <Text style={styles.detailLabel}>叫醒方式</Text>
+              <Bell size={20} color="#FF9A76" />
+              <Text style={styles.detailLabel}>Wake Mode</Text>
             </View>
             <Text style={styles.detailValue}>
-              {WAKE_MODE_LABELS[alarm.wakeMode] || '语音播报'}
+              {WAKE_MODE_LABELS[alarm.wakeMode] || 'Voice'}
             </Text>
           </View>
 
@@ -172,8 +178,8 @@ export default function AlarmDetail() {
               <View style={styles.divider} />
               <View style={styles.detailColumn}>
                 <View style={styles.detailLeft}>
-                  <Volume2 size={20} color="#007AFF" />
-                  <Text style={styles.detailLabel}>播报内容</Text>
+                  <Volume2 size={20} color="#FF9A76" />
+                  <Text style={styles.detailLabel}>Broadcast</Text>
                 </View>
                 <View style={styles.detailValueContainer}>
                   {renderBroadcastPreview()}
@@ -183,11 +189,11 @@ export default function AlarmDetail() {
               <View style={styles.divider} />
               <View style={styles.detailRow}>
                 <View style={styles.detailLeft}>
-                  <Volume2 size={20} color="#007AFF" />
-                  <Text style={styles.detailLabel}>语音包</Text>
+                  <Volume2 size={20} color="#FF9A76" />
+                  <Text style={styles.detailLabel}>Voice Pack</Text>
                 </View>
                 <Text style={styles.detailValue}>
-                  {VOICE_PACKAGE_LABELS[alarm.voicePackage] || '元气少女'}
+                  {VOICE_PACKAGE_LABELS[alarm.voicePackage] || 'Energetic Girl'}
                 </Text>
               </View>
             </>
@@ -197,11 +203,11 @@ export default function AlarmDetail() {
 
           <View style={styles.detailRow}>
             <View style={styles.detailLeft}>
-              <Zap size={20} color="#007AFF" />
-              <Text style={styles.detailLabel}>关闭任务</Text>
+              <Zap size={20} color="#FF9A76" />
+              <Text style={styles.detailLabel}>Task</Text>
             </View>
             <Text style={styles.detailValue}>
-              {TASK_LABELS[alarm.task] || '无任务'}
+              {TASK_LABELS[alarm.task] || 'None'}
             </Text>
           </View>
         </View>
@@ -214,7 +220,7 @@ export default function AlarmDetail() {
             activeOpacity={0.8}
           >
             <Edit3 size={20} color="#FFF" />
-            <Text style={styles.editButtonText}>编辑闹钟</Text>
+            <Text style={styles.editButtonText}>Edit Alarm</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -239,32 +245,27 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 154, 118, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontSize: 20,
+    fontWeight: '300',
+    color: '#4A5F8F',
+    letterSpacing: 0.5,
   },
   deleteButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 154, 118, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   content: {
     flex: 1,
@@ -276,36 +277,57 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   timeCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 24,
-    padding: 32,
+    padding: 40,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  sunIcon: {
+    width: 60,
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  sunCore: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFA500',
+    shadowColor: '#FFA500',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
     shadowRadius: 12,
-    elevation: 3,
+  },
+  sunRays: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#FFB84D',
+    opacity: 0.4,
   },
   timeText: {
     fontSize: 56,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontWeight: '300',
+    color: '#4A5F8F',
     letterSpacing: -1,
   },
   labelText: {
     fontSize: 18,
-    color: '#666',
+    color: '#FF9A76',
     marginTop: 8,
+    fontWeight: '400',
   },
   detailCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
     gap: 16,
   },
   detailRow: {
@@ -323,12 +345,12 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1C1C1E',
+    fontWeight: '400',
+    color: '#4A5F8F',
   },
   detailValue: {
     fontSize: 15,
-    color: '#666',
+    color: '#8B7355',
   },
   detailValueContainer: {
     paddingLeft: 30,
@@ -349,32 +371,33 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   broadcastTag: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: 'rgba(255, 154, 118, 0.2)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 154, 118, 0.3)',
   },
   broadcastTagText: {
     fontSize: 13,
-    color: '#007AFF',
+    color: '#FF9A76',
     fontWeight: '500',
   },
   actionContainer: {
     paddingTop: 8,
   },
   editButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9A76',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     gap: 8,
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9A76',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
   },
   editButtonText: {
     color: '#FFF',

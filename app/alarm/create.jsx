@@ -452,7 +452,7 @@ export default function AlarmCreate() {
   const isInSummary = currentStep >= STEP_CONFIGS.length;
 
   return (
-    <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
+    <LinearGradient colors={['#4A5F8F', '#FF9A76', '#FFE4B5']} style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -460,9 +460,9 @@ export default function AlarmCreate() {
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
-            <ArrowLeft size={24} color="#1C1C1E" />
+            <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>设置闹钟</Text>
+          <Text style={styles.headerTitle}>Create Alarm</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -528,12 +528,12 @@ export default function AlarmCreate() {
           onPress={handleVoiceInput}
           activeOpacity={0.7}
         >
-          <Mic size={22} color="#007AFF" />
+          <Mic size={22} color="#FF9A76" />
         </TouchableOpacity>
 
         <TextInput
           style={styles.input}
-          placeholder="输入时间或选择标签..."
+          placeholder="Enter time or choose option..."
           placeholderTextColor="#999"
           value={inputText}
           onChangeText={setInputText}
@@ -549,7 +549,7 @@ export default function AlarmCreate() {
           disabled={!inputText.trim()}
           activeOpacity={0.7}
         >
-          <Send size={20} color={inputText.trim() ? '#007AFF' : '#CCC'} />
+          <Send size={20} color={inputText.trim() ? '#FF9A76' : 'rgba(255, 255, 255, 0.5)'} />
         </TouchableOpacity>
       </View>
       </KeyboardAvoidingView>
@@ -578,19 +578,17 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#1C1C1E',
+    fontSize: 20,
+    fontWeight: '300',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   chatArea: {
     flex: 1,
@@ -605,15 +603,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9A76',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9A76',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 4,
   },
   saveButtonText: {
     color: '#FFF',
@@ -626,9 +623,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   editModulesButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9A76',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
   },
   editModulesText: {
@@ -637,13 +634,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   skipButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   skipButtonText: {
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '400',
   },
@@ -660,44 +659,32 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   input: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#1C1C1E',
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    color: '#4A5F8F',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   sendButtonDisabled: {
     opacity: 0.5,

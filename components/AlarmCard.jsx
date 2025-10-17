@@ -2,11 +2,11 @@ import { View, Text, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { Clock, Calendar, Music, Gamepad2 } from 'lucide-react-native';
 
 const PERIOD_LABELS = {
-  everyday: '每天',
-  workday: '工作日',
-  weekend: '周末',
-  tomorrow: '明天',
-  custom: '自定义',
+  everyday: 'Everyday',
+  workday: 'Weekdays',
+  weekend: 'Weekends',
+  tomorrow: 'Tomorrow',
+  custom: 'Custom',
 };
 
 export default function AlarmCard({ alarm, onPress, onToggle }) {
@@ -26,28 +26,28 @@ export default function AlarmCard({ alarm, onPress, onToggle }) {
 
           <View style={styles.details}>
             <View style={styles.detailRow}>
-              <Calendar size={16} color="#666" />
+              <Calendar size={16} color="rgba(255, 154, 118, 0.8)" />
               <Text style={styles.detailText}>{periodLabel}</Text>
             </View>
 
             {alarm.wakeMode === 'voice' ? (
               <View style={styles.detailRow}>
-                <Music size={16} color="#666" />
+                <Music size={16} color="rgba(255, 154, 118, 0.8)" />
                 <Text style={styles.detailText}>
-                  语音播报 - {alarm.voicePackage === 'energetic-girl' ? '元气少女' : '沉稳大叔'}
+                  Voice - {alarm.voicePackage === 'energetic-girl' ? 'Energetic Girl' : 'Calm Man'}
                 </Text>
               </View>
             ) : (
               <View style={styles.detailRow}>
-                <Music size={16} color="#666" />
-                <Text style={styles.detailText}>{alarm.ringtone || '默认铃声'}</Text>
+                <Music size={16} color="rgba(255, 154, 118, 0.8)" />
+                <Text style={styles.detailText}>{alarm.ringtone || 'Default Ringtone'}</Text>
               </View>
             )}
 
             {alarm.task && alarm.task !== 'none' && (
               <View style={styles.detailRow}>
-                <Gamepad2 size={16} color="#666" />
-                <Text style={styles.detailText}>任务: {alarm.task}</Text>
+                <Gamepad2 size={16} color="rgba(255, 154, 118, 0.8)" />
+                <Text style={styles.detailText}>Task: {alarm.task}</Text>
               </View>
             )}
           </View>
@@ -60,7 +60,7 @@ export default function AlarmCard({ alarm, onPress, onToggle }) {
         <Switch
           value={alarm.enabled}
           onValueChange={() => onToggle(alarm.id)}
-          trackColor={{ false: '#E0E0E0', true: '#34C759' }}
+          trackColor={{ false: 'rgba(255, 255, 255, 0.4)', true: '#FF9A76' }}
           thumbColor="#FFF"
         />
       </View>
@@ -70,21 +70,18 @@ export default function AlarmCard({ alarm, onPress, onToggle }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 20,
     marginHorizontal: 16,
-    marginVertical: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.7)',
     flexDirection: 'row',
     alignItems: 'center',
   },
   clickableArea: {
     flex: 1,
-    padding: 12,
+    padding: 16,
   },
   content: {
     gap: 8,
@@ -95,9 +92,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   time: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1C1C1E',
+    fontSize: 36,
+    fontWeight: '300',
+    color: '#4A5F8F',
+    letterSpacing: -0.5,
   },
   details: {
     gap: 6,
@@ -109,12 +107,13 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 13,
-    color: '#8E8E93',
+    color: 'rgba(74, 95, 143, 0.7)',
+    fontWeight: '400',
   },
   label: {
-    fontSize: 13,
-    color: '#C7C7CC',
-    fontStyle: 'italic',
+    fontSize: 14,
+    color: '#FF9A76',
+    fontWeight: '400',
   },
   switchContainer: {
     paddingRight: 12,

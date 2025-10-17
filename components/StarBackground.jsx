@@ -18,7 +18,7 @@ const generateStars = (count) => {
 
 const STARS = generateStars(50);
 
-export default function StarBackground() {
+export default function StarBackground({ opacity = 1 }) {
   return (
     <View style={styles.container}>
       {STARS.map((star) => (
@@ -31,7 +31,7 @@ export default function StarBackground() {
               top: star.top,
               width: star.size,
               height: star.size,
-              opacity: star.opacity,
+              opacity: star.opacity * opacity,
             },
           ]}
         />

@@ -5,6 +5,7 @@ import { Plus, AlarmClock } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import useStore from '@/lib/store';
 import AlarmCard from '@/components/AlarmCard';
+import StarBackground from '@/components/StarBackground';
 
 export default function AlarmScreen() {
   const router = useRouter();
@@ -20,11 +21,12 @@ export default function AlarmScreen() {
   };
 
   return (
-    <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
+    <LinearGradient colors={['#4A5F8F', '#FF9A76', '#FFE4B5']} style={styles.container}>
+      <StarBackground opacity={0.3} />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.title}>我的闹钟</Text>
-          <Text style={styles.subtitle}>管理你的闹钟设置</Text>
+          <Text style={styles.title}>Awake Me</Text>
+          <Text style={styles.subtitle}>Set Your Morning Rhythm</Text>
         </View>
 
         <ScrollView
@@ -33,9 +35,9 @@ export default function AlarmScreen() {
         >
           {alarms.length === 0 ? (
             <View style={styles.emptyState}>
-              <AlarmClock size={64} color="#C7C7CC" />
-              <Text style={styles.emptyStateText}>还没有闹钟</Text>
-              <Text style={styles.emptyStateSubtext}>点击下方按钮创建你的第一个闹钟</Text>
+              <AlarmClock size={64} color="rgba(255, 255, 255, 0.5)" />
+              <Text style={styles.emptyStateText}>No Alarms Set</Text>
+              <Text style={styles.emptyStateSubtext}>Create your first gentle wake-up call</Text>
             </View>
           ) : (
             alarms.map((alarm) => (
@@ -52,7 +54,7 @@ export default function AlarmScreen() {
         <View style={styles.fabContainer}>
           <TouchableOpacity style={styles.fab} onPress={handleCreateAlarm}>
             <Plus size={24} color="#FFF" />
-            <Text style={styles.fabText}>新建闹钟</Text>
+            <Text style={styles.fabText}>New Alarm</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -73,14 +75,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontSize: 32,
+    fontWeight: '300',
+    color: '#FFFFFF',
     marginBottom: 4,
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: '#8E8E93',
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '400',
   },
   scrollContent: {
     paddingBottom: 100,
@@ -91,16 +95,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '300',
+    color: '#FFFFFF',
+    marginTop: 20,
+    letterSpacing: 0.5,
   },
   emptyStateSubtext: {
-    fontSize: 14,
-    color: '#C7C7CC',
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 8,
     textAlign: 'center',
+    fontWeight: '300',
   },
   fabContainer: {
     position: 'absolute',
@@ -112,19 +118,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    paddingVertical: 16,
     borderRadius: 24,
-    shadowColor: '#007AFF',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,
   },
   fabText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#FFFFFF',
     marginLeft: 8,
   },
 });
