@@ -107,62 +107,61 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
               }
 
               return (
-                <Path
-                  key={idx}
-                  d={createPuzzlePiece(
-                    piece.col,
-                    piece.row,
-                    piece.rightTab,
-                    piece.bottomTab,
-                    piece.leftSocket,
-                    piece.topSocket
-                  )}
-                  fill="url(#puzzleGradient)"
-                  stroke="rgba(30, 60, 90, 0.8)"
-                  strokeWidth="2.5"
-                />
+                <G key={idx}>
+                  <Path
+                    d={createPuzzlePiece(
+                      piece.col,
+                      piece.row,
+                      piece.rightTab,
+                      piece.bottomTab,
+                      piece.leftSocket,
+                      piece.topSocket
+                    )}
+                    fill="url(#puzzleGradient)"
+                  />
+                  <Path
+                    d={createPuzzlePiece(
+                      piece.col,
+                      piece.row,
+                      piece.rightTab,
+                      piece.bottomTab,
+                      piece.leftSocket,
+                      piece.topSocket
+                    )}
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.4)"
+                    strokeWidth="1.5"
+                  />
+                  <Path
+                    d={createPuzzlePiece(
+                      piece.col,
+                      piece.row,
+                      piece.rightTab,
+                      piece.bottomTab,
+                      piece.leftSocket,
+                      piece.topSocket
+                    )}
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.2)"
+                    strokeWidth="3"
+                    style={{ filter: 'blur(2px)' }}
+                  />
+                </G>
               );
             })}
 
             <SvgText
               x={puzzleWidth / 2}
-              y={puzzleHeight / 2 + 15}
-              fontSize="52"
+              y={puzzleHeight / 2 + 18}
+              fontSize="56"
               fontWeight="700"
-              fill="rgba(200, 230, 255, 0.95)"
+              fill="rgba(220, 240, 255, 0.98)"
               textAnchor="middle"
               clipPath="url(#textClip)"
+              transform={`rotate(-3, ${puzzleWidth / 2}, ${puzzleHeight / 2})`}
+              letterSpacing="2"
             >
               SLEEP
-            </SvgText>
-          </Svg>
-        </View>
-
-        <View style={styles.floatingPiece}>
-          <Svg width={pieceWidth + 40} height={pieceHeight + 40} viewBox={`-20 -20 ${pieceWidth + 40} ${pieceHeight + 40}`}>
-            <Defs>
-              <LinearGradient id="floatingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor="#6BB0E4" stopOpacity="1" />
-                <Stop offset="100%" stopColor="#5AA0D4" stopOpacity="1" />
-              </LinearGradient>
-            </Defs>
-
-            <Path
-              d={createPuzzlePiece(0, 0, false, true, true, false)}
-              fill="url(#floatingGradient)"
-              stroke="rgba(30, 60, 90, 0.8)"
-              strokeWidth="2.5"
-            />
-
-            <SvgText
-              x={pieceWidth / 2}
-              y={pieceHeight / 2 + 8}
-              fontSize="42"
-              fontWeight="700"
-              fill="rgba(200, 230, 255, 0.95)"
-              textAnchor="middle"
-            >
-              P
             </SvgText>
           </Svg>
         </View>
@@ -181,9 +180,6 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   puzzleArea: {
-    position: 'relative',
-    width: 340,
-    height: 200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -193,16 +189,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 10,
-  },
-  floatingPiece: {
-    position: 'absolute',
-    top: -20,
-    right: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
-    elevation: 12,
   },
   debtText: {
     fontSize: 16,
