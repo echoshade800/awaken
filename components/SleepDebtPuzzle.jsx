@@ -2,11 +2,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText, ClipPath, Rect } from 'react-native-svg';
 
 export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
-  const puzzleWidth = 280;
-  const puzzleHeight = 140;
+  const puzzleWidth = 220;
+  const puzzleHeight = 110;
   const pieceWidth = puzzleWidth / 4;
   const pieceHeight = puzzleHeight / 2;
-  const tabSize = 12;
+  const tabSize = 10;
   const borderRadius = 16;
 
   const createPuzzlePiece = (col, row, hasRightTab, hasBottomTab, hasLeftSocket, hasTopSocket) => {
@@ -188,8 +188,8 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
 
             <SvgText
               x={puzzleWidth / 2}
-              y={puzzleHeight / 2 + 18}
-              fontSize="56"
+              y={puzzleHeight / 2 + 14}
+              fontSize="44"
               fontWeight="700"
               fill="rgba(220, 240, 255, 0.98)"
               textAnchor="middle"
