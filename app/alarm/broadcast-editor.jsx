@@ -181,31 +181,34 @@ export default function BroadcastEditor() {
 
         {/* 模块按钮区域 - 可滚动 */}
         <View style={styles.modulesSection}>
-          <View style={styles.modulesSectionHeader}>
-            <Text style={styles.sectionTitle}>插入模块</Text>
-          </View>
-          <ScrollView
-            style={styles.modulesScrollView}
-            contentContainerStyle={styles.modulesScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.modulesGrid}>
-              {BROADCAST_MODULES.map((module) => {
-                const IconComponent = module.icon;
-                return (
-                  <TouchableOpacity
-                    key={module.id}
-                    style={styles.moduleButton}
-                    onPress={() => insertModule(module)}
-                    activeOpacity={0.7}
-                  >
-                    <IconComponent size={20} color="#007AFF" strokeWidth={2} />
-                    <Text style={styles.moduleLabel}>{module.label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+          <View style={styles.modulesSectionCard}>
+            <View style={styles.modulesSectionHeader}>
+              <Text style={styles.sectionTitle}>插入模块</Text>
             </View>
-          </ScrollView>
+            <ScrollView
+              style={styles.modulesScrollView}
+              contentContainerStyle={styles.modulesScrollContent}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              <View style={styles.modulesGrid}>
+                {BROADCAST_MODULES.map((module) => {
+                  const IconComponent = module.icon;
+                  return (
+                    <TouchableOpacity
+                      key={module.id}
+                      style={styles.moduleButton}
+                      onPress={() => insertModule(module)}
+                      activeOpacity={0.7}
+                    >
+                      <IconComponent size={20} color="#007AFF" strokeWidth={2} />
+                      <Text style={styles.moduleLabel}>{module.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
         </View>
 
         {/* 语音包选择区域 - 固定 */}
@@ -366,6 +369,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 8,
+  },
+  modulesSectionCard: {
+    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     shadowColor: '#000',
@@ -373,6 +379,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 3,
+    overflow: 'hidden',
   },
   modulesSectionHeader: {
     paddingHorizontal: 20,
@@ -381,12 +388,12 @@ const styles = StyleSheet.create({
   },
   modulesScrollView: {
     flex: 1,
-    maxHeight: '100%',
   },
   modulesScrollContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
-    paddingBottom: 16,
+    paddingBottom: 80,
+    flexGrow: 1,
   },
   modulesGrid: {
     flexDirection: 'row',
