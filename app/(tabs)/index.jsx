@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.25)',
     minWidth: 150,
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   cardLabel: {
     fontSize: 13,
