@@ -9,7 +9,6 @@ import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import MonsterHornBorder from '@/components/MonsterHornBorder';
 import MonsterIcon from '@/components/MonsterIcon';
-import AIReminderBubble from '@/components/AIReminderBubble';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -53,35 +52,25 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.contentPadded}>
-            <View style={styles.horizontalContainer}>
-              <View style={styles.panelWithLabel}>
-                <View style={styles.energyPanel}>
-                  <View style={styles.energyLeft}>
-                    <Text style={styles.energyLabel}>Current</Text>
-                    <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
-                  </View>
+            <View style={styles.panelWithLabel}>
+              <View style={styles.energyPanel}>
+                <View style={styles.energyLeft}>
+                  <Text style={styles.energyLabel}>Current</Text>
+                  <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+                </View>
 
-                  <View style={styles.energyPeaksColumn}>
-                    <View style={styles.energyPeakItem}>
-                      <Text style={styles.energyTimeLabel}>Peak</Text>
-                      <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                    </View>
-                    <View style={styles.energyPeakItem}>
-                      <Text style={styles.energyTimeLabel}>Low</Text>
-                      <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
-                    </View>
+                <View style={styles.energyPeaksColumn}>
+                  <View style={styles.energyPeakItem}>
+                    <Text style={styles.energyTimeLabel}>Peak</Text>
+                    <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                  </View>
+                  <View style={styles.energyPeakItem}>
+                    <Text style={styles.energyTimeLabel}>Low</Text>
+                    <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
                   </View>
                 </View>
-                <Text style={styles.panelLabel}>Energy Status</Text>
               </View>
-
-              <View style={styles.panelWithLabel}>
-                <AIReminderBubble
-                  message="✨ Energy's balanced. Keep it calm and consistent 🌙"
-                  style={styles.aiReminderBubble}
-                />
-                <Text style={styles.panelLabel}>Monster Tips</Text>
-              </View>
+              <Text style={styles.panelLabel}>Energy Status</Text>
             </View>
 
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
@@ -140,14 +129,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 4,
   },
-  horizontalContainer: {
-    flexDirection: 'row',
-    gap: 16,
+  panelWithLabel: {
     marginTop: 8,
     marginBottom: 8,
-  },
-  panelWithLabel: {
-    flex: 1,
   },
   energyPanel: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
@@ -181,10 +165,6 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  aiReminderBubble: {
-    flex: 1,
-    justifyContent: 'center',
   },
   energyPeaksColumn: {
     flexDirection: 'column',
