@@ -30,7 +30,7 @@ export default function HomeScreen() {
   return (
     <LinearGradient colors={['#87CEEB', '#4A90E2', '#1E3A5F']} style={styles.container}>
       <StarBackground />
-      <DreamBubble keyword="星空" initialX={50} initialY={300} />
+      <DreamBubble keyword="Starry Sky" initialX={50} initialY={300} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
