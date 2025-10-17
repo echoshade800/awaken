@@ -514,7 +514,12 @@ export default function AlarmCreate() {
   const isInSummary = currentStep >= STEP_CONFIGS.length;
 
   return (
-    <LinearGradient colors={['#4A5F8F', '#FF9A76', '#FFE4B5']} style={styles.container}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#3D5A80', '#5A7BA5', '#7A9BC4', '#FFB88C', '#E8F4FF', '#F0F8FF', '#FAFCFF']}
+        locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
+        style={styles.backgroundGradient}
+      />
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -615,13 +620,20 @@ export default function AlarmCreate() {
         </TouchableOpacity>
       </View>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   keyboardView: {
     flex: 1,

@@ -106,7 +106,12 @@ export default function BroadcastEditor() {
   };
 
   return (
-    <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#3D5A80', '#5A7BA5', '#7A9BC4', '#FFB88C', '#E8F4FF', '#F0F8FF', '#FAFCFF']}
+        locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
+        style={styles.backgroundGradient}
+      />
       {/* Header - fixed */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -240,13 +245,20 @@ export default function BroadcastEditor() {
           <Text style={styles.completeButtonText}>Complete</Text>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   header: {
     flexDirection: 'row',
