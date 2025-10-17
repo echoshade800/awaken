@@ -40,7 +40,7 @@ export default function HomeScreen() {
           <View style={styles.headerPadded}>
             <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
             {nextAlarm && (
-              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time}</Text>
+              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
             )}
           </View>
 
