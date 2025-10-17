@@ -2,17 +2,17 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText, ClipPath, Rect } from 'react-native-svg';
 
 export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
-  const puzzleWidth = 220;
-  const puzzleHeight = 110;
+  const puzzleWidth = 120;
+  const puzzleHeight = 60;
   const pieceWidth = puzzleWidth / 4;
   const pieceHeight = puzzleHeight / 2;
-  const tabSize = 10;
-  const borderRadius = 16;
+  const tabSize = 6;
+  const borderRadius = 8;
 
   const createPuzzlePiece = (col, row, hasRightTab, hasBottomTab, hasLeftSocket, hasTopSocket) => {
     const x = col * pieceWidth;
     const y = row * pieceHeight;
-    const cornerRadius = 8;
+    const cornerRadius = 4;
     const isTopLeft = col === 0 && row === 0;
     const isTopRight = col === 3 && row === 0;
     const isBottomLeft = col === 0 && row === 1;
@@ -188,8 +188,8 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
 
             <SvgText
               x={puzzleWidth / 2}
-              y={puzzleHeight / 2 + 14}
-              fontSize="44"
+              y={puzzleHeight / 2 + 8}
+              fontSize="24"
               fontWeight="700"
               fill="rgba(220, 240, 255, 0.98)"
               textAnchor="middle"
@@ -213,7 +213,8 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 24,
+    justifyContent: 'center',
+    flex: 1,
   },
   puzzleArea: {
     alignItems: 'center',
@@ -221,18 +222,18 @@ const styles = StyleSheet.create({
   },
   mainPuzzle: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
     borderRadius: 16,
     overflow: 'hidden',
   },
   debtText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: 'rgba(200, 230, 255, 0.95)',
     letterSpacing: 0.5,
-    marginTop: 8,
+    marginTop: 6,
   },
 });

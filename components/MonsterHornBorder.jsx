@@ -11,8 +11,8 @@ export default function MonsterHornBorder({ children, style }) {
         height="100%"
         width="100%"
         style={styles.monsterBorder}
-        viewBox="0 0 280 90"
-        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 100 80"
+        preserveAspectRatio="none"
       >
         <Defs>
           <LinearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -24,17 +24,17 @@ export default function MonsterHornBorder({ children, style }) {
 
         {/* Monster horn border - rounded rectangle with sharp corners */}
         <Path
-          d="M 30 10
-             L 60 10 L 70 2 L 80 10
-             L 200 10 L 210 2 L 220 10
-             L 250 10
-             Q 270 10 270 30
-             L 270 60
-             Q 270 80 250 80
-             L 30 80
-             Q 10 80 10 60
-             L 10 30
-             Q 10 10 30 10 Z"
+          d="M 15 8
+             L 30 8 L 35 2 L 40 8
+             L 60 8 L 65 2 L 70 8
+             L 85 8
+             Q 92 8 92 15
+             L 92 65
+             Q 92 72 85 72
+             L 15 72
+             Q 8 72 8 65
+             L 8 15
+             Q 8 8 15 8 Z"
           fill="transparent"
           stroke="url(#glowGradient)"
           strokeWidth="2.5"
@@ -42,17 +42,17 @@ export default function MonsterHornBorder({ children, style }) {
 
         {/* Outer glow effect */}
         <Path
-          d="M 30 10
-             L 60 10 L 70 2 L 80 10
-             L 200 10 L 210 2 L 220 10
-             L 250 10
-             Q 270 10 270 30
-             L 270 60
-             Q 270 80 250 80
-             L 30 80
-             Q 10 80 10 60
-             L 10 30
-             Q 10 10 30 10 Z"
+          d="M 15 8
+             L 30 8 L 35 2 L 40 8
+             L 60 8 L 65 2 L 70 8
+             L 85 8
+             Q 92 8 92 15
+             L 92 65
+             Q 92 72 85 72
+             L 15 72
+             Q 8 72 8 65
+             L 8 15
+             Q 8 8 15 8 Z"
           fill="none"
           stroke="rgba(180, 220, 255, 0.4)"
           strokeWidth="5"
@@ -61,12 +61,12 @@ export default function MonsterHornBorder({ children, style }) {
         />
 
         {/* Decorative dots - eye effect */}
-        <Circle cx="70" cy="35" r="3" fill="rgba(255, 255, 255, 0.7)" />
-        <Circle cx="210" cy="35" r="3" fill="rgba(255, 255, 255, 0.7)" />
+        <Circle cx="35" cy="30" r="2" fill="rgba(255, 255, 255, 0.7)" />
+        <Circle cx="65" cy="30" r="2" fill="rgba(255, 255, 255, 0.7)" />
 
         {/* Inner highlight */}
-        <Circle cx="70" cy="33" r="1.5" fill="rgba(255, 255, 255, 0.95)" />
-        <Circle cx="210" cy="33" r="1.5" fill="rgba(255, 255, 255, 0.95)" />
+        <Circle cx="35" cy="28" r="1" fill="rgba(255, 255, 255, 0.95)" />
+        <Circle cx="65" cy="28" r="1" fill="rgba(255, 255, 255, 0.95)" />
       </Svg>
 
       <View style={styles.contentWrapper}>
@@ -88,10 +88,10 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   contentWrapper: {
-    paddingVertical: 20,
-    paddingHorizontal: 32,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 80,
+    minHeight: 70,
   },
 });

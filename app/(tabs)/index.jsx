@@ -86,12 +86,14 @@ export default function HomeScreen() {
 
             <View style={styles.horizontalContainer}>
               <View style={styles.panelWithLabel}>
-                <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
+                <View style={styles.puzzleContainer}>
+                  <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
+                </View>
                 <Text style={styles.panelLabel}>Sleep Debt</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
-                <View style={styles.dreamKeywordContent}>
+                <View style={styles.dreamKeywordContainer}>
                   <MonsterHornBorder>
                     <Text style={styles.dreamKeywordText}>Starry Sky</Text>
                   </MonsterHornBorder>
@@ -212,13 +214,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  dreamKeywordContent: {
-    alignItems: 'center',
+  puzzleContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    minHeight: 80,
     justifyContent: 'center',
-    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  dreamKeywordContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    minHeight: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   dreamKeywordText: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
