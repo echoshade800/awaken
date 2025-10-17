@@ -12,6 +12,15 @@ const PERIOD_LABELS = {
 const VOICE_PACKAGE_LABELS = {
   'energetic-girl': '元气少女',
   'calm-man': '沉稳大叔',
+  'gentle-lady': '温柔姐姐',
+  'cheerful-boy': '阳光男孩',
+};
+
+const TASK_LABELS = {
+  'none': '无游戏',
+  'quiz': '数学挑战',
+  'memory': '记忆配对',
+  'quick-tap': '快速反应',
 };
 
 export default function AlarmInfoCard({ alarm }) {
@@ -19,6 +28,7 @@ export default function AlarmInfoCard({ alarm }) {
 
   const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
   const voiceLabel = VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage;
+  const taskLabel = TASK_LABELS[alarm.task] || alarm.task;
 
   return (
     <View style={styles.card}>
@@ -56,7 +66,15 @@ export default function AlarmInfoCard({ alarm }) {
         {alarm.task && alarm.task !== 'none' && (
           <View style={styles.detailItem}>
             <Gamepad2 size={20} color="#666" />
-            <Text style={styles.detailText}>{alarm.task}</Text>
+            <Text style={styles.detailText}>{taskLabel}</Text>
+          </View>
+        )}
+
+        {alarm.broadcastContent && (
+          <View style={[styles.detailItem, styles.broadcastPreview]}>
+            <Text style={styles.broadcastText} numberOfLines={2}>
+              播报: {alarm.broadcastContent}
+            </Text>
           </View>
         )}
       </View>
@@ -110,5 +128,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     fontWeight: '500',
+  },
+  broadcastPreview: {
+    width: '100%',
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  broadcastText: {
+    fontSize: 13,
+    color: '#007AFF',
+    lineHeight: 18,
   },
 });

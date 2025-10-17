@@ -42,10 +42,10 @@ const RINGTONE_OPTIONS = [
 ];
 
 const TASK_OPTIONS = [
-  { label: '无任务', value: 'none' },
-  { label: '简单算数', value: 'quiz' },
-  { label: '点击挑战', value: 'click' },
-  { label: '快速点击', value: 'quick-tap' },
+  { label: '不需要游戏', value: 'none' },
+  { label: '数学挑战', value: 'quiz' },
+  { label: '记忆配对', value: 'memory' },
+  { label: '快速反应', value: 'quick-tap' },
 ];
 
 const VOICE_PACKAGE_OPTIONS = [
@@ -80,6 +80,13 @@ const STEP_CONFIGS = [
     condition: (draft) => draft.wakeMode === 'voice',
   },
   {
+    step: 2.6,
+    aiMessage: '想用什么声音播报呢？',
+    field: 'voicePackage',
+    options: VOICE_PACKAGE_OPTIONS,
+    condition: (draft) => draft.wakeMode === 'voice',
+  },
+  {
     step: 2.8,
     aiMessage: '选择铃声',
     field: 'ringtone',
@@ -88,16 +95,9 @@ const STEP_CONFIGS = [
   },
   {
     step: 3,
-    aiMessage: '需要完成什么任务才能关闭闹钟吗？',
+    aiMessage: '要不要加点互动游戏，让起床更有趣呢？🎮',
     field: 'task',
     options: TASK_OPTIONS,
-  },
-  {
-    step: 4,
-    aiMessage: '想用什么声音播报呢？',
-    field: 'voicePackage',
-    options: VOICE_PACKAGE_OPTIONS,
-    condition: (draft) => draft.wakeMode === 'voice',
   },
 ];
 
@@ -135,6 +135,25 @@ export default function AlarmCreate() {
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [chatHistory]);
+
+  useEffect(() => {
+    const stepConfig = getCurrentStepConfig();
+    if (
+      stepConfig &&
+      stepConfig.field === 'voiceModules' &&
+      currentAlarmDraft?.broadcastContent &&
+      chatHistory.length > 0 &&
+      !chatHistory[chatHistory.length - 1]?.content?.includes('播报内容已设置')
+    ) {
+      addChatMessage({
+        role: 'user',
+        content: '播报内容已设置完成',
+      });
+      setTimeout(() => {
+        proceedToNextStep();
+      }, 500);
+    }
+  }, [currentAlarmDraft?.broadcastContent]);
 
   const handleTagSelect = (field, value) => {
     updateDraft({ [field]: value });
@@ -310,24 +329,24 @@ export default function AlarmCreate() {
       }
     }
 
-    // 处理任务类型
+    // 处理任务/游戏类型
     if (stepConfig.field === 'task') {
-      if (lowerText.includes('无') || lowerText.includes('不要') || lowerText.includes('不需要')) {
+      if (lowerText.includes('无') || lowerText.includes('不要') || lowerText.includes('不需要') || lowerText.includes('不用')) {
         updateDraft({ task: 'none' });
         proceedToNextStep();
         return;
       }
-      if (lowerText.includes('算数') || lowerText.includes('数学') || lowerText.includes('计算')) {
+      if (lowerText.includes('算数') || lowerText.includes('数学') || lowerText.includes('计算') || lowerText.includes('挑战')) {
         updateDraft({ task: 'quiz' });
         proceedToNextStep();
         return;
       }
-      if (lowerText.includes('点击') && (lowerText.includes('挑战') || lowerText.includes('普通'))) {
-        updateDraft({ task: 'click' });
+      if (lowerText.includes('记忆') || lowerText.includes('配对') || lowerText.includes('翻牌')) {
+        updateDraft({ task: 'memory' });
         proceedToNextStep();
         return;
       }
-      if (lowerText.includes('快速') || lowerText.includes('快点')) {
+      if (lowerText.includes('快速') || lowerText.includes('反应') || lowerText.includes('点击')) {
         updateDraft({ task: 'quick-tap' });
         proceedToNextStep();
         return;
