@@ -9,6 +9,7 @@ import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import MonsterHornBorder from '@/components/MonsterHornBorder';
 import MonsterIcon from '@/components/MonsterIcon';
+import AIReminderBubble from '@/components/AIReminderBubble';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function HomeScreen() {
                 <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
               </View>
 
-              <View style={styles.energyPeaksRow}>
+              <View style={styles.energyPeaksColumn}>
                 <View style={styles.energyPeakItem}>
                   <Text style={styles.energyTimeLabel}>Peak</Text>
                   <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
@@ -66,6 +67,10 @@ export default function HomeScreen() {
                   <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
                 </View>
               </View>
+            </View>
+
+            <View style={styles.aiReminderContainer}>
+              <AIReminderBubble message="Energy's balanced. Keep it calm and consistent" />
             </View>
 
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
@@ -148,13 +153,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  energyPeaksRow: {
-    flexDirection: 'row',
-    gap: 20,
-    alignItems: 'center',
+  energyPeaksColumn: {
+    flexDirection: 'column',
+    gap: 12,
+    alignItems: 'flex-end',
   },
   energyPeakItem: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
+  },
+  aiReminderContainer: {
+    marginTop: 12,
+    marginBottom: 4,
   },
   energyTimeLabel: {
     fontSize: 10,
