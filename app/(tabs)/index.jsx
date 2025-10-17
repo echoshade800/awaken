@@ -8,6 +8,7 @@ import RhythmChart from '@/components/RhythmChart';
 import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import MonsterHornBorder from '@/components/MonsterHornBorder';
+import MonsterIcon from '@/components/MonsterIcon';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -40,7 +41,13 @@ export default function HomeScreen() {
             )}
           </View>
 
-          <RhythmChart rhythmData={rhythmData} />
+          <View style={styles.chartContainer}>
+            <MonsterIcon
+              size={44}
+              onPress={() => router.push('/(tabs)/alarm')}
+            />
+            <RhythmChart rhythmData={rhythmData} />
+          </View>
 
           <View style={styles.contentPadded}>
             <View style={styles.energyPanel}>
@@ -69,13 +76,6 @@ export default function HomeScreen() {
               </MonsterHornBorder>
               <Text style={styles.dreamKeywordLabel}>Dream Keyword</Text>
             </View>
-
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={() => router.push('/(tabs)/alarm')}
-            >
-              <Text style={styles.ctaButtonText}>Awake Me</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomSpacer} />
@@ -101,6 +101,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   contentPadded: {
+    paddingHorizontal: 20,
+  },
+  chartContainer: {
+    position: 'relative',
     paddingHorizontal: 20,
   },
   title: {
@@ -182,20 +186,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '500',
     textAlign: 'center',
-  },
-  ctaButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  ctaButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   bottomSpacer: {
     height: 100,
