@@ -7,7 +7,7 @@ import { generateMockRhythm } from '@/lib/rhythm';
 import RhythmChart from '@/components/RhythmChart';
 import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
-import MonsterHornBorder from '@/components/MonsterHornBorder';
+import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
 import MonsterIcon from '@/components/MonsterIcon';
 import AIReminderBubble from '@/components/AIReminderBubble';
 
@@ -55,49 +55,48 @@ export default function HomeScreen() {
           <View style={styles.contentPadded}>
             <View style={styles.horizontalContainer}>
               <View style={styles.panelWithLabel}>
-                <View style={styles.energyPanel}>
-                  <View style={styles.energyLeft}>
-                    <Text style={styles.energyLabel}>Current</Text>
-                    <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
-                  </View>
+                <UnifiedPanelBorder style={styles.unifiedPanel}>
+                  <View style={styles.energyContent}>
+                    <View style={styles.energyLeft}>
+                      <Text style={styles.energyLabel}>Current</Text>
+                      <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+                    </View>
 
-                  <View style={styles.energyPeaksColumn}>
-                    <View style={styles.energyPeakItem}>
-                      <Text style={styles.energyTimeLabel}>Peak</Text>
-                      <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                    </View>
-                    <View style={styles.energyPeakItem}>
-                      <Text style={styles.energyTimeLabel}>Low</Text>
-                      <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                    <View style={styles.energyPeaksColumn}>
+                      <View style={styles.energyPeakItem}>
+                        <Text style={styles.energyTimeLabel}>Peak</Text>
+                        <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                      </View>
+                      <View style={styles.energyPeakItem}>
+                        <Text style={styles.energyTimeLabel}>Low</Text>
+                        <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
+                </UnifiedPanelBorder>
                 <Text style={styles.panelLabel}>Energy Status</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
-                <AIReminderBubble
-                  message="✨ Energy's balanced. Keep it calm and consistent 🌙"
-                  style={styles.aiReminderBubble}
-                />
+                <UnifiedPanelBorder style={styles.unifiedPanel}>
+                  <Text style={styles.tipText}>✨ Energy's balanced. Keep it calm and consistent 🌙</Text>
+                </UnifiedPanelBorder>
                 <Text style={styles.panelLabel}>Monster Tips</Text>
               </View>
             </View>
 
             <View style={styles.horizontalContainer}>
               <View style={styles.panelWithLabel}>
-                <View style={styles.puzzleContainer}>
+                <UnifiedPanelBorder style={styles.unifiedPanel}>
                   <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
-                </View>
+                </UnifiedPanelBorder>
                 <Text style={styles.panelLabel}>Sleep Debt</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
-                <View style={styles.dreamKeywordContainer}>
-                  <MonsterHornBorder>
-                    <Text style={styles.dreamKeywordText}>Starry Sky</Text>
-                  </MonsterHornBorder>
-                </View>
+                <UnifiedPanelBorder style={styles.unifiedPanel}>
+                  <Text style={styles.dreamKeywordText}>Starry Sky</Text>
+                </UnifiedPanelBorder>
                 <Text style={styles.panelLabel}>Dream Keyword</Text>
               </View>
             </View>
@@ -158,17 +157,16 @@ const styles = StyleSheet.create({
   panelWithLabel: {
     flex: 1,
   },
-  energyPanel: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+  unifiedPanel: {
+    height: 110,
+    width: '100%',
+  },
+  energyContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 110,
+    width: '100%',
+    paddingHorizontal: 4,
   },
   panelLabel: {
     fontSize: 16,
@@ -192,9 +190,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  aiReminderBubble: {
-    height: 110,
-    justifyContent: 'center',
+  tipText: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   energyPeaksColumn: {
     flexDirection: 'column',
@@ -214,16 +215,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  puzzleContainer: {
-    height: 110,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dreamKeywordContainer: {
-    height: 110,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   dreamKeywordText: {
     fontSize: 16,
