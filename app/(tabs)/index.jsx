@@ -9,7 +9,7 @@ import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
 import MonsterIcon from '@/components/MonsterIcon';
-import AIReminderBubble from '@/components/AIReminderBubble';
+import GlowingText from '@/components/GlowingText';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -95,7 +95,7 @@ export default function HomeScreen() {
 
               <View style={styles.panelWithLabel}>
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
-                  <Text style={styles.dreamKeywordText}>Starry Sky</Text>
+                  <GlowingText>Starry Sky</GlowingText>
                 </UnifiedPanelBorder>
                 <Text style={styles.panelLabel}>Dream Keyword</Text>
               </View>
@@ -215,15 +215,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  dreamKeywordText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    letterSpacing: 0.5,
   },
   bottomSpacer: {
     height: 100,
