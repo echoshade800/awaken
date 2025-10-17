@@ -8,11 +8,11 @@ export default function MonsterHornBorder({ children, style }) {
   return (
     <View style={[styles.container, style]}>
       <Svg
-        height="100%"
-        width="100%"
+        height={60}
+        width={120}
         style={styles.monsterBorder}
-        viewBox="0 0 100 80"
-        preserveAspectRatio="none"
+        viewBox="0 0 120 60"
+        preserveAspectRatio="xMidYMid meet"
       >
         <Defs>
           <LinearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -24,17 +24,17 @@ export default function MonsterHornBorder({ children, style }) {
 
         {/* Monster horn border - rounded rectangle with sharp corners */}
         <Path
-          d="M 15 8
-             L 30 8 L 35 2 L 40 8
-             L 60 8 L 65 2 L 70 8
-             L 85 8
-             Q 92 8 92 15
-             L 92 65
-             Q 92 72 85 72
-             L 15 72
-             Q 8 72 8 65
-             L 8 15
-             Q 8 8 15 8 Z"
+          d="M 15 6
+             L 35 6 L 42 2 L 49 6
+             L 71 6 L 78 2 L 85 6
+             L 105 6
+             Q 114 6 114 15
+             L 114 45
+             Q 114 54 105 54
+             L 15 54
+             Q 6 54 6 45
+             L 6 15
+             Q 6 6 15 6 Z"
           fill="transparent"
           stroke="url(#glowGradient)"
           strokeWidth="2.5"
@@ -42,17 +42,17 @@ export default function MonsterHornBorder({ children, style }) {
 
         {/* Outer glow effect */}
         <Path
-          d="M 15 8
-             L 30 8 L 35 2 L 40 8
-             L 60 8 L 65 2 L 70 8
-             L 85 8
-             Q 92 8 92 15
-             L 92 65
-             Q 92 72 85 72
-             L 15 72
-             Q 8 72 8 65
-             L 8 15
-             Q 8 8 15 8 Z"
+          d="M 15 6
+             L 35 6 L 42 2 L 49 6
+             L 71 6 L 78 2 L 85 6
+             L 105 6
+             Q 114 6 114 15
+             L 114 45
+             Q 114 54 105 54
+             L 15 54
+             Q 6 54 6 45
+             L 6 15
+             Q 6 6 15 6 Z"
           fill="none"
           stroke="rgba(180, 220, 255, 0.4)"
           strokeWidth="5"
@@ -61,12 +61,12 @@ export default function MonsterHornBorder({ children, style }) {
         />
 
         {/* Decorative dots - eye effect */}
-        <Circle cx="35" cy="30" r="2" fill="rgba(255, 255, 255, 0.7)" />
-        <Circle cx="65" cy="30" r="2" fill="rgba(255, 255, 255, 0.7)" />
+        <Circle cx="42" cy="25" r="2" fill="rgba(255, 255, 255, 0.7)" />
+        <Circle cx="78" cy="25" r="2" fill="rgba(255, 255, 255, 0.7)" />
 
         {/* Inner highlight */}
-        <Circle cx="35" cy="28" r="1" fill="rgba(255, 255, 255, 0.95)" />
-        <Circle cx="65" cy="28" r="1" fill="rgba(255, 255, 255, 0.95)" />
+        <Circle cx="42" cy="23" r="1" fill="rgba(255, 255, 255, 0.95)" />
+        <Circle cx="78" cy="23" r="1" fill="rgba(255, 255, 255, 0.95)" />
       </Svg>
 
       <View style={styles.contentWrapper}>
@@ -81,17 +81,18 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    width: 120,
+    height: 60,
   },
   monsterBorder: {
     position: 'absolute',
-    width: '100%',
-    height: '100%',
   },
   contentWrapper: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 70,
+    width: 120,
+    height: 60,
   },
 });
