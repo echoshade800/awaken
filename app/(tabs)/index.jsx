@@ -54,8 +54,8 @@ export default function HomeScreen() {
 
           <View style={styles.contentPadded}>
             <View style={styles.horizontalContainer}>
-              <View style={styles.energyPanel}>
-                <View style={styles.energyContent}>
+              <View style={styles.panelWithLabel}>
+                <View style={styles.energyPanel}>
                   <View style={styles.energyLeft}>
                     <Text style={styles.energyLabel}>Current</Text>
                     <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
@@ -72,13 +72,16 @@ export default function HomeScreen() {
                     </View>
                   </View>
                 </View>
-                <Text style={styles.energyPanelLabel}>能量状况</Text>
+                <Text style={styles.panelLabel}>能量状况</Text>
               </View>
 
-              <AIReminderBubble
-                message="✨ Energy's balanced. Keep it calm and consistent 🌙"
-                style={styles.aiReminderBubble}
-              />
+              <View style={styles.panelWithLabel}>
+                <AIReminderBubble
+                  message="✨ Energy's balanced. Keep it calm and consistent 🌙"
+                  style={styles.aiReminderBubble}
+                />
+                <Text style={styles.panelLabel}>Monster Tips</Text>
+              </View>
             </View>
 
             <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
@@ -143,23 +146,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
   },
+  panelWithLabel: {
+    flex: 1,
+  },
   energyPanel: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingTop: 16,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    paddingBottom: 12,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    flex: 1,
-  },
-  energyContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flex: 1,
   },
-  energyPanelLabel: {
+  panelLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: 'rgba(200, 230, 255, 0.95)',

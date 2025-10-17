@@ -14,7 +14,6 @@ export default function AIReminderBubble({ message, style }) {
   return (
     <View style={[styles.container, style]} onLayout={handleLayout}>
       <Text style={[styles.message, { fontSize, lineHeight: fontSize * 1.4 }]}>{message}</Text>
-      <Text style={styles.label}>Monster Tips</Text>
     </View>
   );
 }
@@ -22,9 +21,8 @@ export default function AIReminderBubble({ message, style }) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    paddingTop: 16,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    paddingBottom: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
@@ -33,19 +31,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 2,
+    justifyContent: 'center',
   },
   message: {
-    flex: 1,
     color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(200, 230, 255, 0.95)',
-    letterSpacing: 0.5,
-    marginTop: 8,
     textAlign: 'center',
   },
 });
