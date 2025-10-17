@@ -29,8 +29,11 @@ export default function AlarmScreen() {
   };
 
   return (
-    <LinearGradient colors={['#4A5F8F', '#FF9A76', '#FFE4B5']} style={styles.container}>
-      <StarBackground opacity={0.3} />
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#3D5A80', '#4A6FA5', '#6B8FBF', '#FFB366', '#FF8C42', '#FFD89C', '#FFF5E6']}
+        style={styles.backgroundGradient}
+      />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.title}>Awake Me</Text>
@@ -68,7 +71,7 @@ export default function AlarmScreen() {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#FF9A76', '#FFB088']}
+            colors={['#FF8C42', '#FFB366']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.fabCircle}
@@ -77,13 +80,20 @@ export default function AlarmScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   safeArea: {
     flex: 1,
@@ -99,6 +109,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 4,
     letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.15)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   subtitle: {
     fontSize: 15,
