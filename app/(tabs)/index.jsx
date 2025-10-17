@@ -43,8 +43,6 @@ export default function HomeScreen() {
           <RhythmChart rhythmData={rhythmData} />
 
           <View style={styles.contentPadded}>
-            <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
-
             <View style={styles.energyPanel}>
               <View style={styles.energyLeft}>
                 <Text style={styles.energyLabel}>Current</Text>
@@ -62,6 +60,8 @@ export default function HomeScreen() {
                 </View>
               </View>
             </View>
+
+            <SleepDebtPuzzle sleepDebt={appData?.sleepDebt || -2} />
 
             <View style={styles.dreamKeywordContainer}>
               <MonsterHornBorder>
