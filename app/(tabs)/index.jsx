@@ -7,6 +7,7 @@ import { generateMockRhythm } from '@/lib/rhythm';
 import RhythmChart from '@/components/RhythmChart';
 import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
+import MonsterHornBorder from '@/components/MonsterHornBorder';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -75,9 +76,9 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.dreamKeywordContainer}>
-              <View style={styles.dreamKeywordPanel}>
+              <MonsterHornBorder>
                 <Text style={styles.dreamKeywordText}>Starry Sky</Text>
-              </View>
+              </MonsterHornBorder>
               <Text style={styles.dreamKeywordLabel}>Dream Keyword</Text>
             </View>
 
@@ -196,22 +197,7 @@ const styles = StyleSheet.create({
   },
   dreamKeywordContainer: {
     marginBottom: 16,
-  },
-  dreamKeywordPanel: {
-    backgroundColor: 'rgba(200, 220, 255, 0.12)',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(255, 255, 255, 0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#87CEEB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
+    marginTop: 16,
   },
   dreamKeywordText: {
     fontSize: 28,
