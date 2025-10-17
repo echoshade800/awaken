@@ -12,6 +12,14 @@ export default function AlarmScreen() {
   const alarms = useStore((state) => state.alarms);
   const toggleAlarm = useStore((state) => state.toggleAlarm);
 
+  const sortedAlarms = [...alarms].sort((a, b) => {
+    if (a.enabled !== b.enabled) {
+      return a.enabled ? -1 : 1;
+    }
+
+    return a.time.localeCompare(b.time);
+  });
+
   const handleCreateAlarm = () => {
     router.push('/alarm/create');
   };
@@ -33,14 +41,14 @@ export default function AlarmScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {alarms.length === 0 ? (
+          {sortedAlarms.length === 0 ? (
             <View style={styles.emptyState}>
               <AlarmClock size={64} color="rgba(255, 255, 255, 0.5)" />
               <Text style={styles.emptyStateText}>No Alarms Set</Text>
               <Text style={styles.emptyStateSubtext}>Create your first gentle wake-up call</Text>
             </View>
           ) : (
-            alarms.map((alarm) => (
+            sortedAlarms.map((alarm) => (
               <AlarmCard
                 key={alarm.id}
                 alarm={alarm}
