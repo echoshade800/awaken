@@ -5,7 +5,7 @@ export default function AIReminderBubble({ message }) {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Svg width={20} height={20} viewBox="0 0 24 24">
+        <Svg width={16} height={16} viewBox="0 0 24 24">
           <Circle
             cx="12"
             cy="12"
@@ -33,14 +33,14 @@ export default function AIReminderBubble({ message }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
-    gap: 10,
+    gap: 6,
     shadowColor: 'rgba(255, 255, 255, 0.3)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -48,16 +48,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   iconContainer: {
-    width: 20,
-    height: 20,
+    width: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 1,
   },
   message: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 10,
     color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 16,
+    lineHeight: 14,
     fontWeight: '500',
   },
 });
