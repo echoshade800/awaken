@@ -37,19 +37,19 @@ export default function HomeScreen() {
         >
           <View style={styles.topSpacer} />
 
+          <View style={styles.headerPadded}>
+            <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
+            {nextAlarm && (
+              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
+            )}
+          </View>
+
           <View style={styles.chartContainer}>
             <MonsterIcon
               size={44}
               onPress={() => router.push('/(tabs)/alarm')}
             />
             <RhythmChart rhythmData={rhythmData} />
-          </View>
-
-          <View style={styles.headerPadded}>
-            <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
-            {nextAlarm && (
-              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
-            )}
           </View>
 
           <View style={styles.contentPadded}>
