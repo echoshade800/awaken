@@ -3,9 +3,10 @@ import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, P
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
 
-const CHART_WIDTH = Dimensions.get('window').width;
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CHART_WIDTH = SCREEN_WIDTH;
 const CHART_HEIGHT = 180;
-const PADDING = { top: 60, right: 0, bottom: 30, left: 0 };
+const PADDING = { top: 60, right: 15, bottom: 30, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
