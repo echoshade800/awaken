@@ -71,10 +71,7 @@ export default function HomeScreen() {
 
               <View style={styles.dreamCard}>
                 <Text style={styles.cardLabel}>Dream Keyword</Text>
-                <View style={styles.dreamKeywordContainer}>
-                  <Text style={styles.dreamKeyword}>Forest</Text>
-                  <View style={styles.dreamBubbleIcon} />
-                </View>
+                <Text style={styles.dreamKeyword}>Forest</Text>
               </View>
             </View>
 
@@ -156,7 +153,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
     minWidth: 150,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   cardLabel: {
@@ -200,23 +197,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  dreamKeywordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   dreamKeyword: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  dreamBubbleIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(100, 150, 200, 0.4)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   ctaButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
