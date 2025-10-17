@@ -1,104 +1,175 @@
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Path, G, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText, ClipPath } from 'react-native-svg';
 
 export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
-  const puzzleSize = 120;
-  const pieceSize = puzzleSize / 2;
+  const puzzleWidth = 280;
+  const puzzleHeight = 140;
+  const pieceWidth = puzzleWidth / 4;
+  const pieceHeight = puzzleHeight / 2;
+  const tabSize = 12;
 
-  const createPuzzlePath = (x, y, hasTab = true, tabDirection = 'right') => {
-    const tabSize = pieceSize * 0.25;
-    const cornerRadius = 3;
+  const createPuzzlePiece = (col, row, hasRightTab, hasBottomTab, hasLeftSocket, hasTopSocket) => {
+    const x = col * pieceWidth;
+    const y = row * pieceHeight;
 
-    let path = `M ${x + cornerRadius} ${y}`;
+    let path = `M ${x} ${y}`;
 
-    path += ` L ${x + pieceSize - cornerRadius} ${y}`;
-    path += ` Q ${x + pieceSize} ${y} ${x + pieceSize} ${y + cornerRadius}`;
-
-    if (hasTab && tabDirection === 'right') {
-      path += ` L ${x + pieceSize} ${y + pieceSize / 2 - tabSize}`;
-      path += ` Q ${x + pieceSize + tabSize} ${y + pieceSize / 2} ${x + pieceSize} ${y + pieceSize / 2 + tabSize}`;
+    if (hasTopSocket) {
+      path += ` L ${x + pieceWidth / 2 - tabSize} ${y}`;
+      path += ` Q ${x + pieceWidth / 2} ${y - tabSize} ${x + pieceWidth / 2 + tabSize} ${y}`;
     }
+    path += ` L ${x + pieceWidth} ${y}`;
 
-    path += ` L ${x + pieceSize} ${y + pieceSize - cornerRadius}`;
-    path += ` Q ${x + pieceSize} ${y + pieceSize} ${x + pieceSize - cornerRadius} ${y + pieceSize}`;
-
-    if (hasTab && tabDirection === 'bottom') {
-      path += ` L ${x + pieceSize / 2 + tabSize} ${y + pieceSize}`;
-      path += ` Q ${x + pieceSize / 2} ${y + pieceSize + tabSize} ${x + pieceSize / 2 - tabSize} ${y + pieceSize}`;
+    if (hasRightTab) {
+      path += ` L ${x + pieceWidth} ${y + pieceHeight / 2 - tabSize}`;
+      path += ` Q ${x + pieceWidth + tabSize} ${y + pieceHeight / 2} ${x + pieceWidth} ${y + pieceHeight / 2 + tabSize}`;
     }
+    path += ` L ${x + pieceWidth} ${y + pieceHeight}`;
 
-    path += ` L ${x + cornerRadius} ${y + pieceSize}`;
-    path += ` Q ${x} ${y + pieceSize} ${x} ${y + pieceSize - cornerRadius}`;
-
-    if (hasTab && tabDirection === 'left') {
-      path += ` L ${x} ${y + pieceSize / 2 + tabSize}`;
-      path += ` Q ${x - tabSize} ${y + pieceSize / 2} ${x} ${y + pieceSize / 2 - tabSize}`;
+    if (hasBottomTab) {
+      path += ` L ${x + pieceWidth / 2 + tabSize} ${y + pieceHeight}`;
+      path += ` Q ${x + pieceWidth / 2} ${y + pieceHeight + tabSize} ${x + pieceWidth / 2 - tabSize} ${y + pieceHeight}`;
     }
+    path += ` L ${x} ${y + pieceHeight}`;
 
-    path += ` L ${x} ${y + cornerRadius}`;
-    path += ` Q ${x} ${y} ${x + cornerRadius} ${y}`;
+    if (hasLeftSocket) {
+      path += ` L ${x} ${y + pieceHeight / 2 + tabSize}`;
+      path += ` Q ${x - tabSize} ${y + pieceHeight / 2} ${x} ${y + pieceHeight / 2 - tabSize}`;
+    }
+    path += ` L ${x} ${y}`;
 
-    path += ' Z';
     return path;
   };
 
-  const topLeftPath = createPuzzlePath(0, 0, true, 'right');
-  const topRightPath = createPuzzlePath(pieceSize, 0, true, 'bottom');
-  const bottomLeftPath = createPuzzlePath(0, pieceSize, false);
+  const pieces = [
+    { col: 0, row: 0, rightTab: true, bottomTab: false, leftSocket: false, topSocket: false },
+    { col: 1, row: 0, rightTab: false, bottomTab: true, leftSocket: true, topSocket: false },
+    { col: 2, row: 0, rightTab: true, bottomTab: false, leftSocket: false, topSocket: false },
+    { col: 3, row: 0, rightTab: false, bottomTab: true, leftSocket: true, topSocket: false },
+    { col: 0, row: 1, rightTab: false, bottomTab: false, leftSocket: false, topSocket: false },
+    { col: 1, row: 1, rightTab: true, bottomTab: false, leftSocket: false, topSocket: true },
+    { col: 2, row: 1, rightTab: false, bottomTab: false, leftSocket: false, topSocket: false },
+    { col: 3, row: 1, rightTab: false, bottomTab: false, leftSocket: false, topSocket: true },
+  ];
 
-  const getPuzzleColor = (debt) => {
-    if (debt >= 0) return '#4A90E2';
-    if (debt >= -1) return '#5BA3F5';
-    return '#6BB6FF';
-  };
+  const missingPieceIndex = 3;
 
   return (
     <View style={styles.container}>
-      <View style={styles.puzzleContainer}>
-        <Svg width={puzzleSize + 20} height={puzzleSize + 20} viewBox={`-10 -10 ${puzzleSize + 20} ${puzzleSize + 20}`}>
-          <Defs>
-            <LinearGradient id="puzzleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor={getPuzzleColor(sleepDebt)} stopOpacity="0.95" />
-              <Stop offset="100%" stopColor={getPuzzleColor(sleepDebt)} stopOpacity="0.85" />
-            </LinearGradient>
-          </Defs>
+      <View style={styles.puzzleArea}>
+        <View style={styles.mainPuzzle}>
+          <Svg width={puzzleWidth + 40} height={puzzleHeight + 40} viewBox={`-20 -20 ${puzzleWidth + 40} ${puzzleHeight + 40}`}>
+            <Defs>
+              <LinearGradient id="puzzleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <Stop offset="0%" stopColor="#5A9FD4" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#4A8FC4" stopOpacity="1" />
+              </LinearGradient>
 
-          <G>
+              <ClipPath id="textClip">
+                {pieces.map((piece, idx) => {
+                  if (idx === missingPieceIndex) return null;
+                  return (
+                    <Path
+                      key={idx}
+                      d={createPuzzlePiece(
+                        piece.col,
+                        piece.row,
+                        piece.rightTab,
+                        piece.bottomTab,
+                        piece.leftSocket,
+                        piece.topSocket
+                      )}
+                    />
+                  );
+                })}
+              </ClipPath>
+            </Defs>
+
+            {pieces.map((piece, idx) => {
+              if (idx === missingPieceIndex) {
+                return (
+                  <Path
+                    key={idx}
+                    d={createPuzzlePiece(
+                      piece.col,
+                      piece.row,
+                      piece.rightTab,
+                      piece.bottomTab,
+                      piece.leftSocket,
+                      piece.topSocket
+                    )}
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.15)"
+                    strokeWidth="2"
+                    strokeDasharray="6,6"
+                  />
+                );
+              }
+
+              return (
+                <Path
+                  key={idx}
+                  d={createPuzzlePiece(
+                    piece.col,
+                    piece.row,
+                    piece.rightTab,
+                    piece.bottomTab,
+                    piece.leftSocket,
+                    piece.topSocket
+                  )}
+                  fill="url(#puzzleGradient)"
+                  stroke="rgba(30, 60, 90, 0.8)"
+                  strokeWidth="2.5"
+                />
+              );
+            })}
+
+            <SvgText
+              x={puzzleWidth / 2}
+              y={puzzleHeight / 2 + 15}
+              fontSize="52"
+              fontWeight="700"
+              fill="rgba(200, 230, 255, 0.95)"
+              textAnchor="middle"
+              clipPath="url(#textClip)"
+            >
+              SLEEP
+            </SvgText>
+          </Svg>
+        </View>
+
+        <View style={styles.floatingPiece}>
+          <Svg width={pieceWidth + 40} height={pieceHeight + 40} viewBox={`-20 -20 ${pieceWidth + 40} ${pieceHeight + 40}`}>
+            <Defs>
+              <LinearGradient id="floatingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <Stop offset="0%" stopColor="#6BB0E4" stopOpacity="1" />
+                <Stop offset="100%" stopColor="#5AA0D4" stopOpacity="1" />
+              </LinearGradient>
+            </Defs>
+
             <Path
-              d={topLeftPath}
-              fill="url(#puzzleGradient)"
-              stroke="rgba(255, 255, 255, 0.3)"
-              strokeWidth="1.5"
+              d={createPuzzlePiece(0, 0, false, true, true, false)}
+              fill="url(#floatingGradient)"
+              stroke="rgba(30, 60, 90, 0.8)"
+              strokeWidth="2.5"
             />
 
-            <Path
-              d={topRightPath}
-              fill="url(#puzzleGradient)"
-              stroke="rgba(255, 255, 255, 0.3)"
-              strokeWidth="1.5"
-            />
-
-            <Path
-              d={bottomLeftPath}
-              fill="url(#puzzleGradient)"
-              stroke="rgba(255, 255, 255, 0.3)"
-              strokeWidth="1.5"
-            />
-
-            <Path
-              d={createPuzzlePath(pieceSize, pieceSize, false)}
-              fill="none"
-              stroke="rgba(255, 255, 255, 0.2)"
-              strokeWidth="1.5"
-              strokeDasharray="4,4"
-              opacity="0.4"
-            />
-          </G>
-        </Svg>
+            <SvgText
+              x={pieceWidth / 2}
+              y={pieceHeight / 2 + 8}
+              fontSize="42"
+              fontWeight="700"
+              fill="rgba(200, 230, 255, 0.95)"
+              textAnchor="middle"
+            >
+              P
+            </SvgText>
+          </Svg>
+        </View>
       </View>
 
       <Text style={styles.debtText}>
-        睡眠负债：{Math.abs(sleepDebt)}小时
+        Sleep Debt: {Math.abs(sleepDebt)}h
       </Text>
     </View>
   );
@@ -107,20 +178,37 @@ export default function SleepDebtPuzzle({ sleepDebt = -2 }) {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 24,
   },
-  puzzleContainer: {
+  puzzleArea: {
+    position: 'relative',
+    width: 340,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mainPuzzle: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-    marginBottom: 16,
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  floatingPiece: {
+    position: 'absolute',
+    top: -20,
+    right: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 18,
+    elevation: 12,
   },
   debtText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(200, 230, 255, 0.95)',
     letterSpacing: 0.5,
+    marginTop: 8,
   },
 });
