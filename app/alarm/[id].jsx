@@ -229,8 +229,12 @@ export default function AlarmDetail() {
   };
 
   return (
-    <LinearGradient colors={['#FFE4B5', '#FFFAF0']} style={styles.container}>
-      <StarBackground opacity={0.15} />
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#3D5A80', '#5A7BA5', '#7A9BC4', '#FFB88C', '#E8F4FF', '#F0F8FF', '#FAFCFF']}
+        locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
+        style={styles.backgroundGradient}
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#FFFFFF" />
