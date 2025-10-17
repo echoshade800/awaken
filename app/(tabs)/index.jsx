@@ -55,21 +55,24 @@ export default function HomeScreen() {
           <View style={styles.contentPadded}>
             <View style={styles.horizontalContainer}>
               <View style={styles.energyPanel}>
-                <View style={styles.energyLeft}>
-                  <Text style={styles.energyLabel}>Current</Text>
-                  <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
-                </View>
+                <View style={styles.energyContent}>
+                  <View style={styles.energyLeft}>
+                    <Text style={styles.energyLabel}>Current</Text>
+                    <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+                  </View>
 
-                <View style={styles.energyPeaksColumn}>
-                  <View style={styles.energyPeakItem}>
-                    <Text style={styles.energyTimeLabel}>Peak</Text>
-                    <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
-                  </View>
-                  <View style={styles.energyPeakItem}>
-                    <Text style={styles.energyTimeLabel}>Low</Text>
-                    <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                  <View style={styles.energyPeaksColumn}>
+                    <View style={styles.energyPeakItem}>
+                      <Text style={styles.energyTimeLabel}>Peak</Text>
+                      <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                    </View>
+                    <View style={styles.energyPeakItem}>
+                      <Text style={styles.energyTimeLabel}>Low</Text>
+                      <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                    </View>
                   </View>
                 </View>
+                <Text style={styles.energyPanelLabel}>能量状况</Text>
               </View>
 
               <AIReminderBubble
@@ -142,15 +145,27 @@ const styles = StyleSheet.create({
   },
   energyPanel: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 10,
+    paddingTop: 16,
     paddingHorizontal: 16,
+    paddingBottom: 12,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
+    flex: 1,
+  },
+  energyContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     flex: 1,
+  },
+  energyPanelLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(200, 230, 255, 0.95)',
+    letterSpacing: 0.5,
+    marginTop: 8,
+    textAlign: 'center',
   },
   energyLeft: {
     alignItems: 'flex-start',
