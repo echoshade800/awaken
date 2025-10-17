@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
+import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
 
 const CHART_WIDTH = Dimensions.get('window').width - 40;
-const CHART_HEIGHT = 140;
-const PADDING = { top: 20, right: 20, bottom: 30, left: 40 };
+const CHART_HEIGHT = 180;
+const PADDING = { top: 40, right: 20, bottom: 30, left: 40 };
 
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
@@ -35,6 +35,14 @@ export default function RhythmChart({ rhythmData }) {
   const currentMinute = getCurrentMinute();
   const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
 
+  const getEnergyStatus = (energy) => {
+    if (energy > 80) return "You're at your energy peak!";
+    if (energy > 60) return "Your energy is rising!";
+    if (energy > 40) return "Moderate energy level";
+    if (energy > 20) return "Energy is declining";
+    return "Time to rest and recharge";
+  };
+
   const timeLabels = [
     { time: '0:00', minute: 0 },
     { time: '6:00', minute: 360 },
@@ -46,36 +54,62 @@ export default function RhythmChart({ rhythmData }) {
   return (
     <View style={styles.container}>
       <View style={styles.statusBadge}>
-        <Text style={styles.statusIcon}>☀️</Text>
-        <Text style={styles.statusText}>You're in your focus peak</Text>
+        <Text style={styles.statusText}>{getEnergyStatus(currentEnergy)}</Text>
       </View>
 
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
+        <Defs>
+          <RadialGradient id="glowGradient" cx="50%" cy="50%">
+            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
+            <Stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.2" />
+          </RadialGradient>
+        </Defs>
+
         <Line
           x1={PADDING.left}
           y1={yScale(50)}
           x2={CHART_WIDTH - PADDING.right}
           y2={yScale(50)}
-          stroke="#E5E5EA"
+          stroke="rgba(255, 255, 255, 0.2)"
           strokeWidth="1"
           strokeDasharray="4,4"
         />
 
         <Path
           d={pathData}
-          stroke="#007AFF"
-          strokeWidth="3"
+          stroke="#FFFFFF"
+          strokeWidth="4"
           fill="none"
+          opacity="0.9"
           clipPath={`inset(0 ${PADDING.right}px 0 0)`}
         />
 
         <Circle
           cx={xScale(currentMinute)}
           cy={yScale(currentEnergy)}
-          r="6"
-          fill="#007AFF"
+          r="18"
+          fill="none"
           stroke="#FFFFFF"
-          strokeWidth="3"
+          strokeWidth="2"
+          opacity="0.6"
+        />
+
+        <Circle
+          cx={xScale(currentMinute)}
+          cy={yScale(currentEnergy)}
+          r="10"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="2.5"
+          opacity="0.9"
+        />
+
+        <Circle
+          cx={xScale(currentMinute)}
+          cy={yScale(currentEnergy)}
+          r="6"
+          fill="#FFFFFF"
+          opacity="1"
         />
 
         {timeLabels.map((label) => (
@@ -84,7 +118,7 @@ export default function RhythmChart({ rhythmData }) {
             x={xScale(label.minute)}
             y={CHART_HEIGHT - 10}
             fontSize="11"
-            fill="#8E8E93"
+            fill="rgba(255, 255, 255, 0.6)"
             textAnchor="middle"
           >
             {label.time}
@@ -95,7 +129,7 @@ export default function RhythmChart({ rhythmData }) {
           x={PADDING.left - 10}
           y={yScale(100) + 5}
           fontSize="11"
-          fill="#8E8E93"
+          fill="rgba(255, 255, 255, 0.6)"
           textAnchor="end"
         >
           100
@@ -104,7 +138,7 @@ export default function RhythmChart({ rhythmData }) {
           x={PADDING.left - 10}
           y={yScale(50) + 5}
           fontSize="11"
-          fill="#8E8E93"
+          fill="rgba(255, 255, 255, 0.6)"
           textAnchor="end"
         >
           50
@@ -113,7 +147,7 @@ export default function RhythmChart({ rhythmData }) {
           x={PADDING.left - 10}
           y={yScale(0) + 5}
           fontSize="11"
-          fill="#8E8E93"
+          fill="rgba(255, 255, 255, 0.6)"
           textAnchor="end"
         >
           0
@@ -128,23 +162,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statusBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 12,
-  },
-  statusIcon: {
-    fontSize: 16,
-    marginRight: 6,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   statusText: {
     fontSize: 14,
     color: '#1C1C1E',
-    fontWeight: '400',
+    fontWeight: '500',
   },
   chart: {
     marginVertical: 4,

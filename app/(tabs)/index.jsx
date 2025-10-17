@@ -5,6 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '@/lib/store';
 import { generateMockRhythm } from '@/lib/rhythm';
 import RhythmChart from '@/components/RhythmChart';
+import StarBackground from '@/components/StarBackground';
+import DreamBubble from '@/components/DreamBubble';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,15 +24,19 @@ export default function HomeScreen() {
   const currentTime = new Date().toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false
+    hour12: true
   });
 
   return (
-    <LinearGradient colors={['#FFF7E8', '#E6F4FF']} style={styles.container}>
+    <LinearGradient colors={['#87CEEB', '#4A90E2', '#1E3A5F']} style={styles.container}>
+      <StarBackground />
+      <DreamBubble keyword="星空" initialX={50} initialY={300} />
+      <DreamBubble keyword="海洋" initialX={280} initialY={400} />
+
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Your Energy{"\n"}Rhythm Today</Text>
+            <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
             <Text style={styles.currentTime}>{currentTime}</Text>
             {nextAlarm && (
               <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
@@ -55,7 +61,7 @@ export default function HomeScreen() {
             style={styles.ctaButton}
             onPress={() => router.push('/(tabs)/alarm')}
           >
-            <Text style={styles.ctaButtonText}>Plan My Tomorrow</Text>
+            <Text style={styles.ctaButtonText}>Awake Me</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -76,22 +82,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 26,
-    fontWeight: '400',
-    color: '#999999',
+    fontSize: 28,
+    fontWeight: '300',
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 30,
-    marginBottom: 4,
+    lineHeight: 34,
+    marginBottom: 8,
   },
   currentTime: {
-    fontSize: 42,
-    fontWeight: '300',
-    color: '#1C1C1E',
-    marginBottom: 6,
+    fontSize: 56,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 8,
   },
   alarmText: {
     fontSize: 13,
-    color: '#1C1C1E',
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 2,
     marginBottom: 4,
   },
@@ -103,43 +109,47 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   statLabel: {
     fontSize: 13,
-    color: '#1C1C1E',
+    color: '#FFFFFF',
     marginBottom: 8,
     fontWeight: '400',
   },
   statValue: {
     fontSize: 32,
-    fontWeight: '500',
-    color: '#1C1C1E',
+    fontWeight: '600',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   statValueSmall: {
     fontSize: 20,
     fontWeight: '400',
-    color: '#8E8E93',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   statSubtext: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginTop: 2,
   },
   ctaButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   ctaButtonText: {
     fontSize: 17,
-    fontWeight: '400',
-    color: '#1C1C1E',
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
