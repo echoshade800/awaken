@@ -7,10 +7,6 @@ import MonsterIcon from '../../components/MonsterIcon';
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const MINUTES = ['00', '15', '30', '45'];
 
-// Extended hours for more flexible sleep schedules
-const BEDTIME_HOURS = ['20', '21', '22', '23', '00', '01', '02', '03', '04', '05'];
-const WAKE_HOURS = ['04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15'];
-
 export default function SleepRoutineScreen() {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -38,70 +34,130 @@ export default function SleepRoutineScreen() {
     });
   };
 
-  const renderTimePicker = (hours, selectedHour, onSelectHour, selectedMinute, onSelectMinute, label) => (
-    <View style={styles.pickerSection}>
-      <Text style={styles.pickerLabel}>{label}</Text>
-      <View style={styles.pickerContainer}>
-        <View style={styles.pickerColumn}>
-          <ScrollView
-            style={styles.pickerScroll}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.pickerContent}
-          >
-            {hours.map((hour) => (
-              <TouchableOpacity
-                key={hour}
-                style={[
-                  styles.pickerItem,
-                  selectedHour === hour && styles.pickerItemSelected,
-                ]}
-                onPress={() => onSelectHour(hour)}
-                activeOpacity={0.7}
+  const renderTimePicker = (hours, selectedHour, onSelectHour, selectedMinute, onSelectMinute, label) => {
+    const hourScrollRef = useRef(null);
+    const minuteScrollRef = useRef(null);
+    const ITEM_HEIGHT = 50;
+
+    const handleHourScroll = (event) => {
+      const offsetY = event.nativeEvent.contentOffset.y;
+      const index = Math.round(offsetY / ITEM_HEIGHT);
+      const selectedHourValue = hours[index];
+      if (selectedHourValue && selectedHourValue !== selectedHour) {
+        onSelectHour(selectedHourValue);
+      }
+    };
+
+    const handleMinuteScroll = (event) => {
+      const offsetY = event.nativeEvent.contentOffset.y;
+      const index = Math.round(offsetY / ITEM_HEIGHT);
+      const selectedMinuteValue = MINUTES[index];
+      if (selectedMinuteValue && selectedMinuteValue !== selectedMinute) {
+        onSelectMinute(selectedMinuteValue);
+      }
+    };
+
+    const handleScrollEnd = (scrollRef, items, selectedValue, onSelect) => {
+      const index = items.indexOf(selectedValue);
+      if (index !== -1 && scrollRef.current) {
+        scrollRef.current.scrollTo({
+          y: index * ITEM_HEIGHT,
+          animated: true,
+        });
+      }
+    };
+
+    return (
+      <View style={styles.pickerSection}>
+        <Text style={styles.pickerLabel}>{label}</Text>
+        <View style={styles.pickerContainer}>
+          <View style={styles.pickerColumn}>
+            <View style={styles.pickerWrapper}>
+              <View style={styles.centerIndicator} />
+              <ScrollView
+                ref={hourScrollRef}
+                style={styles.pickerScroll}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.pickerContent}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                onScroll={handleHourScroll}
+                scrollEventThrottle={16}
+                onMomentumScrollEnd={() => handleScrollEnd(hourScrollRef, hours, selectedHour, onSelectHour)}
               >
-                <Text
-                  style={[
-                    styles.pickerText,
-                    selectedHour === hour && styles.pickerTextSelected,
-                  ]}
-                >
-                  {hour}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-        <Text style={styles.separator}>:</Text>
-        <View style={styles.pickerColumn}>
-          <ScrollView
-            style={styles.pickerScroll}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.pickerContent}
-          >
-            {MINUTES.map((minute) => (
-              <TouchableOpacity
-                key={minute}
-                style={[
-                  styles.pickerItem,
-                  selectedMinute === minute && styles.pickerItemSelected,
-                ]}
-                onPress={() => onSelectMinute(minute)}
-                activeOpacity={0.7}
+                {hours.map((hour) => (
+                  <TouchableOpacity
+                    key={hour}
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      onSelectHour(hour);
+                      const index = hours.indexOf(hour);
+                      hourScrollRef.current?.scrollTo({
+                        y: index * ITEM_HEIGHT,
+                        animated: true,
+                      });
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.pickerText,
+                        selectedHour === hour && styles.pickerTextSelected,
+                      ]}
+                    >
+                      {hour}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+          <Text style={styles.separator}>:</Text>
+          <View style={styles.pickerColumn}>
+            <View style={styles.pickerWrapper}>
+              <View style={styles.centerIndicator} />
+              <ScrollView
+                ref={minuteScrollRef}
+                style={styles.pickerScroll}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.pickerContent}
+                snapToInterval={ITEM_HEIGHT}
+                decelerationRate="fast"
+                onScroll={handleMinuteScroll}
+                scrollEventThrottle={16}
+                onMomentumScrollEnd={() => handleScrollEnd(minuteScrollRef, MINUTES, selectedMinute, onSelectMinute)}
               >
-                <Text
-                  style={[
-                    styles.pickerText,
-                    selectedMinute === minute && styles.pickerTextSelected,
-                  ]}
-                >
-                  {minute}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                {MINUTES.map((minute) => (
+                  <TouchableOpacity
+                    key={minute}
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      onSelectMinute(minute);
+                      const index = MINUTES.indexOf(minute);
+                      minuteScrollRef.current?.scrollTo({
+                        y: index * ITEM_HEIGHT,
+                        animated: true,
+                      });
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.pickerText,
+                        selectedMinute === minute && styles.pickerTextSelected,
+                      ]}
+                    >
+                      {minute}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -121,7 +177,7 @@ export default function SleepRoutineScreen() {
           <Text style={styles.subtitle}>This helps me understand your natural rhythm 🌙</Text>
 
           {renderTimePicker(
-            BEDTIME_HOURS,
+            HOURS,
             bedtimeHour,
             setBedtimeHour,
             bedtimeMinute,
@@ -130,7 +186,7 @@ export default function SleepRoutineScreen() {
           )}
 
           {renderTimePicker(
-            WAKE_HOURS,
+            HOURS,
             wakeHour,
             setWakeHour,
             wakeMinute,
@@ -232,22 +288,36 @@ const styles = StyleSheet.create({
   pickerColumn: {
     flex: 1,
   },
+  pickerWrapper: {
+    position: 'relative',
+    height: 150,
+  },
+  centerIndicator: {
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    height: 50,
+    marginTop: -25,
+    backgroundColor: 'rgba(255, 184, 140, 0.15)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 184, 140, 0.3)',
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
   pickerScroll: {
-    maxHeight: 120,
+    height: 150,
   },
   pickerContent: {
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 50,
   },
   pickerItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    minWidth: 60,
+    height: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  pickerItemSelected: {
-    backgroundColor: 'rgba(255, 184, 140, 0.3)',
+    minWidth: 60,
   },
   pickerText: {
     fontSize: 18,
@@ -255,7 +325,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   pickerTextSelected: {
-    fontSize: 22,
+    fontSize: 24,
     color: '#4A5F8F',
     fontWeight: '600',
   },
