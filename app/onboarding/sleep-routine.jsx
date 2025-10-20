@@ -161,55 +161,62 @@ export default function SleepRoutineScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <View style={styles.header}>
-          <MonsterIcon size={60} />
-        </View>
-
-        <View style={styles.glassCard}>
-          <Text style={styles.title}>Let's set up your sleep routine</Text>
-          <Text style={styles.subtitle}>This helps me understand your natural rhythm 🌙</Text>
-
-          {renderTimePicker(
-            bedtimeHour,
-            setBedtimeHour,
-            bedtimeMinute,
-            setBedtimeMinute,
-            'When do you usually go to bed? 🕙',
-            bedtimeHourScrollRef,
-            bedtimeMinuteScrollRef
-          )}
-
-          {renderTimePicker(
-            wakeHour,
-            setWakeHour,
-            wakeMinute,
-            setWakeMinute,
-            'When do you usually wake up? 🌅',
-            wakeHourScrollRef,
-            wakeMinuteScrollRef
-          )}
-
-          <View style={styles.tipContainer}>
-            <Text style={styles.tipText}>
-              💭 Monster says: Your natural rhythm is unique!
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleContinue}
-          activeOpacity={0.8}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
         >
-          <LinearGradient
-            colors={['#FFD89C', '#FFE4B5', '#FFF5E6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.buttonGradient}
+          <View style={styles.header}>
+            <MonsterIcon size={50} />
+          </View>
+
+          <View style={styles.glassCard}>
+            <Text style={styles.title}>Let's set up your sleep routine</Text>
+            <Text style={styles.subtitle}>This helps me understand your natural rhythm 🌙</Text>
+
+            {renderTimePicker(
+              bedtimeHour,
+              setBedtimeHour,
+              bedtimeMinute,
+              setBedtimeMinute,
+              'When do you usually go to bed? 🕙',
+              bedtimeHourScrollRef,
+              bedtimeMinuteScrollRef
+            )}
+
+            {renderTimePicker(
+              wakeHour,
+              setWakeHour,
+              wakeMinute,
+              setWakeMinute,
+              'When do you usually wake up? 🌅',
+              wakeHourScrollRef,
+              wakeMinuteScrollRef
+            )}
+
+            <View style={styles.tipContainer}>
+              <Text style={styles.tipText}>
+                💭 Monster says: Your natural rhythm is unique!
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleContinue}
+            activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Continue</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={['#FFD89C', '#FFE4B5', '#FFF5E6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>Continue</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -228,19 +235,23 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 40,
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   glassCard: {
-    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,
-    padding: 24,
+    padding: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
     shadowColor: '#FFB88C',
@@ -250,26 +261,26 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '600',
     color: '#4A5F8F',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#6B7C99',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 20,
   },
   pickerSection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   pickerLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: '#4A5F8F',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -277,20 +288,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 16,
-    padding: 16,
-    gap: 12,
-    height: 180,
+    padding: 12,
+    gap: 8,
+    height: 160,
   },
   pickerWrapper: {
     flex: 1,
-    height: 180,
+    height: 160,
     position: 'relative',
   },
   selectionIndicator: {
     position: 'absolute',
     top: '50%',
-    left: 0,
-    right: 0,
+    left: 8,
+    right: 8,
     height: ITEM_HEIGHT,
     marginTop: -ITEM_HEIGHT / 2,
     backgroundColor: 'rgba(255, 184, 140, 0.2)',
@@ -329,21 +340,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   tipContainer: {
-    marginTop: 16,
-    padding: 16,
+    marginTop: 12,
+    padding: 12,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 184, 140, 0.2)',
   },
   tipText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7C99',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   button: {
-    marginTop: 24,
+    marginTop: 16,
     borderRadius: 20,
     shadowColor: '#FFB88C',
     shadowOffset: { width: 0, height: 4 },
@@ -352,13 +363,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonGradient: {
-    paddingVertical: 18,
+    paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 20,
     alignItems: 'center',
   },
   buttonText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     color: '#4A5F8F',
   },
