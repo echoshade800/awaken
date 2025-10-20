@@ -9,6 +9,7 @@ export default function RootLayout() {
   useFrameworkReady();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+  const [shouldNavigate, setShouldNavigate] = useState(false);
   const initialize = useStore((state) => state.initialize);
 
   useEffect(() => {
@@ -23,11 +24,8 @@ export default function RootLayout() {
         // Mark as ready first
         setIsReady(true);
 
-        // Navigate after a short delay to ensure layout is mounted
-        console.log('[Root] Redirecting to onboarding...');
-        setTimeout(() => {
-          router.replace('/onboarding/welcome');
-        }, 500);
+        // Signal that we want to navigate
+        setShouldNavigate(true);
       } catch (error) {
         console.error('[Root] Initialization error:', error);
         setIsReady(true);
@@ -44,6 +42,17 @@ export default function RootLayout() {
       clearTimeout(safetyTimeout);
     });
   }, []);
+
+  // Navigate after layout is mounted
+  useEffect(() => {
+    if (isReady && shouldNavigate) {
+      console.log('[Root] Redirecting to onboarding...');
+      const timer = setTimeout(() => {
+        router.replace('/onboarding/welcome');
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isReady, shouldNavigate]);
 
   if (!isReady) {
     return (

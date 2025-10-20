@@ -174,7 +174,9 @@ export default function HomeScreen() {
               size={44}
               onPress={() => router.push('/(tabs)/alarm')}
             />
-            {rhythmData && <RhythmChart rhythmData={rhythmData} />}
+            {rhythmData && rhythmData.curve && rhythmData.curve.length > 0 && (
+              <RhythmChart rhythmData={rhythmData} />
+            )}
           </View>
 
           <View style={styles.contentPadded}>

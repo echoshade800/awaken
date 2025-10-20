@@ -9,7 +9,29 @@ const CHART_HEIGHT = 260;
 const PADDING = { top: 40, right: 15, bottom: 20, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
-  const { points, peak, valley, melatoninWindow } = rhythmData;
+  if (!rhythmData || !rhythmData.curve) {
+    return null;
+  }
+
+  // Convert curve data to points format expected by chart
+  const points = rhythmData.curve.map((point) => ({
+    minute: point.hour * 60,
+    energy: point.energy,
+  }));
+
+  const peak = rhythmData.peak ? {
+    time: rhythmData.peak.time,
+    minute: parseInt(rhythmData.peak.time.split(':')[0]) * 60 + parseInt(rhythmData.peak.time.split(':')[1] || '0'),
+    energy: rhythmData.peak.energy,
+  } : null;
+
+  const valley = rhythmData.valley ? {
+    time: rhythmData.valley.time,
+    minute: parseInt(rhythmData.valley.time.split(':')[0]) * 60 + parseInt(rhythmData.valley.time.split(':')[1] || '0'),
+    energy: rhythmData.valley.energy,
+  } : null;
+
+  const melatoninWindow = null;
 
   const xScale = (minute) => {
     const clampedMinute = Math.max(0, Math.min(1440, minute));
@@ -19,9 +41,7 @@ export default function RhythmChart({ rhythmData }) {
   const yScale = (energy) => {
     const clampedEnergy = Math.max(0, Math.min(100, energy));
     const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
-    
-    // 直接使用真实能量值，保持数值一致性
-    // 通过调整图表区域来增强视觉效果，而不是修改数值
+
     return CHART_HEIGHT - PADDING.bottom - ((clampedEnergy / 100) * chartArea);
   };
 
