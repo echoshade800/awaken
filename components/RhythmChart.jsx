@@ -1,35 +1,15 @@
-import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
-import { BlurView } from 'expo-blur';
-import { useEffect, useRef } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 32;
-const CHART_HEIGHT = 180;
-const PADDING = { top: 60, right: 15, bottom: 30, left: 15 };
+const CHART_HEIGHT = 260;
+const PADDING = { top: 40, right: 15, bottom: 20, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
   const { points, peak, valley, melatoninWindow } = rhythmData;
-  const floatAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: -3,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 3,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
 
   const xScale = (minute) => {
     const clampedMinute = Math.max(0, Math.min(1440, minute));
@@ -38,7 +18,11 @@ export default function RhythmChart({ rhythmData }) {
 
   const yScale = (energy) => {
     const clampedEnergy = Math.max(0, Math.min(100, energy));
-    return CHART_HEIGHT - PADDING.bottom - ((clampedEnergy / 100) * (CHART_HEIGHT - PADDING.top - PADDING.bottom));
+    const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
+    
+    // 直接使用真实能量值，保持数值一致性
+    // 通过调整图表区域来增强视觉效果，而不是修改数值
+    return CHART_HEIGHT - PADDING.bottom - ((clampedEnergy / 100) * chartArea);
   };
 
   const clampedPoints = points.map((p) => ({
@@ -54,7 +38,30 @@ export default function RhythmChart({ rhythmData }) {
   const pathData = lineGenerator(clampedPoints);
 
   const currentMinute = getCurrentMinute();
-  const currentEnergy = points.find((p) => Math.abs(p.minute - currentMinute) < 15)?.energy || 50;
+  
+  // 获取当前时间点的精确能量值（保持真实值0-100）
+  const getCurrentEnergyValue = () => {
+    const exactPoint = points.find((p) => Math.abs(p.minute - currentMinute) < 5);
+    
+    if (exactPoint) {
+      return Math.round(exactPoint.energy);
+    }
+    
+    // 线性插值获取更精确的值
+    const before = points.filter(p => p.minute <= currentMinute).pop();
+    const after = points.find(p => p.minute > currentMinute);
+    
+    if (before && after) {
+      const ratio = (currentMinute - before.minute) / (after.minute - before.minute);
+      const interpolatedEnergy = before.energy + ratio * (after.energy - before.energy);
+      return Math.round(Math.max(0, Math.min(100, interpolatedEnergy)));
+    }
+    
+    return before?.energy ? Math.round(before.energy) : 50;
+  };
+
+  const currentEnergy = getCurrentEnergyValue();
+
 
   const getEnergyColor = (energy) => {
     if (energy > 80) return { main: '#A3E4FF', glow: '#6DD5FA' };
@@ -66,14 +73,6 @@ export default function RhythmChart({ rhythmData }) {
 
   const energyColor = getEnergyColor(currentEnergy);
 
-  const getEnergyStatus = (energy) => {
-    if (energy > 80) return { title: "Peak Energy", subtitle: "You're at your energy peak!" };
-    if (energy > 60) return { title: "Rising", subtitle: "Your energy is rising!" };
-    if (energy > 40) return { title: "Moderate", subtitle: "Keep pace, remember to rest" };
-    if (energy > 20) return { title: "Declining", subtitle: "Energy declining, slow down" };
-    return { title: "Low", subtitle: "Time to rest and recharge" };
-  };
-
   const timeLabels = [
     { time: '0:00', minute: 0 },
     { time: '6:00', minute: 360 },
@@ -84,11 +83,6 @@ export default function RhythmChart({ rhythmData }) {
 
   const currentX = xScale(currentMinute);
   const currentY = yScale(currentEnergy);
-  const energyStatus = getEnergyStatus(currentEnergy);
-  const bubbleWidth = 200;
-  const bubbleHeight = 60;
-  const bubbleX = currentX - bubbleWidth / 2;
-  const bubbleY = currentY - bubbleHeight - 30;
 
   return (
     <View style={styles.containerWrapper}>
@@ -119,7 +113,7 @@ export default function RhythmChart({ rhythmData }) {
         <Circle
           cx={currentX}
           cy={currentY}
-          r="80"
+          r="120"
           fill="url(#auraGlow)"
         />
 
@@ -216,21 +210,7 @@ export default function RhythmChart({ rhythmData }) {
 
       </Svg>
 
-      <Animated.View
-        style={[
-          styles.statusBubble,
-          {
-            left: Math.max(20, Math.min(CHART_WIDTH - 220, bubbleX)),
-            top: Math.max(10, bubbleY),
-            transform: [{ translateY: floatAnim }]
-          }
-        ]}
-      >
-        <BlurView intensity={20} tint="light" style={styles.blurContainer}>
-          <Text style={styles.statusTitle}>{energyStatus.title}</Text>
-          <Text style={styles.statusSubtitle}>{energyStatus.subtitle}</Text>
-        </BlurView>
-      </Animated.View>
+
       </View>
     </View>
   );
@@ -245,37 +225,6 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     width: CHART_WIDTH,
-  },
-  statusBubble: {
-    position: 'absolute',
-    borderRadius: 20,
-    shadowColor: '#87CEEB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-    minWidth: 200,
-    overflow: 'hidden',
-  },
-  blurContainer: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 20,
-  },
-  statusTitle: {
-    fontSize: 14,
-    color: '#1C1C1E',
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  statusSubtitle: {
-    fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '400',
   },
   chart: {
     marginVertical: 4,

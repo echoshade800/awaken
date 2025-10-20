@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState, useEffect } from 'react';
 import useStore from '@/lib/store';
 import { generateMockRhythm } from '@/lib/rhythm';
 import RhythmChart from '@/components/RhythmChart';
@@ -10,12 +11,29 @@ import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
 import MonsterIcon from '@/components/MonsterIcon';
 import GlowingText from '@/components/GlowingText';
+import EnergyHelpModal from '@/components/EnergyHelpModal';
+import * as Haptics from 'expo-haptics';
 
 export default function HomeScreen() {
   const router = useRouter();
   const alarms = useStore((state) => state.alarms);
   const chronotype = useStore((state) => state.chronotype);
   const appData = useStore((state) => state.appData);
+  
+  // 实时时间状态
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // 能量帮助模态框状态
+  const [showEnergyModal, setShowEnergyModal] = useState(false);
+
+  // 更新时间
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
 
   const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
   const rhythmData = generateMockRhythm({
@@ -24,11 +42,22 @@ export default function HomeScreen() {
     chrono: chronotype,
   });
 
+  // 格式化时间显示
+  const formatTime = (date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+
+  // 处理能量帮助按钮点击
+  const handleEnergyHelpPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowEnergyModal(true);
+  };
+
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#F5F9FC', '#D6EEFF', '#A8D8F0', '#6BA8D0', '#3D5A7F', '#2B4164', '#1A2845', '#0D1525']}
+        colors={['#E8F4FD', '#D6EEFF', '#A8D8F0', '#6BA8D0', '#4A6B8A', '#2B4164', '#1A2845', '#0D1525']}
         style={styles.backgroundGradient}
       />
       <StarBackground />
@@ -41,12 +70,25 @@ export default function HomeScreen() {
         >
           <View style={styles.topSpacer} />
 
-          <View style={styles.headerPadded}>
-            <Text style={styles.title}>What Does Your Rhythm{"\n"}Look Like Today?</Text>
-            {nextAlarm && (
-              <Text style={styles.alarmText}>⏰ Next alarm: {nextAlarm.time} · {nextAlarm.label || 'Gentle Wake'}</Text>
-            )}
+          {/* 时间显示模块 */}
+          <View style={styles.timeContainer}>
+            <Text style={styles.currentTime}>{formatTime(currentTime)}</Text>
           </View>
+          
+          {/* Next Alarm 信息条 - 紧凑胶囊样式 */}
+          {nextAlarm && (
+            <TouchableOpacity 
+              style={styles.alarmInfo}
+              onPress={() => router.push('/(tabs)/alarm')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.alarmContent}>
+                <Text style={styles.alarmBellIcon}>🔔</Text>
+                <Text style={styles.alarmTimeDisplay}>{nextAlarm.time}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
 
           <View style={styles.chartContainer}>
             <MonsterIcon
@@ -62,7 +104,18 @@ export default function HomeScreen() {
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
                   <View style={styles.energyContent}>
                     <View style={styles.energyLeft}>
-                      <Text style={styles.energyLabel}>Current</Text>
+                      <View style={styles.currentLabelContainer}>
+                        <Text style={styles.energyLabel}>Current</Text>
+                        <TouchableOpacity
+                          style={styles.energyHelpButton}
+                          onPress={handleEnergyHelpPress}
+                          accessible={true}
+                          accessibilityLabel="Explain energy calculation"
+                          accessibilityRole="button"
+                        >
+                          <Text style={styles.energyHelpIcon}>?</Text>
+                        </TouchableOpacity>
+                      </View>
                       <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
                     </View>
 
@@ -109,6 +162,12 @@ export default function HomeScreen() {
           <View style={styles.bottomSpacer} />
         </ScrollView>
       </SafeAreaView>
+
+      {/* 能量帮助模态框 */}
+      <EnergyHelpModal 
+        visible={showEnergyModal}
+        onClose={() => setShowEnergyModal(false)}
+      />
     </View>
   );
 }
@@ -130,13 +189,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   topSpacer: {
-    height: 60,
-  },
-  headerPadded: {
-    marginTop: 16,
-    marginBottom: 8,
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    height: 20,
   },
   contentPadded: {
     paddingHorizontal: 20,
@@ -144,20 +197,60 @@ const styles = StyleSheet.create({
   chartContainer: {
     position: 'relative',
     paddingHorizontal: 20,
+    marginTop: 0,
+    marginBottom: 12,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '300',
+  // 时间显示模块样式
+  timeContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  currentTime: {
+    fontSize: 64,
+    fontWeight: '700',
     color: '#1A2845',
     textAlign: 'center',
-    lineHeight: 34,
-    marginBottom: 8,
+    letterSpacing: 1,
   },
-  alarmText: {
-    fontSize: 13,
+  // Next Alarm 信息条样式 - 玻璃质感
+  alarmInfo: {
+    alignSelf: 'center',
+    marginBottom: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)', // 半透明白色背景
+    borderRadius: 25, // 圆角矩形
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)', // 白色边框
+    shadowColor: 'rgba(0, 0, 0, 0.15)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
+    transform: [{ scale: 1 }],
+  },
+  alarmContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  alarmBellIcon: {
+    fontSize: 16,
     color: 'rgba(26, 40, 69, 0.8)',
-    marginTop: 2,
-    marginBottom: 4,
+    textShadowColor: 'rgba(255, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  alarmTimeDisplay: {
+    fontSize: 16,
+    color: 'rgba(26, 40, 69, 0.9)',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(255, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   horizontalContainer: {
     flexDirection: 'row',
@@ -193,11 +286,31 @@ const styles = StyleSheet.create({
   energyLeft: {
     alignItems: 'flex-start',
   },
+  currentLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
   energyLabel: {
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 2,
     fontWeight: '500',
+  },
+  energyHelpButton: {
+    marginLeft: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  energyHelpIcon: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '600',
   },
   energyValue: {
     fontSize: 40,
