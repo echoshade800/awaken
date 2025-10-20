@@ -12,6 +12,8 @@ import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
 import MonsterIcon from '@/components/MonsterIcon';
 import GlowingText from '@/components/GlowingText';
 import EnergyHelpModal from '@/components/EnergyHelpModal';
+import MonsterTipsBanner from '@/components/MonsterTipsBanner';
+import SleepDebtCard from '@/components/SleepDebtCard';
 import * as Haptics from 'expo-haptics';
 
 export default function HomeScreen() {
@@ -89,6 +91,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
 
+          {/* Monster Tips Banner - 移至曲线上方 */}
+          <MonsterTipsBanner tip="✨ Energy's balanced. Keep it calm and consistent 🌙" />
 
           <View style={styles.chartContainer}>
             <MonsterIcon
@@ -134,12 +138,8 @@ export default function HomeScreen() {
                 <Text style={styles.panelLabel}>Energy Status</Text>
               </View>
 
-              <View style={styles.panelWithLabel}>
-                <UnifiedPanelBorder style={styles.unifiedPanel}>
-                  <Text style={styles.tipText}>✨ Energy's balanced. Keep it calm and consistent 🌙</Text>
-                </UnifiedPanelBorder>
-                <Text style={styles.panelLabel}>Monster Tips</Text>
-              </View>
+              {/* Sleep Debt Card - 替换原Monster Tips */}
+              <SleepDebtCard sleepDebt={appData?.sleepDebt || -2} />
             </View>
 
             <View style={styles.horizontalContainer}>
@@ -147,7 +147,7 @@ export default function HomeScreen() {
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
                   <SleepDebtPuzzle />
                 </UnifiedPanelBorder>
-                <Text style={styles.panelLabel}>Sleep Debt: {appData?.sleepDebt || -2}h</Text>
+                <Text style={styles.panelLabel}>Sleep Quality</Text>
               </View>
 
               <View style={styles.panelWithLabel}>
