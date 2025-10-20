@@ -202,37 +202,37 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '500',
     color: '#4A5F8F',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   optionsGrid: {
-    gap: 12,
+    gap: 10,
   },
   optionCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 16,
-    padding: 20,
+    padding: 14,
     borderWidth: 2,
     borderColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   optionCardSelected: {
     backgroundColor: 'rgba(255, 184, 140, 0.2)',
     borderColor: '#FFB88C',
   },
   optionEmoji: {
-    fontSize: 32,
+    fontSize: 28,
   },
   optionLabel: {
     flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     color: '#4A5F8F',
   },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     color: '#FF9A76',
   },
   optionDescription: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6B7C99',
   },
   optionDescriptionSelected: {
