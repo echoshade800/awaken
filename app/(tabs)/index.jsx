@@ -50,9 +50,11 @@ export default function HomeScreen() {
   // Initialize sleep data and background tasks
   useEffect(() => {
     const initializeSleepData = async () => {
+      console.log('[Home] Initializing sleep data...');
       await loadSleepData();
       await initializeBackgroundTasks();
       updateRhythmData();
+      console.log('[Home] Sleep data initialized');
     };
     initializeSleepData();
   }, []);
@@ -64,9 +66,17 @@ export default function HomeScreen() {
 
   const updateRhythmData = () => {
     const energyData = getEnergyRhythmData();
+    console.log('[Home] Energy data from store:', {
+      hasData: !!energyData,
+      curveLength: energyData?.curve?.length,
+      sleepDebt: sleepDebt,
+    });
+
     if (energyData && energyData.curve && energyData.curve.length > 0) {
+      console.log('[Home] Using calculated energy data');
       setRhythmData(energyData);
     } else {
+      console.log('[Home] Using mock data fallback');
       // Fallback to mock data if no calculated data available
       const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
       const mockData = generateMockRhythm({

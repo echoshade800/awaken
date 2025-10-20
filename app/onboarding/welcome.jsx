@@ -37,7 +37,7 @@ export default function WelcomeScreen() {
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      router.push('/onboarding/sleep-routine');
+      router.push('/onboarding/energy-type');
     });
   };
 

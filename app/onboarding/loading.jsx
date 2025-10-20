@@ -65,6 +65,8 @@ export default function LoadingScreen() {
         const sleepRoutine = await AsyncStorage.getItem('onboarding_sleepRoutine');
         const energyType = await AsyncStorage.getItem('onboarding_energyType');
 
+        console.log('[Onboarding] Retrieved data:', { sleepRoutine, energyType });
+
         if (sleepRoutine && energyType) {
           const routineData = JSON.parse(sleepRoutine);
           const routineWithEnergy = {
@@ -76,7 +78,12 @@ export default function LoadingScreen() {
           console.log('[Onboarding] Calculating sleep data with:', routineWithEnergy);
 
           // Calculate and store sleep data
-          await calculateAndStoreSleepData(routineWithEnergy);
+          const sleepData = await calculateAndStoreSleepData(routineWithEnergy);
+          console.log('[Onboarding] Sleep data calculated:', {
+            sleepNeed: sleepData?.sleepNeed,
+            sleepDebt: sleepData?.sleepDebt,
+            curveLength: sleepData?.circadianCurve?.length,
+          });
 
           // Store routine data in app data
           await updateAppData({
@@ -84,9 +91,11 @@ export default function LoadingScreen() {
             routineData: routineWithEnergy,
           });
 
-          console.log('[Onboarding] Sleep data calculated successfully');
+          console.log('[Onboarding] Sleep data calculated and stored successfully');
         } else {
           console.warn('[Onboarding] Missing sleep routine or energy type data');
+          console.warn('[Onboarding] sleepRoutine:', sleepRoutine);
+          console.warn('[Onboarding] energyType:', energyType);
         }
 
         await AsyncStorage.setItem('onboardingCompleted', 'true');
