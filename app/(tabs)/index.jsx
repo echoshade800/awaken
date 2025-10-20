@@ -14,19 +14,36 @@ import GlowingText from '@/components/GlowingText';
 import EnergyHelpModal from '@/components/EnergyHelpModal';
 import MonsterTipsBanner from '@/components/MonsterTipsBanner';
 import SleepDebtCard from '@/components/SleepDebtCard';
+import WelcomeToast from '@/components/WelcomeToast';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const router = useRouter();
   const alarms = useStore((state) => state.alarms);
   const chronotype = useStore((state) => state.chronotype);
   const appData = useStore((state) => state.appData);
-  
+
   // 实时时间状态
   const [currentTime, setCurrentTime] = useState(new Date());
-  
+
   // 能量帮助模态框状态
   const [showEnergyModal, setShowEnergyModal] = useState(false);
+
+  // Welcome toast state
+  const [showWelcomeToast, setShowWelcomeToast] = useState(false);
+
+  // Check if this is first-time visit after onboarding
+  useEffect(() => {
+    const checkFirstVisit = async () => {
+      const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcomeToast');
+      if (!hasSeenWelcome) {
+        setShowWelcomeToast(true);
+        await AsyncStorage.setItem('hasSeenWelcomeToast', 'true');
+      }
+    };
+    checkFirstVisit();
+  }, []);
 
   // 更新时间
   useEffect(() => {
@@ -63,6 +80,8 @@ export default function HomeScreen() {
         style={styles.backgroundGradient}
       />
       <StarBackground />
+
+      <WelcomeToast visible={showWelcomeToast} onDismiss={() => setShowWelcomeToast(false)} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
