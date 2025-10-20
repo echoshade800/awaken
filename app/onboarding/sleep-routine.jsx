@@ -7,8 +7,9 @@ import MonsterIcon from '../../components/MonsterIcon';
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const MINUTES = ['00', '15', '30', '45'];
 
-const BEDTIME_HOURS = ['21', '22', '23', '00', '01'];
-const WAKE_HOURS = ['06', '07', '08', '09'];
+// Extended hours for more flexible sleep schedules
+const BEDTIME_HOURS = ['20', '21', '22', '23', '00', '01', '02', '03', '04', '05'];
+const WAKE_HOURS = ['04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15'];
 
 export default function SleepRoutineScreen() {
   const router = useRouter();
