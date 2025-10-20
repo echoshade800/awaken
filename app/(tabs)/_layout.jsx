@@ -1,39 +1,67 @@
 import { Tabs } from 'expo-router';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Sun, Home, Moon } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
+import { useEffect, useRef } from 'react';
 
 function CustomTabBar({ state, descriptors, navigation }) {
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const positions = [0, 1, 2];
+    const targetPosition = positions[state.index];
+
+    Animated.timing(translateX, {
+      toValue: targetPosition,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [state.index]);
+
+  const indicatorTranslateX = translateX.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [0, 115, 230],
+  });
+
   return (
-    <BlurView intensity={40} tint="dark" style={styles.tabBarContainer}>
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => navigation.navigate('alarm')}
-        >
-          <Sun size={22} color={state.index === 0 ? '#FFD700' : 'rgba(255, 255, 255, 0.6)'} />
-          <Text style={[styles.tabLabel, state.index === 0 && styles.tabLabelActive]}>Alarm</Text>
-        </TouchableOpacity>
+    <View style={styles.tabBarWrapper}>
+      <BlurView intensity={50} tint="dark" style={styles.tabBarContainer}>
+        <View style={styles.tabBar}>
+          <Animated.View
+            style={[
+              styles.activeIndicator,
+              {
+                transform: [{ translateX: indicatorTranslateX }],
+              },
+            ]}
+          />
 
-        <TouchableOpacity
-          style={styles.homeButton}
-          onPress={() => navigation.navigate('index')}
-        >
-          <View style={styles.homeButtonInner}>
-            <Home size={24} color="#FFFFFF" strokeWidth={2.5} />
-          </View>
-          <Text style={styles.homeLabel}>Home</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => navigation.navigate('alarm')}
+          >
+            <Sun size={22} color={state.index === 0 ? '#FFD700' : 'rgba(255, 255, 255, 0.6)'} />
+            <Text style={[styles.tabLabel, state.index === 0 && styles.tabLabelActive]}>Wake</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => navigation.navigate('sleep')}
-        >
-          <Moon size={22} color={state.index === 2 ? '#87CEEB' : 'rgba(255, 255, 255, 0.6)'} />
-          <Text style={[styles.tabLabel, state.index === 2 && styles.tabLabelActive]}>Sleep</Text>
-        </TouchableOpacity>
-      </View>
-    </BlurView>
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => navigation.navigate('index')}
+          >
+            <Home size={22} color={state.index === 1 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)'} />
+            <Text style={[styles.tabLabel, state.index === 1 && styles.tabLabelActive]}>Home</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => navigation.navigate('sleep')}
+          >
+            <Moon size={22} color={state.index === 2 ? '#87CEEB' : 'rgba(255, 255, 255, 0.6)'} />
+            <Text style={[styles.tabLabel, state.index === 2 && styles.tabLabelActive]}>Sleep</Text>
+          </TouchableOpacity>
+        </View>
+      </BlurView>
+    </View>
   );
 }
 
@@ -53,60 +81,65 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBarContainer: {
+  tabBarWrapper: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabBarContainer: {
+    borderRadius: 50,
+    overflow: 'hidden',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
+    position: 'relative',
+    minHeight: 50,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    width: 100,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    left: 10,
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    width: 100,
+    height: 60,
+    zIndex: 1,
   },
   tabLabel: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
-    marginTop: 3,
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: 4,
     fontWeight: '500',
   },
   tabLabelActive: {
     color: '#FFFFFF',
-  },
-  homeButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  homeButtonInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  homeLabel: {
-    fontSize: 11,
-    color: '#FFFFFF',
-    marginTop: 4,
     fontWeight: '600',
   },
 });
