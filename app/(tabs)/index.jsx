@@ -9,7 +9,6 @@ import RhythmChart from '@/components/RhythmChart';
 import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
-import MonsterIcon from '@/components/MonsterIcon';
 import GlowingText from '@/components/GlowingText';
 import EnergyHelpModal from '@/components/EnergyHelpModal';
 import MonsterTipsBanner from '@/components/MonsterTipsBanner';
@@ -191,10 +190,6 @@ export default function HomeScreen() {
           <MonsterTipsBanner tip={rhythmData?.monsterTip || "✨ Energy's balanced. Keep it calm and consistent 🌙"} />
 
           <View style={styles.chartContainer}>
-            <MonsterIcon
-              size={44}
-              onPress={() => router.push('/(tabs)/alarm')}
-            />
             {rhythmData && rhythmData.curve && rhythmData.curve.length > 0 && (
               <RhythmChart rhythmData={rhythmData} />
             )}
