@@ -7,7 +7,9 @@ import MonsterIcon from '../../components/MonsterIcon';
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const MINUTES = ['00', '15', '30', '45'];
 
-const ITEM_HEIGHT = 44;
+// Extended hours for more flexible sleep schedules
+const BEDTIME_HOURS = ['20', '21', '22', '23', '00', '01', '02', '03', '04', '05'];
+const WAKE_HOURS = ['04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15'];
 
 export default function SleepRoutineScreen() {
   const router = useRouter();
@@ -36,121 +38,70 @@ export default function SleepRoutineScreen() {
     });
   };
 
-  const ScrollPicker = ({ items, selectedValue, onValueChange, scrollViewRef }) => {
-    const handleScroll = (event) => {
-      const offsetY = event.nativeEvent.contentOffset.y;
-      const index = Math.round(offsetY / ITEM_HEIGHT);
-      const clampedIndex = Math.max(0, Math.min(items.length - 1, index));
-
-      if (items[clampedIndex] !== selectedValue) {
-        onValueChange(items[clampedIndex]);
-      }
-    };
-
-    const handleMomentumScrollEnd = (event) => {
-      const offsetY = event.nativeEvent.contentOffset.y;
-      const index = Math.round(offsetY / ITEM_HEIGHT);
-      const clampedIndex = Math.max(0, Math.min(items.length - 1, index));
-
-      scrollViewRef.current?.scrollTo({
-        y: clampedIndex * ITEM_HEIGHT,
-        animated: true,
-      });
-    };
-
-    useEffect(() => {
-      const index = items.indexOf(selectedValue);
-      if (index !== -1 && scrollViewRef.current) {
-        setTimeout(() => {
-          scrollViewRef.current?.scrollTo({
-            y: index * ITEM_HEIGHT,
-            animated: false,
-          });
-        }, 100);
-      }
-    }, []);
-
-    return (
-      <View style={styles.pickerWrapper}>
-        <View style={styles.selectionIndicator} />
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.pickerScroll}
-          contentContainerStyle={[
-            styles.pickerContent,
-            { paddingVertical: ITEM_HEIGHT * 2 }
-          ]}
-          showsVerticalScrollIndicator={false}
-          snapToInterval={ITEM_HEIGHT}
-          decelerationRate="fast"
-          onScroll={handleScroll}
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          scrollEventThrottle={16}
-        >
-          {items.map((item, index) => {
-            const isSelected = item === selectedValue;
-            return (
+  const renderTimePicker = (hours, selectedHour, onSelectHour, selectedMinute, onSelectMinute, label) => (
+    <View style={styles.pickerSection}>
+      <Text style={styles.pickerLabel}>{label}</Text>
+      <View style={styles.pickerContainer}>
+        <View style={styles.pickerColumn}>
+          <ScrollView
+            style={styles.pickerScroll}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.pickerContent}
+          >
+            {hours.map((hour) => (
               <TouchableOpacity
-                key={item}
-                style={styles.pickerItem}
-                onPress={() => {
-                  onValueChange(item);
-                  scrollViewRef.current?.scrollTo({
-                    y: index * ITEM_HEIGHT,
-                    animated: true,
-                  });
-                }}
+                key={hour}
+                style={[
+                  styles.pickerItem,
+                  selectedHour === hour && styles.pickerItemSelected,
+                ]}
+                onPress={() => onSelectHour(hour)}
                 activeOpacity={0.7}
               >
                 <Text
                   style={[
                     styles.pickerText,
-                    isSelected && styles.pickerTextSelected,
+                    selectedHour === hour && styles.pickerTextSelected,
                   ]}
                 >
-                  {item}
+                  {hour}
                 </Text>
               </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-    );
-  };
-
-  const renderTimePicker = (
-    selectedHour,
-    onSelectHour,
-    selectedMinute,
-    onSelectMinute,
-    label,
-    hourScrollRef,
-    minuteScrollRef
-  ) => (
-    <View style={styles.pickerSection}>
-      <Text style={styles.pickerLabel}>{label}</Text>
-      <View style={styles.pickerContainer}>
-        <ScrollPicker
-          items={HOURS}
-          selectedValue={selectedHour}
-          onValueChange={onSelectHour}
-          scrollViewRef={hourScrollRef}
-        />
+            ))}
+          </ScrollView>
+        </View>
         <Text style={styles.separator}>:</Text>
-        <ScrollPicker
-          items={MINUTES}
-          selectedValue={selectedMinute}
-          onValueChange={onSelectMinute}
-          scrollViewRef={minuteScrollRef}
-        />
+        <View style={styles.pickerColumn}>
+          <ScrollView
+            style={styles.pickerScroll}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.pickerContent}
+          >
+            {MINUTES.map((minute) => (
+              <TouchableOpacity
+                key={minute}
+                style={[
+                  styles.pickerItem,
+                  selectedMinute === minute && styles.pickerItemSelected,
+                ]}
+                onPress={() => onSelectMinute(minute)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.pickerText,
+                    selectedMinute === minute && styles.pickerTextSelected,
+                  ]}
+                >
+                  {minute}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </View>
     </View>
   );
-
-  const bedtimeHourScrollRef = useRef(null);
-  const bedtimeMinuteScrollRef = useRef(null);
-  const wakeHourScrollRef = useRef(null);
-  const wakeMinuteScrollRef = useRef(null);
 
   return (
     <View style={styles.container}>
@@ -161,62 +112,53 @@ export default function SleepRoutineScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
+        <View style={styles.header}>
+          <MonsterIcon size={60} />
+        </View>
+
+        <View style={styles.glassCard}>
+          <Text style={styles.title}>Let's set up your sleep routine</Text>
+          <Text style={styles.subtitle}>This helps me understand your natural rhythm 🌙</Text>
+
+          {renderTimePicker(
+            BEDTIME_HOURS,
+            bedtimeHour,
+            setBedtimeHour,
+            bedtimeMinute,
+            setBedtimeMinute,
+            'When do you usually go to bed? 🕙'
+          )}
+
+          {renderTimePicker(
+            WAKE_HOURS,
+            wakeHour,
+            setWakeHour,
+            wakeMinute,
+            setWakeMinute,
+            'When do you usually wake up? 🌅'
+          )}
+
+          <View style={styles.tipContainer}>
+            <Text style={styles.tipText}>
+              💭 Monster says: Your natural rhythm is unique!
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleContinue}
+          activeOpacity={0.8}
         >
-          <View style={styles.header}>
-            <MonsterIcon size={50} />
-          </View>
-
-          <View style={styles.glassCard}>
-            <Text style={styles.title}>Let's set up your sleep routine</Text>
-            <Text style={styles.subtitle}>This helps me understand your natural rhythm 🌙</Text>
-
-            {renderTimePicker(
-              bedtimeHour,
-              setBedtimeHour,
-              bedtimeMinute,
-              setBedtimeMinute,
-              'When do you usually go to bed? 🕙',
-              bedtimeHourScrollRef,
-              bedtimeMinuteScrollRef
-            )}
-
-            {renderTimePicker(
-              wakeHour,
-              setWakeHour,
-              wakeMinute,
-              setWakeMinute,
-              'When do you usually wake up? 🌅',
-              wakeHourScrollRef,
-              wakeMinuteScrollRef
-            )}
-
-            <View style={styles.tipContainer}>
-              <Text style={styles.tipText}>
-                💭 Monster says: Your natural rhythm is unique!
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleContinue}
-            activeOpacity={0.8}
+          <LinearGradient
+            colors={['#FFD89C', '#FFE4B5', '#FFF5E6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.buttonGradient}
           >
-            <LinearGradient
-              colors={['#FFD89C', '#FFE4B5', '#FFF5E6']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.buttonGradient}
-            >
-              <Text style={styles.buttonText}>Continue</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView>
+            <Text style={styles.buttonText}>Continue</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </Animated.View>
     </View>
   );
@@ -235,23 +177,19 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 60,
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   glassCard: {
+    flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,
-    padding: 20,
+    padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
     shadowColor: '#FFB88C',
@@ -261,26 +199,26 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '600',
     color: '#4A5F8F',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#6B7C99',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 32,
   },
   pickerSection: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   pickerLabel: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '500',
     color: '#4A5F8F',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -288,48 +226,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 16,
-    padding: 12,
-    gap: 8,
-    height: 160,
+    padding: 16,
+    gap: 12,
   },
-  pickerWrapper: {
+  pickerColumn: {
     flex: 1,
-    height: 160,
-    position: 'relative',
-  },
-  selectionIndicator: {
-    position: 'absolute',
-    top: '50%',
-    left: 8,
-    right: 8,
-    height: ITEM_HEIGHT,
-    marginTop: -ITEM_HEIGHT / 2,
-    backgroundColor: 'rgba(255, 184, 140, 0.2)',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 184, 140, 0.3)',
-    zIndex: 1,
-    pointerEvents: 'none',
   },
   pickerScroll: {
-    flex: 1,
+    maxHeight: 120,
   },
   pickerContent: {
     alignItems: 'center',
+    paddingVertical: 8,
   },
   pickerItem: {
-    height: ITEM_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 12,
     paddingHorizontal: 20,
+    borderRadius: 10,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  pickerItemSelected: {
+    backgroundColor: 'rgba(255, 184, 140, 0.3)',
   },
   pickerText: {
     fontSize: 18,
-    color: '#A0AEC0',
+    color: '#6B7C99',
     fontWeight: '400',
   },
   pickerTextSelected: {
-    fontSize: 24,
+    fontSize: 22,
     color: '#4A5F8F',
     fontWeight: '600',
   },
@@ -337,24 +263,23 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#4A5F8F',
     fontWeight: '300',
-    marginHorizontal: 8,
   },
   tipContainer: {
-    marginTop: 12,
-    padding: 12,
+    marginTop: 16,
+    padding: 16,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 184, 140, 0.2)',
   },
   tipText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7C99',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 20,
   },
   button: {
-    marginTop: 16,
+    marginTop: 24,
     borderRadius: 20,
     shadowColor: '#FFB88C',
     shadowOffset: { width: 0, height: 4 },
@@ -363,13 +288,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonGradient: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: 20,
     alignItems: 'center',
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: '#4A5F8F',
   },
