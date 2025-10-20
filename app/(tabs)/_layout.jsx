@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     shadowColor: '#000',
