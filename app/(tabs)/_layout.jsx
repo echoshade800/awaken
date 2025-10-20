@@ -20,7 +20,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
 
   const indicatorTranslateX = translateX.interpolate({
     inputRange: [0, 1, 2],
-    outputRange: [0, 115, 230],
+    outputRange: [0, 105, 210],
   });
 
   return (
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
-    left: 10,
+    left: 5,
   },
   tabItem: {
     alignItems: 'center',
