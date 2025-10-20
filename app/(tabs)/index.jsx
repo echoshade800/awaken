@@ -15,6 +15,7 @@ import EnergyHelpModal from '@/components/EnergyHelpModal';
 import MonsterTipsBanner from '@/components/MonsterTipsBanner';
 import SleepDebtCard from '@/components/SleepDebtCard';
 import WelcomeToast from '@/components/WelcomeToast';
+import DreamBubble from '@/components/DreamBubble';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeBackgroundTasks } from '@/lib/backgroundTasks';
@@ -36,6 +37,9 @@ export default function HomeScreen() {
 
   // Welcome toast state
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
+
+  // Dream keyword state
+  const [dreamKeyword, setDreamKeyword] = useState(null);
 
   // Energy rhythm data
   const [rhythmData, setRhythmData] = useState({
@@ -149,6 +153,13 @@ export default function HomeScreen() {
 
       <WelcomeToast visible={showWelcomeToast} onDismiss={() => setShowWelcomeToast(false)} />
 
+      <DreamBubble
+        keyword={dreamKeyword}
+        onPress={() => {
+          console.log('Dream bubble pressed - navigate to dream records');
+        }}
+      />
+
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
           style={styles.scrollView}
@@ -237,12 +248,17 @@ export default function HomeScreen() {
                 <Text style={styles.panelLabel}>Sleep Quality</Text>
               </View>
 
-              <View style={styles.panelWithLabel}>
+              <TouchableOpacity
+                style={styles.panelWithLabel}
+                onPress={() => {
+                  setDreamKeyword(dreamKeyword ? null : 'Flying');
+                }}
+              >
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
-                  <GlowingText>Starry Sky</GlowingText>
+                  <GlowingText>{dreamKeyword || 'No Dream Yet'}</GlowingText>
                 </UnifiedPanelBorder>
-                <Text style={styles.panelLabel}>Dream Keyword</Text>
-              </View>
+                <Text style={styles.panelLabel}>Dream Keyword (Tap to Toggle)</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
