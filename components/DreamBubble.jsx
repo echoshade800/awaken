@@ -35,8 +35,8 @@ export default function DreamBubble({
         translateY.setValue(position.y + gestureState.dy);
       },
       onPanResponderRelease: (_, gestureState) => {
-        const newX = Math.max(0, Math.min(SCREEN_WIDTH - 120, position.x + gestureState.dx));
-        const newY = Math.max(50, Math.min(SCREEN_HEIGHT - 100, position.y + gestureState.dy));
+        const newX = Math.max(0, Math.min(SCREEN_WIDTH - 90, position.x + gestureState.dx));
+        const newY = Math.max(50, Math.min(SCREEN_HEIGHT - 80, position.y + gestureState.dy));
 
         setPosition({ x: newX, y: newY });
         translateX.setValue(newX);
@@ -101,7 +101,7 @@ export default function DreamBubble({
     <Animated.View style={[styles.container, animatedStyle]} {...panResponder.panHandlers}>
       <View style={styles.bubble}>
         <View style={styles.bubbleContent}>
-          <Svg width={120} height={80} viewBox="0 0 120 80" style={styles.bubbleSvg}>
+          <Svg width={90} height={60} viewBox="0 0 90 60" style={styles.bubbleSvg}>
             <Defs>
               <LinearGradient id="bubbleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <Stop offset="0%" stopColor={gradientColors[0]} stopOpacity="0.7" />
@@ -116,47 +116,47 @@ export default function DreamBubble({
             </Defs>
 
             <Ellipse
-              cx="60"
-              cy="40"
-              rx="55"
-              ry="35"
+              cx="45"
+              cy="30"
+              rx="40"
+              ry="26"
               fill="url(#bubbleGradient)"
             />
 
             <Ellipse
-              cx="60"
-              cy="40"
-              rx="55"
-              ry="35"
+              cx="45"
+              cy="30"
+              rx="40"
+              ry="26"
               fill="none"
               stroke="rgba(255, 255, 255, 0.6)"
               strokeWidth="2"
             />
 
             <Ellipse
-              cx="45"
-              cy="25"
-              rx="20"
-              ry="15"
+              cx="35"
+              cy="20"
+              rx="15"
+              ry="11"
               fill="url(#highlightGradient)"
             />
 
             <Circle
-              cx="75"
-              cy="45"
-              r="2.5"
+              cx="57"
+              cy="35"
+              r="2"
               fill="rgba(255, 255, 255, 0.8)"
             />
             <Circle
-              cx="48"
-              cy="50"
-              r="2"
+              cx="38"
+              cy="38"
+              r="1.5"
               fill="rgba(255, 255, 255, 0.7)"
             />
             <Circle
-              cx="85"
-              cy="30"
-              r="1.5"
+              cx="65"
+              cy="22"
+              r="1.2"
               fill="rgba(255, 255, 255, 0.6)"
             />
           </Svg>
@@ -165,10 +165,7 @@ export default function DreamBubble({
             {hasKeyword ? (
               <Text style={styles.keyword}>{keyword} ✨</Text>
             ) : (
-              <>
-                <Text style={styles.helloText}>Hello Dream</Text>
-                <Text style={styles.subText}>Record your first dream ✨</Text>
-              </>
+              <Text style={styles.helloText}>Hello Dream</Text>
             )}
           </View>
         </View>
@@ -191,8 +188,8 @@ const styles = StyleSheet.create({
   },
   bubbleContent: {
     position: 'relative',
-    width: 120,
-    height: 80,
+    width: 90,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -200,31 +197,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   textContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   helloText: {
     color: '#8B7BC8',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
     textAlign: 'center',
     textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
-  subText: {
-    color: '#A89DD6',
-    fontSize: 10,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: 2,
-    opacity: 0.8,
-  },
   keyword: {
     color: '#7E6BBF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
     textShadowColor: 'rgba(255, 255, 255, 0.8)',
