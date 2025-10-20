@@ -1,41 +1,13 @@
 import { Tabs } from 'expo-router';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Sun, Home, Moon } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { useEffect, useRef } from 'react';
 
 function CustomTabBar({ state, descriptors, navigation }) {
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const positions = [0, 1, 2];
-    const targetPosition = positions[state.index];
-
-    Animated.timing(translateX, {
-      toValue: targetPosition,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [state.index]);
-
-  const indicatorTranslateX = translateX.interpolate({
-    inputRange: [0, 1, 2],
-    outputRange: [0, 105, 210],
-  });
-
   return (
     <View style={styles.tabBarWrapper}>
       <BlurView intensity={50} tint="dark" style={styles.tabBarContainer}>
         <View style={styles.tabBar}>
-          <Animated.View
-            style={[
-              styles.activeIndicator,
-              {
-                transform: [{ translateX: indicatorTranslateX }],
-              },
-            ]}
-          />
-
           <TouchableOpacity
             style={styles.tabItem}
             onPress={() => navigation.navigate('alarm')}
@@ -109,21 +81,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     position: 'relative',
     minHeight: 50,
-  },
-  activeIndicator: {
-    position: 'absolute',
-    width: 100,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-    left: 5,
   },
   tabItem: {
     alignItems: 'center',
