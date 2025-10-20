@@ -20,14 +20,14 @@ export default function RootLayout() {
         await initialize();
         console.log('[Root] Store initialized');
 
-        // Mark as ready
+        // Mark as ready first
         setIsReady(true);
 
-        // Always navigate to onboarding
+        // Navigate after a short delay to ensure layout is mounted
         console.log('[Root] Redirecting to onboarding...');
         setTimeout(() => {
           router.replace('/onboarding/welcome');
-        }, 100);
+        }, 500);
       } catch (error) {
         console.error('[Root] Initialization error:', error);
         setIsReady(true);

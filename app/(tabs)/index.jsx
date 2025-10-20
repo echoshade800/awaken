@@ -38,7 +38,14 @@ export default function HomeScreen() {
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
 
   // Energy rhythm data
-  const [rhythmData, setRhythmData] = useState(null);
+  const [rhythmData, setRhythmData] = useState({
+    energyScore: 50,
+    peak: { time: '13:00', energy: 80 },
+    valley: { time: '03:00', energy: 20 },
+    curve: [],
+    monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
+    debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
+  });
 
   // Initialize sleep data and background tasks
   useEffect(() => {
@@ -57,16 +64,24 @@ export default function HomeScreen() {
 
   const updateRhythmData = () => {
     const energyData = getEnergyRhythmData();
-    if (energyData) {
+    if (energyData && energyData.curve && energyData.curve.length > 0) {
       setRhythmData(energyData);
     } else {
       // Fallback to mock data if no calculated data available
       const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
-      setRhythmData(generateMockRhythm({
+      const mockData = generateMockRhythm({
         wake: nextAlarm?.time || '07:30',
         sleep: '23:00',
         chrono: chronotype,
-      }));
+      });
+      setRhythmData({
+        energyScore: mockData?.energyScore || 50,
+        peak: mockData?.peak || { time: '13:00', energy: 80 },
+        valley: mockData?.valley || { time: '03:00', energy: 20 },
+        curve: mockData?.curve || [],
+        monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
+        debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
+      });
     }
   };
 
@@ -180,17 +195,17 @@ export default function HomeScreen() {
                           <Text style={styles.energyHelpIcon}>?</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={styles.energyValue}>{rhythmData.energyScore}</Text>
+                      <Text style={styles.energyValue}>{rhythmData?.energyScore || 50}</Text>
                     </View>
 
                     <View style={styles.energyPeaksColumn}>
                       <View style={styles.energyPeakItem}>
                         <Text style={styles.energyTimeLabel}>Peak</Text>
-                        <Text style={styles.energyTimeValue}>{rhythmData.peak.time}</Text>
+                        <Text style={styles.energyTimeValue}>{rhythmData?.peak?.time || '13:00'}</Text>
                       </View>
                       <View style={styles.energyPeakItem}>
                         <Text style={styles.energyTimeLabel}>Low</Text>
-                        <Text style={styles.energyTimeValue}>{rhythmData.valley.time}</Text>
+                        <Text style={styles.energyTimeValue}>{rhythmData?.valley?.time || '03:00'}</Text>
                       </View>
                     </View>
                   </View>
