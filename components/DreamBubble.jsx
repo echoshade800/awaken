@@ -176,7 +176,7 @@ export default function DreamBubble({ keyword = 'Starry Sky', initialX = 100, in
               fill="none"
               stroke="rgba(255, 255, 255, 0.5)"
               strokeWidth="2.5"
-              style={{ filter: 'blur(3px)' }}
+              opacity="0.6"
             />
 
             <Ellipse

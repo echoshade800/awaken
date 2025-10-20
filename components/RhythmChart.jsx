@@ -125,7 +125,6 @@ export default function RhythmChart({ rhythmData }) {
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ filter: 'blur(8px)' }}
         />
 
         <Path

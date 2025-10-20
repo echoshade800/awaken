@@ -55,8 +55,7 @@ export default function MonsterHornBorder({ children, style }) {
           fill="none"
           stroke="rgba(180, 220, 255, 0.4)"
           strokeWidth="5"
-          opacity="0.4"
-          style={{ filter: 'blur(4px)' }}
+          opacity="0.3"
         />
 
         {/* Decorative dots - eye effect */}
