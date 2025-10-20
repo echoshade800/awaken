@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
-import MonsterIcon from '../../components/MonsterIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoadingScreen() {
@@ -107,10 +106,6 @@ export default function LoadingScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <Animated.View style={[styles.monsterContainer, { transform: [{ translateY }] }]}>
-          <MonsterIcon size={100} />
-        </Animated.View>
-
         <Animated.View style={[styles.glowRing, { transform: [{ rotate }] }]} />
         <Animated.View style={[styles.glowRing2, { transform: [{ rotate }] }]} />
 
@@ -180,10 +175,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-  monsterContainer: {
-    marginBottom: 40,
-    zIndex: 2,
-  },
   glowRing: {
     position: 'absolute',
     width: 180,
@@ -193,7 +184,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 184, 140, 0.3)',
     top: '50%',
     left: '50%',
-    marginTop: -130,
+    marginTop: -70,
     marginLeft: -90,
   },
   glowRing2: {
@@ -205,7 +196,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 184, 140, 0.2)',
     top: '50%',
     left: '50%',
-    marginTop: -150,
+    marginTop: -90,
     marginLeft: -110,
   },
   textContainer: {

@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from '
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
-import MonsterIcon from '../../components/MonsterIcon';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const MINUTES = ['00', '15', '30', '45'];
@@ -168,10 +167,6 @@ export default function SleepRoutineScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <View style={styles.header}>
-          <MonsterIcon size={60} />
-        </View>
-
         <View style={styles.glassCard}>
           <Text style={styles.title}>Let's set up your sleep routine</Text>
           <Text style={styles.subtitle}>This helps me understand your natural rhythm 🌙</Text>
@@ -237,11 +232,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 40,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
   glassCard: {
+    marginTop: 20,
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,

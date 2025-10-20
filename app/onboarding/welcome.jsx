@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
-import MonsterIcon from '../../components/MonsterIcon';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -56,10 +55,6 @@ export default function WelcomeScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <Animated.View style={[styles.monsterContainer, { transform: [{ translateY }] }]}>
-          <MonsterIcon size={120} />
-        </Animated.View>
-
         <View style={styles.glassCard}>
           <Text style={styles.greeting}>Hi, I'm Monster 👋</Text>
           <Text style={styles.description}>
@@ -104,10 +99,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-  monsterContainer: {
-    marginBottom: 40,
-  },
   glassCard: {
+    marginTop: 80,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,
     padding: 32,

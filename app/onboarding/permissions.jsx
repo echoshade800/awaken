@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Clock, Activity, Check, X } from 'lucide-react-native';
 import * as Notifications from 'expo-notifications';
-import MonsterIcon from '../../components/MonsterIcon';
 
 export default function PermissionsScreen() {
   const router = useRouter();
@@ -111,10 +110,6 @@ export default function PermissionsScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <View style={styles.header}>
-          <MonsterIcon size={60} />
-        </View>
-
         <View style={styles.glassCard}>
           <Text style={styles.title}>Help Monster understand your rhythm</Text>
           <Text style={styles.subtitle}>
@@ -175,8 +170,7 @@ export default function PermissionsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <MonsterIcon size={60} />
-            <Text style={styles.modalTitle}>I can't help you track your rhythm without permission 💫</Text>
+            <Text style={styles.modalTitle}>Can't track your rhythm without permission 💫</Text>
             <Text style={styles.modalDescription}>
               Please grant the required permissions to continue. You can change these later in your device settings.
             </Text>
@@ -221,11 +215,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 40,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
   glassCard: {
+    marginTop: 20,
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,

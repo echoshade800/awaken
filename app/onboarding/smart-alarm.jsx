@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
 import { Clock, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import MonsterIcon from '../../components/MonsterIcon';
 
 export default function SmartAlarmScreen() {
   const router = useRouter();
@@ -66,10 +65,6 @@ export default function SmartAlarmScreen() {
       />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <View style={styles.header}>
-          <MonsterIcon size={60} />
-        </View>
-
         <View style={styles.glassCard}>
           <Text style={styles.title}>Monster now understands your rhythm!</Text>
           <Text style={styles.subtitle}>
@@ -170,11 +165,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 40,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
   glassCard: {
+    marginTop: 20,
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,
