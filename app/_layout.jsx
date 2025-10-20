@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import useStore from '@/lib/store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -13,7 +12,7 @@ export default function RootLayout() {
   const initialize = useStore((state) => state.initialize);
 
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const startOnboarding = async () => {
       try {
         console.log('[Root] Starting initialization...');
 
@@ -21,22 +20,14 @@ export default function RootLayout() {
         await initialize();
         console.log('[Root] Store initialized');
 
-        // Check onboarding status
-        const completed = await AsyncStorage.getItem('onboardingCompleted');
-        console.log('[Root] Onboarding completed:', completed);
-
         // Mark as ready
         setIsReady(true);
 
-        // Navigate to onboarding if not completed
-        if (!completed) {
-          console.log('[Root] Redirecting to onboarding...');
-          setTimeout(() => {
-            router.replace('/onboarding/welcome');
-          }, 100);
-        } else {
-          console.log('[Root] Onboarding already completed, staying on current route');
-        }
+        // Always navigate to onboarding
+        console.log('[Root] Redirecting to onboarding...');
+        setTimeout(() => {
+          router.replace('/onboarding/welcome');
+        }, 100);
       } catch (error) {
         console.error('[Root] Initialization error:', error);
         setIsReady(true);
@@ -49,7 +40,7 @@ export default function RootLayout() {
       setIsReady(true);
     }, 5000);
 
-    checkOnboarding().finally(() => {
+    startOnboarding().finally(() => {
       clearTimeout(safetyTimeout);
     });
   }, []);
