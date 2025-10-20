@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import useStore from '@/lib/store';
 
 export default function LoadingScreen() {
   const router = useRouter();
@@ -10,6 +11,8 @@ export default function LoadingScreen() {
   const floatAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const dotsAnim = useRef(new Animated.Value(0)).current;
+  const calculateAndStoreSleepData = useStore((state) => state.calculateAndStoreSleepData);
+  const updateAppData = useStore((state) => state.updateAppData);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -56,8 +59,44 @@ export default function LoadingScreen() {
       ])
     ).start();
 
+    const completeOnboarding = async () => {
+      try {
+        // Get onboarding data from AsyncStorage
+        const sleepRoutine = await AsyncStorage.getItem('onboarding_sleepRoutine');
+        const energyType = await AsyncStorage.getItem('onboarding_energyType');
+
+        if (sleepRoutine && energyType) {
+          const routineData = JSON.parse(sleepRoutine);
+          const routineWithEnergy = {
+            ...routineData,
+            energyType: energyType,
+            alertnessLevel: 'moderate',
+          };
+
+          console.log('[Onboarding] Calculating sleep data with:', routineWithEnergy);
+
+          // Calculate and store sleep data
+          await calculateAndStoreSleepData(routineWithEnergy);
+
+          // Store routine data in app data
+          await updateAppData({
+            hasOnboarded: true,
+            routineData: routineWithEnergy,
+          });
+
+          console.log('[Onboarding] Sleep data calculated successfully');
+        } else {
+          console.warn('[Onboarding] Missing sleep routine or energy type data');
+        }
+
+        await AsyncStorage.setItem('onboardingCompleted', 'true');
+      } catch (error) {
+        console.error('[Onboarding] Error completing onboarding:', error);
+      }
+    };
+
     const timer = setTimeout(async () => {
-      await AsyncStorage.setItem('onboardingCompleted', 'true');
+      await completeOnboarding();
 
       Animated.timing(fadeAnim, {
         toValue: 0,

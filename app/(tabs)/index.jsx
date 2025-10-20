@@ -17,12 +17,16 @@ import SleepDebtCard from '@/components/SleepDebtCard';
 import WelcomeToast from '@/components/WelcomeToast';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { initializeBackgroundTasks } from '@/lib/backgroundTasks';
 
 export default function HomeScreen() {
   const router = useRouter();
   const alarms = useStore((state) => state.alarms);
   const chronotype = useStore((state) => state.chronotype);
   const appData = useStore((state) => state.appData);
+  const getEnergyRhythmData = useStore((state) => state.getEnergyRhythmData);
+  const loadSleepData = useStore((state) => state.loadSleepData);
+  const sleepDebt = useStore((state) => state.sleepDebt);
 
   // 实时时间状态
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -32,6 +36,39 @@ export default function HomeScreen() {
 
   // Welcome toast state
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
+
+  // Energy rhythm data
+  const [rhythmData, setRhythmData] = useState(null);
+
+  // Initialize sleep data and background tasks
+  useEffect(() => {
+    const initializeSleepData = async () => {
+      await loadSleepData();
+      await initializeBackgroundTasks();
+      updateRhythmData();
+    };
+    initializeSleepData();
+  }, []);
+
+  // Update rhythm data when store changes
+  useEffect(() => {
+    updateRhythmData();
+  }, [sleepDebt]);
+
+  const updateRhythmData = () => {
+    const energyData = getEnergyRhythmData();
+    if (energyData) {
+      setRhythmData(energyData);
+    } else {
+      // Fallback to mock data if no calculated data available
+      const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
+      setRhythmData(generateMockRhythm({
+        wake: nextAlarm?.time || '07:30',
+        sleep: '23:00',
+        chrono: chronotype,
+      }));
+    }
+  };
 
   // Check if this is first-time visit after onboarding
   useEffect(() => {
@@ -50,16 +87,20 @@ export default function HomeScreen() {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-    
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Update rhythm data every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      updateRhythmData();
+    }, 60000);
+
     return () => clearInterval(timer);
   }, []);
 
   const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
-  const rhythmData = generateMockRhythm({
-    wake: nextAlarm?.time || '07:30',
-    sleep: '23:00',
-    chrono: chronotype,
-  });
 
   // 格式化时间显示
   const formatTime = (date) => {
@@ -111,14 +152,14 @@ export default function HomeScreen() {
           )}
 
           {/* Monster Tips Banner - 移至曲线上方 */}
-          <MonsterTipsBanner tip="✨ Energy's balanced. Keep it calm and consistent 🌙" />
+          <MonsterTipsBanner tip={rhythmData?.monsterTip || "✨ Energy's balanced. Keep it calm and consistent 🌙"} />
 
           <View style={styles.chartContainer}>
             <MonsterIcon
               size={44}
               onPress={() => router.push('/(tabs)/alarm')}
             />
-            <RhythmChart rhythmData={rhythmData} />
+            {rhythmData && <RhythmChart rhythmData={rhythmData} />}
           </View>
 
           <View style={styles.contentPadded}>
@@ -158,7 +199,7 @@ export default function HomeScreen() {
               </View>
 
               {/* Sleep Debt Card - 替换原Monster Tips */}
-              <SleepDebtCard sleepDebt={appData?.sleepDebt || -2} />
+              <SleepDebtCard sleepDebt={sleepDebt} debtInfo={rhythmData?.debtInfo} />
             </View>
 
             <View style={styles.horizontalContainer}>

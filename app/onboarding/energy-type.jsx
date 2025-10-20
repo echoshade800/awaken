@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PERSON_TYPES = [
   { id: 'early-bird', emoji: '🐦', label: 'Early Bird', description: 'Love morning sunlight' },
@@ -29,15 +30,18 @@ export default function EnergyTypeScreen() {
     }).start();
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedType || !selectedMood) return;
+
+    // Save energy type to AsyncStorage
+    await AsyncStorage.setItem('onboarding_energyType', selectedType);
 
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      router.push('/onboarding/smart-alarm');
+      router.push('/onboarding/sleep-routine');
     });
   };
 

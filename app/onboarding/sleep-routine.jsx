@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from '
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
 const MINUTES = ['00', '15', '30', '45'];
@@ -23,13 +24,20 @@ export default function SleepRoutineScreen() {
     }).start();
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // Save sleep routine to AsyncStorage
+    const sleepRoutineData = {
+      bedtime: `${bedtimeHour}:${bedtimeMinute}`,
+      wakeTime: `${wakeHour}:${wakeMinute}`,
+    };
+    await AsyncStorage.setItem('onboarding_sleepRoutine', JSON.stringify(sleepRoutineData));
+
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      router.push('/onboarding/permissions');
+      router.push('/onboarding/smart-alarm');
     });
   };
 
