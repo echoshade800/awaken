@@ -25,10 +25,7 @@ export default function SleepScreen() {
   const sleepNeed = useStore((state) => state.sleepNeed);
 
   const processedTimesData = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return mockSleepData.map((item, index) => {
+    return mockSleepData.map((item) => {
       const date = new Date(item.date);
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -36,14 +33,9 @@ export default function SleepScreen() {
       const hours = Math.floor(item.slept);
       const minutes = Math.round((item.slept - hours) * 60);
 
-      const itemDate = new Date(item.date);
-      itemDate.setHours(0, 0, 0, 0);
-      const isToday = itemDate.getTime() === today.getTime();
-      const isLastItem = index === mockSleepData.length - 1;
-
       return {
         date: item.date,
-        dayLabel: (isToday || isLastItem) ? 'Today' : dayNames[date.getDay()],
+        dayLabel: dayNames[date.getDay()],
         fullDate: `${dayNames[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`,
         sleepTime: item.sleepTime,
         wakeTime: item.wakeTime,
