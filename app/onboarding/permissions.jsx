@@ -2,8 +2,9 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, Alert, Mo
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Clock, Activity, Check, X } from 'lucide-react-native';
+import { Bell, Clock, Activity, Smartphone, Check, X } from 'lucide-react-native';
 import * as Notifications from 'expo-notifications';
+import useStore from '@/lib/store';
 
 export default function PermissionsScreen() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function PermissionsScreen() {
     notifications: false,
     alarms: false,
     activity: false,
+    screenTime: false,
   });
   const [showDeniedModal, setShowDeniedModal] = useState(false);
   const [allGranted, setAllGranted] = useState(false);
@@ -28,7 +30,7 @@ export default function PermissionsScreen() {
   }, []);
 
   useEffect(() => {
-    const granted = permissions.notifications && permissions.alarms;
+    const granted = permissions.notifications && permissions.alarms && permissions.screenTime;
     setAllGranted(granted);
   }, [permissions]);
 
@@ -39,6 +41,7 @@ export default function PermissionsScreen() {
       notifications: status === 'granted',
       alarms: Platform.OS === 'web' ? true : status === 'granted',
       activity: true,
+      screenTime: Platform.OS === 'web' ? true : false,
     }));
   };
 
@@ -63,10 +66,29 @@ export default function PermissionsScreen() {
     setPermissions((prev) => ({ ...prev, activity: true }));
   };
 
-  const handleContinue = () => {
+  const requestScreenTimePermission = async () => {
+    if (Platform.OS === 'web') {
+      setPermissions((prev) => ({ ...prev, screenTime: true }));
+      Alert.alert(
+        'Screen Time Access',
+        'In production, this would request access to Screen Time API on iOS or UsageStatsManager on Android to track sleep patterns based on device usage.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    setPermissions((prev) => ({ ...prev, screenTime: true }));
+  };
+
+  const enableUsageTracking = useStore((state) => state.enableUsageTracking);
+
+  const handleContinue = async () => {
     if (!allGranted) {
       setShowDeniedModal(true);
       return;
+    }
+
+    if (permissions.screenTime) {
+      await enableUsageTracking();
     }
 
     Animated.timing(fadeAnim, {
@@ -113,8 +135,8 @@ export default function PermissionsScreen() {
         <View style={styles.glassCard}>
           <Text style={styles.title}>Help Monster understand your rhythm</Text>
           <Text style={styles.subtitle}>
-            To understand your rhythm better, Monster needs a few small permissions.{'\n'}
-            I never read your personal data — I only track activity patterns 💭
+            To calculate your personalized sleep need and circadian rhythm, Monster needs access to device usage patterns.{'\n\n'}
+            🔒 Privacy-safe: Only timestamps are analyzed, no personal content is accessed.
           </Text>
 
           <View style={styles.permissionsContainer}>
@@ -140,6 +162,14 @@ export default function PermissionsScreen() {
               description="Detect active vs rest periods"
               granted={permissions.activity}
               onRequest={requestActivityPermission}
+            />
+
+            <PermissionCard
+              icon={Smartphone}
+              title="Screen Time Data"
+              description="Analyze sleep patterns from device usage (privacy-safe)"
+              granted={permissions.screenTime}
+              onRequest={requestScreenTimePermission}
             />
           </View>
         </View>
