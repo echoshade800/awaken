@@ -77,6 +77,7 @@ const STEP_CONFIGS = [
     field: 'label',
     options: LABEL_OPTIONS,
     allowCustomInput: true,
+    isOptional: true,
   },
   {
     step: 1,
@@ -99,7 +100,7 @@ const STEP_CONFIGS = [
   {
     step: 3.5,
     aiMessage: '选择你想播报的内容吧～',
-    field: 'voiceModules',
+    field: 'broadcastContent',
     isCustom: true,
     condition: (draft) => draft.wakeMode === 'voice',
   },
@@ -173,7 +174,7 @@ export default function AlarmCreate() {
     const stepConfig = getCurrentStepConfig();
     if (
       stepConfig &&
-      stepConfig.field === 'voiceModules' &&
+      stepConfig.field === 'broadcastContent' &&
       currentAlarmDraft?.broadcastContent &&
       chatHistory.length > 0 &&
       !chatHistory[chatHistory.length - 1]?.content?.includes('播报内容已设置')
@@ -234,8 +235,24 @@ export default function AlarmCreate() {
       while (nextStepIndex < STEP_CONFIGS.length) {
         const nextStepConfig = STEP_CONFIGS[nextStepIndex];
 
-        // 检查条件：如果不满足，继续查找下一个
+        // 检查1：条件是否满足（如 voicePackage 只在 voice 模式下需要）
         if (nextStepConfig.condition && !nextStepConfig.condition(currentAlarmDraft)) {
+          nextStepIndex++;
+          continue;
+        }
+
+        // 检查2：该字段是否已填充
+        const fieldValue = currentAlarmDraft?.[nextStepConfig.field];
+        const isFieldFilled = fieldValue !== undefined && fieldValue !== null && fieldValue !== '';
+
+        // 检查3：如果字段已填充且不是可选字段，跳过该步骤
+        if (isFieldFilled && !nextStepConfig.isOptional) {
+          nextStepIndex++;
+          continue;
+        }
+
+        // 检查4：如果是可选字段（如 label）且已填充，跳过
+        if (nextStepConfig.isOptional && isFieldFilled) {
           nextStepIndex++;
           continue;
         }
@@ -301,9 +318,17 @@ export default function AlarmCreate() {
   };
 
   const generateDefaultLabel = () => {
-    const { time, period } = currentAlarmDraft;
+    const { time, period, wakeMode } = currentAlarmDraft;
+    const hour = time?.split(':')[0];
     const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label || '';
-    return `${time} ${periodLabel}闹钟`;
+
+    if (wakeMode === 'voice') {
+      return `${hour}点语音播报`;
+    } else if (wakeMode === 'ringtone') {
+      return `${hour}点铃声`;
+    } else {
+      return `${time} ${periodLabel}闹钟`;
+    }
   };
 
   const handleSave = async () => {
@@ -601,7 +626,7 @@ export default function AlarmCreate() {
           />
         )}
 
-        {stepConfig && !isInSummary && stepConfig.isCustom && stepConfig.field === 'voiceModules' && (
+        {stepConfig && !isInSummary && stepConfig.isCustom && stepConfig.field === 'broadcastContent' && (
           <View style={styles.customAction}>
             <TouchableOpacity
               style={styles.editModulesButton}
