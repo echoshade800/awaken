@@ -3,9 +3,9 @@ import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 
 import { useState } from 'react';
 
 const CHART_HEIGHT = 240;
-const PADDING = { top: 16, right: 12, bottom: 24, left: 0 };
-const BAR_WIDTH = 18;
-const BAR_SPACING = 10;
+const PADDING = { top: 32, right: 56, bottom: 28, left: 16 };
+const BAR_GAP = 10;
+const TOTAL_COLUMNS = 8;
 
 export default function SleepTimesChart({ data, chartWidth }) {
   const [selectedBar, setSelectedBar] = useState(null);
@@ -14,16 +14,19 @@ export default function SleepTimesChart({ data, chartWidth }) {
 
   const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
-  // Calculate time scale right edge position (leaving space for time labels)
-  const timeScaleX = chartWidth - PADDING.right - 40;
+  // Calculate bar width to fill chart evenly
+  const availableWidth = chartWidth - PADDING.left - PADDING.right;
+  const totalGapWidth = (TOTAL_COLUMNS - 1) * BAR_GAP;
+  const barWidth = Math.floor((availableWidth - totalGapWidth) / TOTAL_COLUMNS);
 
-  // Calculate starting X position to center all bars
-  const totalBarsWidth = data.length * BAR_WIDTH + (data.length - 1) * BAR_SPACING;
-  const startX = (timeScaleX - totalBarsWidth) / 2;
-
+  // Time scale calculations
   const timeToY = (timeStr) => {
+    if (!timeStr) return null;
+
     const [hours, minutes] = timeStr.split(':').map(Number);
     let totalMinutes = hours * 60 + minutes;
+
+    // Normalize times after midnight to next day
     if (totalMinutes < 12 * 60) totalMinutes += 24 * 60;
 
     const startMinutes = 22 * 60; // 10pm
@@ -41,17 +44,29 @@ export default function SleepTimesChart({ data, chartWidth }) {
     { time: '6am', value: '06:00' },
     { time: '8am', value: '08:00' },
     { time: '10am', value: '10:00' },
-    { time: '12pm', value: '12:00' },
   ];
 
   // Parse duration string "6h 42m" into separate components
-  const parseDuration = (durationStr) => {
-    const hourMatch = durationStr.match(/(\d+)h/);
-    const minMatch = durationStr.match(/(\d+)m/);
-    return {
-      hours: hourMatch ? hourMatch[1] : '0',
-      minutes: minMatch ? minMatch[1] : '0',
-    };
+  const parseDuration = (item) => {
+    if (!item.sleepTime || !item.wakeTime) {
+      return { hours: '--', minutes: '--' };
+    }
+
+    if (item.duration) {
+      const hourMatch = item.duration.match(/(\d+)h/);
+      const minMatch = item.duration.match(/(\d+)m/);
+      return {
+        hours: hourMatch ? hourMatch[1] : '0',
+        minutes: minMatch ? minMatch[1] : '0',
+      };
+    }
+
+    return { hours: '--', minutes: '--' };
+  };
+
+  // Calculate column X position
+  const getColumnX = (index) => {
+    return PADDING.left + index * (barWidth + BAR_GAP);
   };
 
   return (
@@ -62,6 +77,10 @@ export default function SleepTimesChart({ data, chartWidth }) {
             <Stop offset="0%" stopColor="#9D7AFF" stopOpacity="0.9" />
             <Stop offset="100%" stopColor="#5E4FC2" stopOpacity="0.4" />
           </LinearGradient>
+          <LinearGradient id="ghostGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor="#9D7AFF" stopOpacity="0.3" />
+            <Stop offset="100%" stopColor="#5E4FC2" stopOpacity="0.15" />
+          </LinearGradient>
         </Defs>
 
         {/* Horizontal gridlines and time labels */}
@@ -70,15 +89,15 @@ export default function SleepTimesChart({ data, chartWidth }) {
           return (
             <G key={label.value}>
               <Line
-                x1={0}
+                x1={PADDING.left}
                 y1={y}
-                x2={timeScaleX}
+                x2={chartWidth - PADDING.right}
                 y2={y}
-                stroke="rgba(255, 255, 255, 0.08)"
+                stroke="rgba(255, 255, 255, 0.2)"
                 strokeWidth="1"
               />
               <SvgText
-                x={timeScaleX + 12}
+                x={chartWidth - PADDING.right + 8}
                 y={y}
                 fontSize="10"
                 fill="rgba(255, 255, 255, 0.5)"
@@ -93,32 +112,62 @@ export default function SleepTimesChart({ data, chartWidth }) {
 
         {/* Sleep bars and labels */}
         {data.map((item, index) => {
-          const x = startX + index * (BAR_WIDTH + BAR_SPACING);
-          const sleepY = timeToY(item.sleepTime);
-          const wakeY = timeToY(item.wakeTime);
-          const barHeight = Math.abs(wakeY - sleepY);
-          const topY = Math.min(sleepY, wakeY);
+          const x = getColumnX(index);
+          const centerX = x + barWidth / 2;
 
-          const { hours, minutes } = parseDuration(item.duration);
+          const { hours, minutes } = parseDuration(item);
+          const hasData = item.sleepTime && item.wakeTime;
+          const isToday = item.dayLabel.toLowerCase() === 'today';
 
-          return (
-            <G key={item.date}>
-              {/* Sleep bar */}
+          let barElement = null;
+
+          if (hasData) {
+            const sleepY = timeToY(item.sleepTime);
+            const wakeY = timeToY(item.wakeTime);
+            const barHeight = Math.abs(wakeY - sleepY);
+            const topY = Math.min(sleepY, wakeY);
+
+            barElement = (
               <Rect
                 x={x}
                 y={topY}
-                width={BAR_WIDTH}
+                width={barWidth}
                 height={barHeight}
-                fill="url(#barGradient)"
+                fill={isToday && item.partial ? "url(#ghostGradient)" : "url(#barGradient)"}
                 rx={6}
                 ry={6}
                 onPress={() => setSelectedBar(selectedBar === index ? null : index)}
               />
+            );
+          } else if (!isToday) {
+            // Dashed outline for missing data (not Today)
+            const defaultTop = PADDING.top + chartArea * 0.3;
+            const defaultHeight = chartArea * 0.4;
+
+            barElement = (
+              <Rect
+                x={x}
+                y={defaultTop}
+                width={barWidth}
+                height={defaultHeight}
+                fill="transparent"
+                stroke="rgba(255, 255, 255, 0.2)"
+                strokeWidth="1"
+                strokeDasharray="4,4"
+                rx={6}
+                ry={6}
+              />
+            );
+          }
+
+          return (
+            <G key={`${item.date}-${index}`}>
+              {barElement}
 
               {/* Duration label - hours */}
               <SvgText
-                x={x + BAR_WIDTH / 2}
-                y={topY - 18}
+                x={centerX}
+                y={PADDING.top - 18}
                 fontSize="12"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
@@ -129,8 +178,8 @@ export default function SleepTimesChart({ data, chartWidth }) {
 
               {/* Duration label - minutes */}
               <SvgText
-                x={x + BAR_WIDTH / 2}
-                y={topY - 6}
+                x={centerX}
+                y={PADDING.top - 6}
                 fontSize="12"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
@@ -141,9 +190,9 @@ export default function SleepTimesChart({ data, chartWidth }) {
 
               {/* Day label */}
               <SvgText
-                x={x + BAR_WIDTH / 2}
-                y={CHART_HEIGHT - PADDING.bottom + 16}
-                fontSize="12"
+                x={centerX}
+                y={CHART_HEIGHT - PADDING.bottom + 18}
+                fontSize="11"
                 fontWeight="400"
                 fill="rgba(255, 255, 255, 0.7)"
                 textAnchor="middle"
@@ -156,19 +205,19 @@ export default function SleepTimesChart({ data, chartWidth }) {
       </Svg>
 
       {/* Interactive tooltip */}
-      {selectedBar !== null && (
+      {selectedBar !== null && data[selectedBar]?.sleepTime && (
         <View
           style={[
             styles.tooltip,
             {
               left: Math.min(
-                Math.max(10, startX + selectedBar * (BAR_WIDTH + BAR_SPACING) - 60),
+                Math.max(10, getColumnX(selectedBar) + barWidth / 2 - 70),
                 chartWidth - 150
               ),
             },
           ]}
         >
-          <Text style={styles.tooltipDate}>{data[selectedBar].fullDate}</Text>
+          <Text style={styles.tooltipDate}>{data[selectedBar].fullDate || data[selectedBar].dayLabel}</Text>
           <Text style={styles.tooltipText}>Sleep: {data[selectedBar].duration}</Text>
           <Text style={styles.tooltipText}>
             {data[selectedBar].sleepTime} – {data[selectedBar].wakeTime}
