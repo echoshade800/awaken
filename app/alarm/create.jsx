@@ -18,8 +18,6 @@ import ChatBubble from '../../components/ChatBubble';
 import TagOptions from '../../components/TagOptions';
 import AlarmInfoCard from '../../components/AlarmInfoCard';
 import AlarmSummaryModal from '../../components/AlarmSummaryModal';
-import GameSelector from '../../components/GameSelector';
-import { getGameLabel } from '../../lib/interactionOptions';
 import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
 
 export default function AlarmCreate() {
@@ -189,27 +187,18 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理特殊情况：游戏选择
-    if (field === 'interactionEnabled' && value === true) {
+    // 处理特殊情况：用户选择了具体的任务类型
+    if (field === 'interactionType') {
       addChatMessage({
         role: 'user',
         content: label,
       });
-      updateDraft({ [field]: value });
+      updateDraft({ interactionEnabled: true, interactionType: value });
       setSuggestedOptions(null);
 
-      // AI 询问游戏类型
-      setTimeout(() => {
-        addChatMessage({
-          role: 'ai',
-          content: '选一个你喜欢的游戏吧～',
-        });
-        // 显示游戏选择器
-        setSuggestedOptions([
-          { label: '数学挑战', value: 'quiz', field: 'interactionType', isGame: true },
-          { label: '记忆配对', value: 'memory', field: 'interactionType', isGame: true },
-          { label: '快速反应', value: 'quick-tap', field: 'interactionType', isGame: true },
-        ]);
+      // 继续对话
+      setTimeout(async () => {
+        await continueConversation(label);
       }, 500);
       return;
     }
@@ -381,23 +370,6 @@ export default function AlarmCreate() {
 
   const renderSuggestedOptions = () => {
     if (!suggestedOptions || suggestedOptions.length === 0) return null;
-
-    // 检查是否是游戏选择
-    const isGameSelection = suggestedOptions.some((opt) => opt.isGame);
-
-    if (isGameSelection) {
-      return (
-        <GameSelector
-          selectedValue={currentAlarmDraft?.interactionType}
-          onSelect={(value) => {
-            const option = suggestedOptions.find((opt) => opt.value === value);
-            if (option) {
-              handleOptionSelect(option);
-            }
-          }}
-        />
-      );
-    }
 
     return (
       <TagOptions
