@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     borderRadius: 50,
     overflow: 'hidden',
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 10,
     backgroundColor: 'rgba(0, 0, 0, 0.15)',
     borderWidth: 1,
@@ -80,19 +80,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     position: 'relative',
-    minHeight: 50,
+    minHeight: 40,
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 100,
-    height: 60,
+    width: 90,
+    height: 48,
     zIndex: 1,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: 'rgba(255, 255, 255, 0.5)',
-    marginTop: 4,
+    marginTop: 3,
     fontWeight: '500',
   },
   tabLabelActive: {
