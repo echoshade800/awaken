@@ -3,8 +3,8 @@ import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 
 import { useState } from 'react';
 
 const CHART_HEIGHT = 240;
-const PADDING = { top: 32, right: 56, bottom: 28, left: 16 };
-const BAR_GAP = 10;
+const PADDING = { top: 32, right: 50, bottom: 28, left: 8 };
+const BAR_GAP = 8;
 const TOTAL_COLUMNS = 8;
 
 export default function SleepTimesChart({ data, chartWidth }) {

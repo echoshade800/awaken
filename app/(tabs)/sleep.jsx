@@ -8,7 +8,7 @@ import SleepDebtChart from '@/components/SleepDebtChart';
 import useStore from '@/lib/store';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CHART_WIDTH = SCREEN_WIDTH - 40;
+const CHART_WIDTH = SCREEN_WIDTH;
 
 const mockSleepData = [
   { date: '2025-10-14', sleepTime: '00:25', wakeTime: '07:07', slept: 6.7 },
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   chartSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     marginBottom: 32,
   },
   chartMessage: {
