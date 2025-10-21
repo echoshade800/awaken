@@ -166,36 +166,36 @@ export default function SleepTimesChart({ data, chartWidth }) {
 
               {/* Duration label - hours */}
               <SvgText
-                x={centerX}
+                x={x}
                 y={CHART_HEIGHT - PADDING.bottom + 4}
                 fontSize="11"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
-                textAnchor="middle"
+                textAnchor="start"
               >
                 {hours}h
               </SvgText>
 
               {/* Duration label - minutes */}
               <SvgText
-                x={centerX}
+                x={x}
                 y={CHART_HEIGHT - PADDING.bottom + 14}
                 fontSize="11"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
-                textAnchor="middle"
+                textAnchor="start"
               >
                 {minutes}m
               </SvgText>
 
               {/* Day label */}
               <SvgText
-                x={centerX}
+                x={x}
                 y={CHART_HEIGHT - PADDING.bottom + 32}
                 fontSize="11"
                 fontWeight="400"
                 fill="rgba(255, 255, 255, 0.7)"
-                textAnchor="middle"
+                textAnchor="start"
               >
                 {item.dayLabel.toUpperCase()}
               </SvgText>
