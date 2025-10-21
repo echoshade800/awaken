@@ -29,7 +29,7 @@ export default function AlarmCreate() {
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [suggestedOptions, setSuggestedOptions] = useState(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
-  const [hasReturnedFromEditor, setHasReturnedFromEditor] = useState(false);
+  const [hasGoneToBroadcastEditor, setHasGoneToBroadcastEditor] = useState(false);
 
   const {
     currentAlarmDraft,
@@ -61,18 +61,22 @@ export default function AlarmCreate() {
 
   // 监听从 broadcast-editor 返回
   useEffect(() => {
-    if (currentAlarmDraft?.broadcastContent && !hasReturnedFromEditor) {
-      setHasReturnedFromEditor(true);
+    // 只有真正去过编辑器，并且 broadcastContent 被设置了，才触发返回逻辑
+    if (hasGoneToBroadcastEditor && currentAlarmDraft?.broadcastContent) {
+      // 重置标记，避免重复触发
+      setHasGoneToBroadcastEditor(false);
+
       addChatMessage({
         role: 'user',
         content: '播报内容已设置完成',
       });
+
       setTimeout(async () => {
-        // 继续对话流程
+        // 继续对话流程 - 询问 period
         await continueConversation('播报内容已配置好');
       }, 500);
     }
-  }, [currentAlarmDraft?.broadcastContent]);
+  }, [currentAlarmDraft?.broadcastContent, hasGoneToBroadcastEditor]);
 
   const handleOptionSelect = async (option) => {
     // 用户点击了选项按钮
@@ -85,6 +89,8 @@ export default function AlarmCreate() {
         content: label,
       });
       setSuggestedOptions(null);
+      // 设置标记：即将跳转到编辑器
+      setHasGoneToBroadcastEditor(true);
       // 跳转到 broadcast-editor
       setTimeout(() => {
         router.push('/alarm/broadcast-editor');
