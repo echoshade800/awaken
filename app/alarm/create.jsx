@@ -43,15 +43,28 @@ export default function AlarmCreate() {
 
   useEffect(() => {
     initNewAlarm();
+
+    // 随机选择一个开场白
+    const greetings = [
+      '呀～新的一天要开始啦☀️ 想几点起呢？',
+      '早安～🌤️ 要我几点叫你起床？',
+      '嘿～让我帮你设个闹钟吧！想几点叫你？',
+    ];
+    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+
     addChatMessage({
       role: 'ai',
-      content: '嗨～让我帮你设置一个闹钟吧！',
+      content: randomGreeting,
     });
+
+    // 提供快捷时间选项
     setTimeout(() => {
-      addChatMessage({
-        role: 'ai',
-        content: '这个闹钟是做什么用的呢？比如起床、午睡、运动提醒之类的🐾',
-      });
+      setSuggestedOptions([
+        { label: '6:30', value: '06:30', field: 'time' },
+        { label: '7:00', value: '07:00', field: 'time' },
+        { label: '7:30', value: '07:30', field: 'time' },
+        { label: '自定义时间', value: 'custom', field: 'time' },
+      ]);
     }, 500);
   }, []);
 
@@ -81,6 +94,22 @@ export default function AlarmCreate() {
   const handleOptionSelect = async (option) => {
     // 用户点击了选项按钮
     const { field, value, label } = option;
+
+    // 处理特殊情况：自定义时间
+    if (field === 'time' && value === 'custom') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+      setSuggestedOptions(null);
+      setTimeout(() => {
+        addChatMessage({
+          role: 'ai',
+          content: '好的～请输入你想要的时间，比如"7:30"或者"18:00"～',
+        });
+      }, 500);
+      return;
+    }
 
     // 处理特殊情况：自定义播报内容
     if (field === 'broadcastContent' && value === 'custom') {

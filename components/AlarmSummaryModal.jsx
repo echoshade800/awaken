@@ -10,8 +10,10 @@ const PERIOD_LABELS = {
 };
 
 const VOICE_PACKAGE_LABELS = {
-  'energetic-girl': '元气少女',
-  'calm-man': '沉稳大叔',
+  'energetic-girl': '元气少女🎀',
+  'calm-man': '沉稳大叔🧠',
+  'ancient-style': '古风公子🌙',
+  'cat': '小猫咪🐱',
 };
 
 export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel }) {
@@ -33,11 +35,6 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel 
           </View>
 
           <View style={styles.content}>
-            <View style={styles.summaryItem}>
-              <Text style={styles.label}>📝 名称</Text>
-              <Text style={styles.value}>{alarm.label || '未设置'}</Text>
-            </View>
-
             <View style={styles.summaryItem}>
               <Text style={styles.label}>⏰ 时间</Text>
               <Text style={styles.value}>{alarm.time}</Text>

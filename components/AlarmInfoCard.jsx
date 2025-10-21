@@ -11,10 +11,10 @@ const PERIOD_LABELS = {
 };
 
 const VOICE_PACKAGE_LABELS = {
-  'energetic-girl': 'Energetic Girl',
-  'calm-man': 'Calm Man',
-  'gentle-lady': 'Gentle Lady',
-  'cheerful-boy': 'Cheerful Boy',
+  'energetic-girl': 'Energetic Girl 🎀',
+  'calm-man': 'Calm Man 🧠',
+  'ancient-style': 'Ancient Style 🌙',
+  'cat': 'Cat 🐱',
 };
 
 export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = false }) {
