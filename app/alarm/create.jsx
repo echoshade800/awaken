@@ -17,6 +17,7 @@ import useStore from '../../lib/store';
 import ChatBubble from '../../components/ChatBubble';
 import TagOptions from '../../components/TagOptions';
 import AlarmInfoCard from '../../components/AlarmInfoCard';
+import AlarmSummaryModal from '../../components/AlarmSummaryModal';
 import GameSelector from '../../components/GameSelector';
 import { getGameLabel } from '../../lib/interactionOptions';
 import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
@@ -27,7 +28,7 @@ export default function AlarmCreate() {
   const [inputText, setInputText] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [suggestedOptions, setSuggestedOptions] = useState(null);
-  const [isInSummary, setIsInSummary] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [hasReturnedFromEditor, setHasReturnedFromEditor] = useState(false);
 
   const {
@@ -165,13 +166,6 @@ export default function AlarmCreate() {
           setSuggestedOptions(null);
         }
 
-        // 检查是否完成
-        if (!aiResult.needsMore && isAlarmComplete(currentAlarmDraft)) {
-          setTimeout(() => {
-            showSummary();
-          }, 500);
-        }
-
         setIsAIProcessing(false);
       }, 500);
     } catch (error) {
@@ -184,57 +178,70 @@ export default function AlarmCreate() {
     }
   };
 
-  const showSummary = () => {
-    const summaryText = generateSummary();
-    addChatMessage({
-      role: 'ai',
-      content: summaryText,
-    });
-    setIsInSummary(true);
-    setSuggestedOptions(null);
+  const checkMissingInfo = (draft) => {
+    const missing = [];
+
+    if (!draft.label) missing.push('label');
+    if (!draft.time) missing.push('time');
+    if (!draft.period) missing.push('period');
+    if (!draft.wakeMode) missing.push('wakeMode');
+
+    if (draft.wakeMode === 'voice') {
+      if (!draft.voicePackage) missing.push('voicePackage');
+      if (!draft.broadcastContent) missing.push('broadcastContent');
+    }
+
+    return missing;
   };
 
-  const generateSummary = () => {
-    const { label, time, period, wakeMode, voicePackage, ringtone, interactionEnabled, interactionType } = currentAlarmDraft;
+  const handleConfirm = async () => {
+    // 检查必要信息是否完整
+    const missingInfo = checkMissingInfo(currentAlarmDraft);
 
-    const periodLabels = {
-      everyday: '每天',
-      workday: '工作日',
-      weekend: '周末',
-      tomorrow: '只一次',
-    };
-    const periodLabel = periodLabels[period] || period;
-
-    let summary = `好的！我帮你总结一下：\n\n`;
-    summary += `📝 名称：${label}\n`;
-    summary += `⏰ 时间：${time}\n`;
-    summary += `📅 周期：${periodLabel}\n`;
-
-    if (wakeMode === 'voice') {
-      const voiceLabels = {
-        'energetic-girl': '元气少女',
-        'calm-man': '沉稳大叔',
+    if (missingInfo.length > 0) {
+      // 有缺失信息，询问用户
+      const missingLabels = {
+        label: '闹钟名称',
+        time: '时间',
+        period: '周期',
+        wakeMode: '唤醒方式',
+        voicePackage: '语音包',
+        broadcastContent: '播报内容',
       };
-      const voiceLabel = voiceLabels[voicePackage] || voicePackage;
-      summary += `🎙️ 方式：语音播报（${voiceLabel}）\n`;
-    } else if (wakeMode === 'ringtone') {
-      summary += `🎵 方式：铃声\n`;
-    } else if (wakeMode === 'vibration') {
-      summary += `📳 方式：震动\n`;
-    }
 
-    if (interactionEnabled && interactionType) {
-      const gameLabel = getGameLabel(interactionType);
-      summary += `🎮 互动：${gameLabel}\n`;
+      const missingText = missingInfo.map((key) => missingLabels[key]).join('、');
+
+      addChatMessage({
+        role: 'ai',
+        content: `还缺少一些信息哦～\n缺少：${missingText}\n\n请继续输入或选择～`,
+      });
+
+      // 根据第一个缺失项提供建议
+      const firstMissing = missingInfo[0];
+      await askForMissingInfo(firstMissing);
     } else {
-      summary += `🎮 互动：无\n`;
+      // 信息完整，显示总结弹窗
+      setShowSummaryModal(true);
     }
-
-    summary += `\n确认保存吗？`;
-    return summary;
   };
 
-  const handleSave = async () => {
+  const askForMissingInfo = async (field) => {
+    // 根据缺失字段，让 AI 主动询问
+    const prompts = {
+      label: '这个闹钟是做什么用的呢？',
+      time: '你想什么时候叫你呢？',
+      period: '要每天都叫你，还是只一次呢？',
+      wakeMode: '想用什么方式叫你呢？',
+      voicePackage: '想用可爱的元气少女还是沉稳大叔呀？',
+      broadcastContent: '要自定义播报内容吗？',
+    };
+
+    const message = prompts[field] || '请继续输入～';
+    await continueConversation(message);
+  };
+
+  const handleFinalSave = async () => {
+    setShowSummaryModal(false);
     await saveAlarmFromDraft();
     addChatMessage({
       role: 'ai',
@@ -326,7 +333,13 @@ export default function AlarmCreate() {
           <View style={{ width: 24 }} />
         </View>
 
-        {currentAlarmDraft && <AlarmInfoCard alarm={currentAlarmDraft} />}
+        {currentAlarmDraft && (
+          <AlarmInfoCard
+            alarm={currentAlarmDraft}
+            onConfirm={handleConfirm}
+            showConfirmButton={true}
+          />
+        )}
 
         <ScrollView
           ref={scrollViewRef}
@@ -346,45 +359,39 @@ export default function AlarmCreate() {
           )}
 
           {renderSuggestedOptions()}
-
-          {isInSummary && (
-            <View style={styles.summaryActions}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>保存闹钟</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.resetButton} onPress={handleCancel}>
-                <Text style={styles.resetButtonText}>重新设置</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </ScrollView>
 
-        {!isInSummary && (
-          <View style={styles.inputContainer}>
-            <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
-              <Mic size={24} color="#FF9A76" />
-            </TouchableOpacity>
-            <TextInput
-              style={styles.textInput}
-              placeholder="输入消息..."
-              placeholderTextColor="#999"
-              value={inputText}
-              onChangeText={setInputText}
-              onSubmitEditing={handleTextInput}
-              returnKeyType="send"
-              multiline
-              maxLength={200}
-            />
-            <TouchableOpacity
-              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-              onPress={handleTextInput}
-              disabled={!inputText.trim()}
-            >
-              <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={styles.inputContainer}>
+          <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
+            <Mic size={24} color="#FF9A76" />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.textInput}
+            placeholder="输入消息..."
+            placeholderTextColor="#999"
+            value={inputText}
+            onChangeText={setInputText}
+            onSubmitEditing={handleTextInput}
+            returnKeyType="send"
+            multiline
+            maxLength={200}
+          />
+          <TouchableOpacity
+            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+            onPress={handleTextInput}
+            disabled={!inputText.trim()}
+          >
+            <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
+
+      <AlarmSummaryModal
+        visible={showSummaryModal}
+        alarm={currentAlarmDraft}
+        onConfirm={handleFinalSave}
+        onCancel={() => setShowSummaryModal(false)}
+      />
     </View>
   );
 }
@@ -436,32 +443,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: '#FF9A76',
-  },
-  summaryActions: {
-    marginTop: 20,
-    gap: 12,
-  },
-  saveButton: {
-    backgroundColor: '#FF9A76',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  resetButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  resetButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   inputContainer: {
     flexDirection: 'row',

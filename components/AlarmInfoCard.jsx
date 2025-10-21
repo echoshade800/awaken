@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Clock, Calendar, Music, Gamepad2, Mic } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Clock, Calendar, Music, Gamepad2, Mic, Check } from 'lucide-react-native';
 import { getGameLabel } from '../lib/interactionOptions';
 
 const PERIOD_LABELS = {
@@ -17,7 +17,7 @@ const VOICE_PACKAGE_LABELS = {
   'cheerful-boy': 'Cheerful Boy',
 };
 
-export default function AlarmInfoCard({ alarm }) {
+export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = false }) {
   if (!alarm) return null;
 
   const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
@@ -27,8 +27,16 @@ export default function AlarmInfoCard({ alarm }) {
   return (
     <View style={styles.card}>
       <View style={styles.timeRow}>
-        <Clock size={32} color="#007AFF" />
-        <Text style={styles.time}>{alarm.time}</Text>
+        <View style={styles.timeInfo}>
+          <Clock size={32} color="#007AFF" />
+          <Text style={styles.time}>{alarm.time || '--:--'}</Text>
+        </View>
+        {showConfirmButton && onConfirm && (
+          <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
+            <Check size={20} color="#FFFFFF" />
+            <Text style={styles.confirmButtonText}>确认</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.divider} />
@@ -98,14 +106,38 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  timeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   time: {
     fontSize: 36,
     fontWeight: '700',
     color: '#1C1C1E',
     letterSpacing: -0.5,
+  },
+  confirmButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FF9A76',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    shadowColor: '#FF9A76',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  confirmButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   divider: {
     height: 1,
