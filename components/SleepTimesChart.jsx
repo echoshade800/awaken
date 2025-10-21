@@ -3,7 +3,7 @@ import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 
 import { useState } from 'react';
 
 const CHART_HEIGHT = 240;
-const PADDING = { top: 32, right: 50, bottom: 28, left: 8 };
+const PADDING = { top: 32, right: 50, bottom: 52, left: 8 };
 const BAR_GAP = 8;
 const TOTAL_COLUMNS = 8;
 
@@ -167,8 +167,8 @@ export default function SleepTimesChart({ data, chartWidth }) {
               {/* Duration label - hours */}
               <SvgText
                 x={centerX}
-                y={PADDING.top - 18}
-                fontSize="12"
+                y={CHART_HEIGHT - PADDING.bottom + 4}
+                fontSize="11"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
                 textAnchor="middle"
@@ -179,8 +179,8 @@ export default function SleepTimesChart({ data, chartWidth }) {
               {/* Duration label - minutes */}
               <SvgText
                 x={centerX}
-                y={PADDING.top - 6}
-                fontSize="12"
+                y={CHART_HEIGHT - PADDING.bottom + 14}
+                fontSize="11"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
                 textAnchor="middle"
@@ -191,7 +191,7 @@ export default function SleepTimesChart({ data, chartWidth }) {
               {/* Day label */}
               <SvgText
                 x={centerX}
-                y={CHART_HEIGHT - PADDING.bottom + 18}
+                y={CHART_HEIGHT - PADDING.bottom + 32}
                 fontSize="11"
                 fontWeight="400"
                 fill="rgba(255, 255, 255, 0.7)"
