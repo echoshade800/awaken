@@ -331,15 +331,58 @@ export default function AlarmCreate() {
 
   const handleFinalSave = async () => {
     setShowSummaryModal(false);
+
+    // 保存闹钟
     await saveAlarmFromDraft();
+
+    // 模拟用户点击确认
     addChatMessage({
-      role: 'ai',
-      content: '闹钟已保存！祝你好梦～',
+      role: 'user',
+      content: '确认',
     });
 
-    setTimeout(() => {
-      router.back();
-    }, 1000);
+    // 调用 AI 生成鼓励话术
+    setTimeout(async () => {
+      setIsAIProcessing(true);
+
+      try {
+        const aiResult = await parseUserInputWithAI('确认创建闹钟', currentAlarmDraft);
+
+        if (aiResult.success) {
+          addChatMessage({
+            role: 'ai',
+            content: aiResult.message,
+          });
+        } else {
+          // 降级：使用默认鼓励
+          addChatMessage({
+            role: 'ai',
+            content: '好的～闹钟已设置完成！快去试试吧！🎉',
+          });
+        }
+
+        setIsAIProcessing(false);
+
+        // 延迟 1.5 秒后返回列表页
+        setTimeout(() => {
+          router.back();
+        }, 1500);
+      } catch (error) {
+        console.error('Final encouragement error:', error);
+
+        // 降级：使用默认鼓励
+        addChatMessage({
+          role: 'ai',
+          content: '好的～闹钟已设置完成！快去试试吧！🎉',
+        });
+
+        setIsAIProcessing(false);
+
+        setTimeout(() => {
+          router.back();
+        }, 1500);
+      }
+    }, 300);
   };
 
   const handleCancel = () => {
