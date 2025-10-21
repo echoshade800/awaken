@@ -3,7 +3,7 @@ import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 
 import { useState } from 'react';
 
 const CHART_HEIGHT = 240;
-const PADDING = { top: 32, right: 50, bottom: 64, left: 8 };
+const PADDING = { top: 32, right: 50, bottom: 52, left: 8 };
 const BAR_GAP = 8;
 const TOTAL_COLUMNS = 8;
 
