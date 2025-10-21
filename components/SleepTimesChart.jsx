@@ -33,7 +33,7 @@ export default function SleepTimesChart({ data, chartWidth }) {
     const endMinutes = 36 * 60;   // 12pm next day
     const ratio = (totalMinutes - startMinutes) / (endMinutes - startMinutes);
 
-    return PADDING.top + chartArea * (1 - ratio);
+    return PADDING.top + chartArea * ratio;
   };
 
   const yTimeLabels = [
@@ -86,6 +86,7 @@ export default function SleepTimesChart({ data, chartWidth }) {
         {/* Horizontal gridlines and time labels */}
         {yTimeLabels.map((label) => {
           const y = timeToY(label.value);
+          if (y === null) return null;
           return (
             <G key={label.value}>
               <Line
