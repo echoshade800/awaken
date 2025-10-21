@@ -41,7 +41,7 @@ export default function PermissionsScreen() {
       notifications: status === 'granted',
       alarms: Platform.OS === 'web' ? true : status === 'granted',
       activity: true,
-      screenTime: Platform.OS === 'web' ? true : false,
+      screenTime: false,
     }));
   };
 
@@ -68,11 +68,26 @@ export default function PermissionsScreen() {
 
   const requestScreenTimePermission = async () => {
     if (Platform.OS === 'web') {
-      setPermissions((prev) => ({ ...prev, screenTime: true }));
       Alert.alert(
-        'Screen Time Access',
-        'In production, this would request access to Screen Time API on iOS or UsageStatsManager on Android to track sleep patterns based on device usage.',
-        [{ text: 'OK' }]
+        'Screen Time Data Permission',
+        'Monster needs to analyze your device usage patterns to calculate:\n\n' +
+        '• Personalized Sleep Need\n' +
+        '• Sleep Debt\n' +
+        '• Circadian Rhythm\n\n' +
+        '🔒 Privacy: Only usage timestamps are analyzed. No app content or personal data is accessed.\n\n' +
+        '📱 Demo Mode: Since we\'re on web, we\'ll generate 30 days of sample data to demonstrate the feature.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Allow & Generate Sample Data',
+            onPress: () => {
+              setPermissions((prev) => ({ ...prev, screenTime: true }));
+            },
+          },
+        ]
       );
       return;
     }
@@ -135,8 +150,9 @@ export default function PermissionsScreen() {
         <View style={styles.glassCard}>
           <Text style={styles.title}>Help Monster understand your rhythm</Text>
           <Text style={styles.subtitle}>
-            To calculate your personalized sleep need and circadian rhythm, Monster needs access to device usage patterns.{'\n\n'}
-            🔒 Privacy-safe: Only timestamps are analyzed, no personal content is accessed.
+            To calculate your personalized sleep need and circadian rhythm, Monster analyzes your usage patterns.{'\n\n'}
+            🔒 Privacy-safe: Only timestamps are analyzed{'\n'}
+            📊 Web Demo: Sample data will be generated for demonstration
           </Text>
 
           <View style={styles.permissionsContainer}>
@@ -166,8 +182,8 @@ export default function PermissionsScreen() {
 
             <PermissionCard
               icon={Smartphone}
-              title="Screen Time Data"
-              description="Analyze sleep patterns from device usage (privacy-safe)"
+              title="Screen Time Data (Demo)"
+              description="Generate sample data to demonstrate sleep analysis"
               granted={permissions.screenTime}
               onRequest={requestScreenTimePermission}
             />

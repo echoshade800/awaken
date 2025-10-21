@@ -15,6 +15,7 @@ import MonsterTipsBanner from '@/components/MonsterTipsBanner';
 import SleepDebtCard from '@/components/SleepDebtCard';
 import WelcomeToast from '@/components/WelcomeToast';
 import DreamBubble from '@/components/DreamBubble';
+import DemoDataBadge from '@/components/DemoDataBadge';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeBackgroundTasks } from '@/lib/backgroundTasks';
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const getEnergyRhythmData = useStore((state) => state.getEnergyRhythmData);
   const loadSleepData = useStore((state) => state.loadSleepData);
   const sleepDebt = useStore((state) => state.sleepDebt);
+  const usageTrackingEnabled = useStore((state) => state.usageTrackingEnabled);
 
   // 实时时间状态
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -171,7 +173,10 @@ export default function HomeScreen() {
           <View style={styles.timeContainer}>
             <Text style={styles.currentTime}>{formatTime(currentTime)}</Text>
           </View>
-          
+
+          {/* Demo Data Badge */}
+          {usageTrackingEnabled && <DemoDataBadge />}
+
           {/* Next Alarm 信息条 - 紧凑胶囊样式 */}
           {nextAlarm && (
             <TouchableOpacity 
