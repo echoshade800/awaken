@@ -115,6 +115,29 @@ export default function AlarmCreate() {
       return;
     }
 
+    // 处理特殊情况：用户点击了 [语音播报]
+    if (field === 'wakeMode' && value === 'voice') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+      updateDraft({ wakeMode: 'voice' });
+      setSuggestedOptions(null);
+
+      // 询问是否进入编辑页面
+      setTimeout(() => {
+        addChatMessage({
+          role: 'ai',
+          content: '好耶～语音播报是个超棒的选择！🎙️\n\n要进入语音播报页面自定义内容吗？你可以设置语音包、播报词、播报顺序等～\n\n也可以直接使用默认播报（包含时间、天气等基础信息）',
+        });
+        setSuggestedOptions([
+          { label: '进入编辑页面', value: 'custom', field: 'broadcastContent' },
+          { label: '使用默认播报', value: 'default', field: 'broadcastContent' },
+        ]);
+      }, 500);
+      return;
+    }
+
     // 处理特殊情况：用户选择了具体的铃声
     if (field === 'ringtone') {
       addChatMessage({
@@ -226,8 +249,11 @@ export default function AlarmCreate() {
     if (!draft.wakeMode) missing.push('wakeMode');
 
     if (draft.wakeMode === 'voice') {
-      if (!draft.voicePackage) missing.push('voicePackage');
       if (!draft.broadcastContent) missing.push('broadcastContent');
+    }
+
+    if (draft.wakeMode === 'ringtone') {
+      if (!draft.ringtone) missing.push('ringtone');
     }
 
     return missing;
@@ -244,7 +270,7 @@ export default function AlarmCreate() {
         time: '时间',
         period: '周期',
         wakeMode: '唤醒方式',
-        voicePackage: '语音包',
+        ringtone: '铃声选择',
         broadcastContent: '播报内容',
       };
 
@@ -271,8 +297,8 @@ export default function AlarmCreate() {
       time: '你想什么时候叫你呢？',
       period: '要每天都叫你，还是只一次呢？',
       wakeMode: '想用什么方式叫你呢？',
-      voicePackage: '想用可爱的元气少女还是沉稳大叔呀？',
-      broadcastContent: '要自定义播报内容吗？',
+      ringtone: '请选择一个铃声',
+      broadcastContent: '要进入编辑页面自定义播报内容吗？',
     };
 
     const message = prompts[field] || '请继续输入～';
