@@ -157,11 +157,11 @@ export default function AlarmCreate() {
       updateDraft({ wakeMode: 'voice' });
       setSuggestedOptions(null);
 
-      // 询问是否进入编辑页面
+      // 询问是否进入编辑页面（使用两段式格式）
       setTimeout(() => {
         addChatMessage({
           role: 'ai',
-          content: '好耶～语音播报是个超棒的选择！🎙️\n\n要进入语音播报页面自定义内容吗？你可以设置语音包、播报词、播报顺序等～\n\n也可以直接使用默认播报（包含时间、天气等基础信息）',
+          content: '好耶～语音播报很棒！🎙️\n\n要进入语音播报页面自定义内容吗？你可以设置播报词、插入天气、时间等动态信息～\n\n也可以直接使用默认播报！',
         });
         setSuggestedOptions([
           { label: '进入编辑页面', value: 'custom', field: 'broadcastContent' },
