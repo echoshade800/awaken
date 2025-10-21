@@ -92,6 +92,45 @@ export default function AlarmCreate() {
       return;
     }
 
+    // 处理特殊情况：两级选择 - 用户点击了 [铃声]
+    if (field === 'wakeMode' && value === 'ringtone') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+      setSuggestedOptions(null);
+
+      // 显示铃声子选项
+      setTimeout(() => {
+        addChatMessage({
+          role: 'ai',
+          content: '好的～我们有3种铃声供你选择：',
+        });
+        setSuggestedOptions([
+          { label: '铃声 1 - 轻柔唤醒', value: 'gentle-wake', field: 'ringtone' },
+          { label: '铃声 2 - 清晨鸟鸣', value: 'morning-birds', field: 'ringtone' },
+          { label: '铃声 3 - 渐强提示', value: 'gradual-alert', field: 'ringtone' },
+        ]);
+      }, 500);
+      return;
+    }
+
+    // 处理特殊情况：用户选择了具体的铃声
+    if (field === 'ringtone') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+      updateDraft({ wakeMode: 'ringtone', ringtone: value });
+      setSuggestedOptions(null);
+
+      // 继续对话
+      setTimeout(async () => {
+        await continueConversation(label);
+      }, 500);
+      return;
+    }
+
     // 处理特殊情况：游戏选择
     if (field === 'interactionEnabled' && value === true) {
       addChatMessage({
