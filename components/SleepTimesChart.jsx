@@ -2,8 +2,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 import { useState } from 'react';
 
-const CHART_HEIGHT = 280;
-const PADDING = { top: 32, right: 50, bottom: 60, left: 8 };
+const CHART_HEIGHT = 240;
+const PADDING = { top: 32, right: 50, bottom: 52, left: 8 };
 const BAR_GAP = 8;
 const TOTAL_COLUMNS = 8;
 
@@ -164,22 +164,34 @@ export default function SleepTimesChart({ data, chartWidth }) {
             <G key={`${item.date}-${index}`}>
               {barElement}
 
-              {/* Duration label - combined on one line */}
+              {/* Duration label - hours */}
               <SvgText
                 x={centerX}
-                y={CHART_HEIGHT - PADDING.bottom + 18}
+                y={CHART_HEIGHT - PADDING.bottom + 4}
                 fontSize="11"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
                 textAnchor="middle"
               >
-                {hours}h {minutes}m
+                {hours}h
+              </SvgText>
+
+              {/* Duration label - minutes */}
+              <SvgText
+                x={centerX}
+                y={CHART_HEIGHT - PADDING.bottom + 14}
+                fontSize="11"
+                fontWeight="600"
+                fill="rgba(255, 255, 255, 0.85)"
+                textAnchor="middle"
+              >
+                {minutes}m
               </SvgText>
 
               {/* Day label */}
               <SvgText
                 x={centerX}
-                y={CHART_HEIGHT - PADDING.bottom + 36}
+                y={CHART_HEIGHT - PADDING.bottom + 32}
                 fontSize="11"
                 fontWeight="400"
                 fill="rgba(255, 255, 255, 0.7)"
