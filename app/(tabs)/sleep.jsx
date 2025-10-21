@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { BlurView } from 'expo-blur';
 import SleepTimesChart from '@/components/SleepTimesChart';
 import SleepDebtChart from '@/components/SleepDebtChart';
+import SleepActionBar from '@/components/SleepActionBar';
 import useStore from '@/lib/store';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -23,52 +24,55 @@ const mockSleepData = [
 export default function SleepScreen() {
   const [activeTab, setActiveTab] = useState('times');
   const sleepNeed = useStore((state) => state.sleepNeed);
+  const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);
+  const getAllSleepSessions = useStore((state) => state.getAllSleepSessions);
+  const sleepSessions = useStore((state) => state.sleepSessions);
 
-  const processedTimesData = useMemo(() => {
-    return mockSleepData.map((item) => {
-      const date = new Date(item.date);
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const [chartData, setChartData] = useState([]);
+  const [allSessions, setAllSessions] = useState([]);
 
-      const hours = Math.floor(item.slept);
-      const minutes = Math.round((item.slept - hours) * 60);
+  useEffect(() => {
+    setChartData(getSleepSessionsForChart());
+    setAllSessions(getAllSleepSessions());
+  }, [sleepSessions]);
 
-      return {
-        date: item.date,
-        dayLabel: dayNames[date.getDay()],
-        fullDate: `${dayNames[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`,
-        sleepTime: item.sleepTime,
-        wakeTime: item.wakeTime,
-        duration: `${hours}h ${minutes}m`,
-      };
-    });
-  }, []);
+  const processedTimesData = chartData.map((item) => {
+    const date = new Date(item.date);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return {
+      ...item,
+      fullDate: `${item.dayLabel}, ${months[date.getMonth()]} ${date.getDate()}`,
+    };
+  });
 
   const processedDebtData = useMemo(() => {
-    return mockSleepData.map((item) => {
+    return chartData.map((item) => {
       const date = new Date(item.date);
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-      const debt = sleepNeed - item.slept;
-      const hours = Math.floor(item.slept);
-      const minutes = Math.round((item.slept - hours) * 60);
+      const slept = item.duration
+        ? parseInt(item.duration.split('h')[0]) + parseInt(item.duration.split(' ')[1]) / 60
+        : 0;
+      const debt = sleepNeed - slept;
 
       return {
         date: item.date,
         dateLabel: `${date.getMonth() + 1}/${date.getDate()}`,
         fullDate: `${dayNames[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`,
         debt: debt,
-        slept: item.slept,
-        sleptDisplay: `${hours}h ${minutes}m`,
+        slept: slept,
+        sleptDisplay: item.duration || '0h 0m',
       };
     });
-  }, [sleepNeed]);
+  }, [chartData, sleepNeed]);
 
   const averageSleep = useMemo(() => {
-    const total = mockSleepData.reduce((sum, item) => sum + item.slept, 0);
-    return total / mockSleepData.length;
-  }, []);
+    const validData = processedDebtData.filter((item) => item.slept > 0);
+    if (validData.length === 0) return 0;
+    const total = validData.reduce((sum, item) => sum + item.slept, 0);
+    return total / validData.length;
+  }, [processedDebtData]);
 
   const averageDebt = useMemo(() => {
     const total = processedDebtData.reduce((sum, item) => sum + item.debt, 0);
@@ -88,16 +92,17 @@ export default function SleepScreen() {
   };
 
   const dateRange = useMemo(() => {
-    const firstDate = new Date(mockSleepData[0].date);
-    const lastDate = new Date(mockSleepData[mockSleepData.length - 1].date);
+    if (chartData.length === 0) return '';
+    const firstDate = new Date(chartData[0].date);
+    const lastDate = new Date(chartData[chartData.length - 1].date);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     return `${months[firstDate.getMonth()]} ${firstDate.getDate()}–${lastDate.getDate()}`;
-  }, []);
+  }, [chartData]);
 
   return (
     <LinearGradient colors={['#0E0E10', '#18181B']} style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -151,33 +156,34 @@ export default function SleepScreen() {
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
 
-            {[...mockSleepData].reverse().map((item, index) => {
-              const date = new Date(item.date);
-              const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-              const hours = Math.floor(item.slept);
-              const minutes = Math.round((item.slept - hours) * 60);
+            {allSessions.length === 0 ? (
+              <Text style={styles.emptyText}>No sleep records yet. Add your first sleep session below.</Text>
+            ) : (
+              allSessions.map((item, index) => {
+                const date = new Date(item.date);
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-              const isToday = index === 0;
-              const label = isToday ? 'Last night' : dayNames[date.getDay()];
+                const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
 
-              return (
-                <View key={item.date} style={styles.listItem}>
-                  <View style={styles.listItemLeft}>
-                    <Text style={styles.listItemLabel}>{label}</Text>
-                    <Text style={styles.listItemTime}>
-                      {item.sleepTime} – {item.wakeTime}
-                    </Text>
+                return (
+                  <View key={`${item.date}-${index}`} style={styles.listItem}>
+                    <View style={styles.listItemLeft}>
+                      <Text style={styles.listItemLabel}>{label}</Text>
+                      <Text style={styles.listItemTime}>
+                        {item.sleepTime} – {item.wakeTime}
+                      </Text>
+                    </View>
+                    <Text style={styles.listItemDuration}>{item.duration}</Text>
                   </View>
-                  <Text style={styles.listItemDuration}>
-                    {hours}h {minutes}m
-                  </Text>
-                </View>
-              );
-            })}
+                );
+              })
+            )}
           </View>
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
+
+        <SleepActionBar />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -277,6 +283,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    paddingVertical: 24,
   },
   bottomSpacer: {
     height: 100,

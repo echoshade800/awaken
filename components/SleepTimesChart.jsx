@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 'react-native-svg';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const CHART_HEIGHT = 240;
 const PADDING = { top: 32, right: 50, bottom: 52, left: 8 };
@@ -9,6 +9,29 @@ const TOTAL_COLUMNS = 8;
 
 export default function SleepTimesChart({ data, chartWidth }) {
   const [selectedBar, setSelectedBar] = useState(null);
+  const animatedHeights = useRef([]);
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      data.forEach((_, index) => {
+        if (!animatedHeights.current[index]) {
+          animatedHeights.current[index] = new Animated.Value(0);
+        }
+      });
+
+      const animations = data.map((item, index) => {
+        const targetHeight = item.sleepTime && item.wakeTime ? 1 : 0;
+        return Animated.timing(animatedHeights.current[index], {
+          toValue: targetHeight,
+          duration: 300,
+          delay: index * 30,
+          useNativeDriver: false,
+        });
+      });
+
+      Animated.parallel(animations).start();
+    }
+  }, [data]);
 
   if (!data || data.length === 0) return null;
 
