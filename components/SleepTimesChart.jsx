@@ -37,13 +37,13 @@ export default function SleepTimesChart({ data, chartWidth }) {
   };
 
   const yTimeLabels = [
-    { time: '10pm', value: '22:00' },
-    { time: '12am', value: '00:00' },
-    { time: '2am', value: '02:00' },
-    { time: '4am', value: '04:00' },
-    { time: '6am', value: '06:00' },
-    { time: '8am', value: '08:00' },
-    { time: '10am', value: '10:00' },
+    { time: '10 PM', value: '22:00' },
+    { time: '12 AM', value: '00:00' },
+    { time: '2 AM', value: '02:00' },
+    { time: '4 AM', value: '04:00' },
+    { time: '6 AM', value: '06:00' },
+    { time: '8 AM', value: '08:00' },
+    { time: '10 AM', value: '10:00' },
   ];
 
   // Parse duration string "6h 42m" into separate components
