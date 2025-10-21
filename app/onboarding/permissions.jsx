@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bell, Clock, Activity, Smartphone, Check, X } from 'lucide-react-native';
 import * as Notifications from 'expo-notifications';
 import useStore from '@/lib/store';
+import { requestScreenTimePermission } from '@/lib/usageTracking';
 
 export default function PermissionsScreen() {
   const router = useRouter();
@@ -66,32 +67,9 @@ export default function PermissionsScreen() {
     setPermissions((prev) => ({ ...prev, activity: true }));
   };
 
-  const requestScreenTimePermission = async () => {
-    if (Platform.OS === 'web') {
-      Alert.alert(
-        'Screen Time Data Permission',
-        'Monster needs to analyze your device usage patterns to calculate:\n\n' +
-        '• Personalized Sleep Need\n' +
-        '• Sleep Debt\n' +
-        '• Circadian Rhythm\n\n' +
-        '🔒 Privacy: Only usage timestamps are analyzed. No app content or personal data is accessed.\n\n' +
-        '📱 Demo Mode: Since we\'re on web, we\'ll generate 30 days of sample data to demonstrate the feature.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Allow & Generate Sample Data',
-            onPress: () => {
-              setPermissions((prev) => ({ ...prev, screenTime: true }));
-            },
-          },
-        ]
-      );
-      return;
-    }
-    setPermissions((prev) => ({ ...prev, screenTime: true }));
+  const handleScreenTimePermission = async () => {
+    const granted = await requestScreenTimePermission();
+    setPermissions((prev) => ({ ...prev, screenTime: granted }));
   };
 
   const enableUsageTracking = useStore((state) => state.enableUsageTracking);
@@ -151,8 +129,7 @@ export default function PermissionsScreen() {
           <Text style={styles.title}>Help Monster understand your rhythm</Text>
           <Text style={styles.subtitle}>
             To calculate your personalized sleep need and circadian rhythm, Monster analyzes your usage patterns.{'\n\n'}
-            🔒 Privacy-safe: Only timestamps are analyzed{'\n'}
-            📊 Web Demo: Sample data will be generated for demonstration
+            🔒 Privacy-safe: Only timestamps are analyzed{Platform.OS === 'web' ? '\n📊 Web Demo: Sample data will be generated for demonstration' : ''}
           </Text>
 
           <View style={styles.permissionsContainer}>
@@ -182,10 +159,10 @@ export default function PermissionsScreen() {
 
             <PermissionCard
               icon={Smartphone}
-              title="Screen Time Data (Demo)"
-              description="Generate sample data to demonstrate sleep analysis"
+              title={Platform.OS === 'web' ? 'Screen Time Data (Demo)' : 'Screen Time Data'}
+              description={Platform.OS === 'web' ? 'Generate sample data to demonstrate sleep analysis' : 'Analyze device usage for personalized sleep insights'}
               granted={permissions.screenTime}
-              onRequest={requestScreenTimePermission}
+              onRequest={handleScreenTimePermission}
             />
           </View>
         </View>
