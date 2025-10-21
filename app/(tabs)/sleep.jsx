@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   chartSection: {
     paddingHorizontal: 0,
-    marginBottom: 32,
+    marginBottom: 48,
   },
   chartMessage: {
     fontSize: 13,
