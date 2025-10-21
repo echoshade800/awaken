@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Send, Mic } from 'lucide-react-native';
@@ -21,6 +22,7 @@ import {
   INTERACTION_ENABLE_OPTIONS,
   getGameLabel,
 } from '../../lib/interactionOptions';
+import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
 
 const LABEL_OPTIONS = [
   { label: '起床闹钟', value: '起床闹钟' },
@@ -135,6 +137,7 @@ export default function AlarmCreate() {
   const scrollViewRef = useRef(null);
   const [inputText, setInputText] = useState('');
   const [isCustomLabelInput, setIsCustomLabelInput] = useState(false);
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
 
   const {
     currentAlarmDraft,
@@ -324,7 +327,7 @@ export default function AlarmCreate() {
     router.back();
   };
 
-  const handleTextInput = () => {
+  const handleTextInput = async () => {
     if (!inputText.trim()) return;
 
     if (isCustomLabelInput) {
@@ -340,17 +343,48 @@ export default function AlarmCreate() {
       return;
     }
 
+    const userMessage = inputText.trim();
     addChatMessage({
       role: 'user',
-      content: inputText.trim(),
+      content: userMessage,
     });
+    setInputText('');
 
     const currentConfig = getCurrentStepConfig();
     if (currentConfig && !isInSummary) {
-      parseTextInput(inputText.trim(), currentConfig);
-    }
+      setIsAIProcessing(true);
 
-    setInputText('');
+      const aiResult = await parseUserInputWithAI(userMessage, currentAlarmDraft);
+
+      setIsAIProcessing(false);
+
+      if (aiResult.success) {
+        if (aiResult.extracted && Object.keys(aiResult.extracted).length > 0) {
+          updateDraft(aiResult.extracted);
+        }
+
+        if (aiResult.message) {
+          setTimeout(() => {
+            addChatMessage({
+              role: 'ai',
+              content: aiResult.message,
+            });
+          }, 300);
+        }
+
+        if (!aiResult.needsMore && isAlarmComplete({ ...currentAlarmDraft, ...aiResult.extracted })) {
+          setTimeout(() => {
+            showSummary();
+          }, 800);
+        } else if (Object.keys(aiResult.extracted).length > 0) {
+          setTimeout(() => {
+            proceedToNextStep();
+          }, 800);
+        }
+      } else {
+        parseTextInput(userMessage, currentConfig);
+      }
+    }
   };
 
   const parseTextInput = (text, stepConfig) => {
@@ -545,6 +579,13 @@ export default function AlarmCreate() {
           <ChatBubble key={message.id} role={message.role} content={message.content} />
         ))}
 
+        {isAIProcessing && (
+          <View style={styles.aiLoadingContainer}>
+            <ActivityIndicator size="small" color="#FF9A76" />
+            <Text style={styles.aiLoadingText}>Monster 正在思考中...</Text>
+          </View>
+        )}
+
         {stepConfig && !isInSummary && !stepConfig.isCustom && !stepConfig.isGameSelection && stepConfig.options && (
           <TagOptions
             options={stepConfig.options}
@@ -671,6 +712,20 @@ const styles = StyleSheet.create({
   chatContent: {
     paddingVertical: 8,
     paddingBottom: 16,
+  },
+  aiLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginLeft: 16,
+    alignSelf: 'flex-start',
+  },
+  aiLoadingText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '400',
   },
   summaryActions: {
     paddingHorizontal: 16,
