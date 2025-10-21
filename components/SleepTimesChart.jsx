@@ -3,7 +3,9 @@ import Svg, { Rect, Line, Text as SvgText, Defs, LinearGradient, Stop, G } from 
 import { useState } from 'react';
 
 const CHART_HEIGHT = 240;
-const PADDING = { top: 50, right: 50, bottom: 40, left: 20 };
+const PADDING = { top: 16, right: 12, bottom: 24, left: 0 };
+const BAR_WIDTH = 18;
+const BAR_SPACING = 10;
 
 export default function SleepTimesChart({ data, chartWidth }) {
   const [selectedBar, setSelectedBar] = useState(null);
@@ -11,32 +13,46 @@ export default function SleepTimesChart({ data, chartWidth }) {
   if (!data || data.length === 0) return null;
 
   const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
-  const totalBarSpace = chartWidth - PADDING.left - PADDING.right;
-  const barWidth = Math.floor(totalBarSpace / (data.length * 1.5));
-  const barSpacing = Math.floor(barWidth * 0.5);
+
+  // Calculate time scale right edge position (leaving space for time labels)
+  const timeScaleX = chartWidth - PADDING.right - 40;
+
+  // Calculate starting X position to center all bars
+  const totalBarsWidth = data.length * BAR_WIDTH + (data.length - 1) * BAR_SPACING;
+  const startX = (timeScaleX - totalBarsWidth) / 2;
 
   const timeToY = (timeStr) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     let totalMinutes = hours * 60 + minutes;
     if (totalMinutes < 12 * 60) totalMinutes += 24 * 60;
 
-    const startMinutes = 22 * 60;
-    const endMinutes = 36 * 60;
+    const startMinutes = 22 * 60; // 10pm
+    const endMinutes = 36 * 60;   // 12pm next day
     const ratio = (totalMinutes - startMinutes) / (endMinutes - startMinutes);
 
     return PADDING.top + chartArea * (1 - ratio);
   };
 
   const yTimeLabels = [
-    { time: '10:00 PM', value: '22:00' },
-    { time: '12:00 AM', value: '00:00' },
-    { time: '2:00 AM', value: '02:00' },
-    { time: '4:00 AM', value: '04:00' },
-    { time: '6:00 AM', value: '06:00' },
-    { time: '8:00 AM', value: '08:00' },
-    { time: '10:00 AM', value: '10:00' },
-    { time: '12:00 PM', value: '12:00' },
+    { time: '10pm', value: '22:00' },
+    { time: '12am', value: '00:00' },
+    { time: '2am', value: '02:00' },
+    { time: '4am', value: '04:00' },
+    { time: '6am', value: '06:00' },
+    { time: '8am', value: '08:00' },
+    { time: '10am', value: '10:00' },
+    { time: '12pm', value: '12:00' },
   ];
+
+  // Parse duration string "6h 42m" into separate components
+  const parseDuration = (durationStr) => {
+    const hourMatch = durationStr.match(/(\d+)h/);
+    const minMatch = durationStr.match(/(\d+)m/);
+    return {
+      hours: hourMatch ? hourMatch[1] : '0',
+      minutes: minMatch ? minMatch[1] : '0',
+    };
+  };
 
   return (
     <View style={styles.container}>
@@ -48,20 +64,21 @@ export default function SleepTimesChart({ data, chartWidth }) {
           </LinearGradient>
         </Defs>
 
+        {/* Horizontal gridlines and time labels */}
         {yTimeLabels.map((label) => {
           const y = timeToY(label.value);
           return (
             <G key={label.value}>
               <Line
-                x1={PADDING.left}
+                x1={0}
                 y1={y}
-                x2={chartWidth - PADDING.right}
+                x2={timeScaleX}
                 y2={y}
                 stroke="rgba(255, 255, 255, 0.08)"
                 strokeWidth="1"
               />
               <SvgText
-                x={chartWidth - PADDING.right + 12}
+                x={timeScaleX + 12}
                 y={y}
                 fontSize="10"
                 fill="rgba(255, 255, 255, 0.5)"
@@ -74,19 +91,23 @@ export default function SleepTimesChart({ data, chartWidth }) {
           );
         })}
 
+        {/* Sleep bars and labels */}
         {data.map((item, index) => {
-          const x = PADDING.left + index * (barWidth + barSpacing);
+          const x = startX + index * (BAR_WIDTH + BAR_SPACING);
           const sleepY = timeToY(item.sleepTime);
           const wakeY = timeToY(item.wakeTime);
           const barHeight = Math.abs(wakeY - sleepY);
           const topY = Math.min(sleepY, wakeY);
 
+          const { hours, minutes } = parseDuration(item.duration);
+
           return (
             <G key={item.date}>
+              {/* Sleep bar */}
               <Rect
                 x={x}
                 y={topY}
-                width={barWidth}
+                width={BAR_WIDTH}
                 height={barHeight}
                 fill="url(#barGradient)"
                 rx={6}
@@ -94,21 +115,34 @@ export default function SleepTimesChart({ data, chartWidth }) {
                 onPress={() => setSelectedBar(selectedBar === index ? null : index)}
               />
 
+              {/* Duration label - hours */}
               <SvgText
-                x={x + barWidth / 2}
+                x={x + BAR_WIDTH / 2}
+                y={topY - 18}
+                fontSize="12"
+                fontWeight="600"
+                fill="rgba(255, 255, 255, 0.85)"
+                textAnchor="middle"
+              >
+                {hours}h
+              </SvgText>
+
+              {/* Duration label - minutes */}
+              <SvgText
+                x={x + BAR_WIDTH / 2}
                 y={topY - 6}
                 fontSize="12"
                 fontWeight="600"
                 fill="rgba(255, 255, 255, 0.85)"
                 textAnchor="middle"
-                alignmentBaseline="baseline"
               >
-                {item.duration}
+                {minutes}m
               </SvgText>
 
+              {/* Day label */}
               <SvgText
-                x={x + barWidth / 2}
-                y={CHART_HEIGHT - PADDING.bottom + 20}
+                x={x + BAR_WIDTH / 2}
+                y={CHART_HEIGHT - PADDING.bottom + 16}
                 fontSize="12"
                 fontWeight="400"
                 fill="rgba(255, 255, 255, 0.7)"
@@ -121,22 +155,23 @@ export default function SleepTimesChart({ data, chartWidth }) {
         })}
       </Svg>
 
+      {/* Interactive tooltip */}
       {selectedBar !== null && (
         <View
           style={[
             styles.tooltip,
             {
               left: Math.min(
-                Math.max(10, PADDING.left + selectedBar * (barWidth + barSpacing) - 70),
-                chartWidth - 160
+                Math.max(10, startX + selectedBar * (BAR_WIDTH + BAR_SPACING) - 60),
+                chartWidth - 150
               ),
             },
           ]}
         >
-          <Text style={styles.tooltipDate}>📅 {data[selectedBar].fullDate}</Text>
-          <Text style={styles.tooltipText}>🕓 Slept: {data[selectedBar].duration}</Text>
+          <Text style={styles.tooltipDate}>{data[selectedBar].fullDate}</Text>
+          <Text style={styles.tooltipText}>Sleep: {data[selectedBar].duration}</Text>
           <Text style={styles.tooltipText}>
-            🌙 {data[selectedBar].sleepTime} – {data[selectedBar].wakeTime}
+            {data[selectedBar].sleepTime} – {data[selectedBar].wakeTime}
           </Text>
         </View>
       )}
@@ -151,13 +186,13 @@ const styles = StyleSheet.create({
   tooltip: {
     position: 'absolute',
     top: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 10,
     padding: 10,
     minWidth: 140,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
   },
   tooltipDate: {
@@ -168,7 +203,7 @@ const styles = StyleSheet.create({
   },
   tooltipText: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: 'rgba(255, 255, 255, 0.85)',
     marginTop: 2,
   },
 });
