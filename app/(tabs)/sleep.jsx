@@ -76,13 +76,13 @@ export default function SleepScreen() {
   }, [processedDebtData]);
 
   const getTimesMessage = () => {
-    if (averageSleep < 6) return '😴 You've been short on sleep lately.';
+    if (averageSleep < 6) return '😴 You\'ve been short on sleep lately.';
     if (averageSleep < 8) return '🌙 Your sleep routine is balancing out.';
-    return '⚡ You're well-rested this week.';
+    return '⚡ You\'re well-rested this week.';
   };
 
   const getDebtMessage = () => {
-    if (averageDebt > 4) return '😴 You're heavily sleep-deprived — take a rest soon.';
+    if (averageDebt > 4) return '😴 You\'re heavily sleep-deprived — take a rest soon.';
     if (averageDebt > 2) return '🌙 Mild sleep debt — sleep earlier tonight.';
     return '⚡ Great recovery balance!';
   };
