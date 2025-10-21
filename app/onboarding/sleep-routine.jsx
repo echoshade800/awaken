@@ -37,7 +37,7 @@ export default function SleepRoutineScreen() {
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      router.push('/onboarding/permissions');
+      router.push('/onboarding/smart-alarm');
     });
   };
 
