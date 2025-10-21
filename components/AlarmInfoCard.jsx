@@ -28,7 +28,7 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
     <View style={styles.card}>
       <View style={styles.timeRow}>
         <View style={styles.timeInfo}>
-          <Clock size={32} color="#007AFF" />
+          <Clock size={32} color="#1A2845" />
           <Text style={styles.time}>{alarm.time || '--:--'}</Text>
         </View>
         {showConfirmButton && onConfirm && (
@@ -43,18 +43,18 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
 
       <View style={styles.detailsGrid}>
         <View style={styles.detailItem}>
-          <Calendar size={20} color="#666" />
+          <Calendar size={20} color="#1A2845" />
           <Text style={styles.detailText}>{periodLabel}</Text>
         </View>
 
         {alarm.wakeMode === 'voice' ? (
           <>
             <View style={styles.detailItem}>
-              <Mic size={20} color="#666" />
+              <Mic size={20} color="#1A2845" />
               <Text style={styles.detailText}>Voice Broadcast</Text>
             </View>
             <View style={styles.detailItem}>
-              <Music size={20} color="#666" />
+              <Music size={20} color="#1A2845" />
               <Text style={styles.detailText}>{voiceLabel}</Text>
             </View>
           </>
@@ -72,7 +72,7 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
 
         {alarm.interactionEnabled && gameLabel && (
           <View style={styles.detailItem}>
-            <Gamepad2 size={20} color="#666" />
+            <Gamepad2 size={20} color="#1A2845" />
             <Text style={styles.detailText}>{gameLabel}</Text>
           </View>
         )}
@@ -91,15 +91,17 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: 'rgba(255, 255, 255, 0.3)',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -117,7 +119,7 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#1C1C1E',
+    color: '#1A2845',
     letterSpacing: -0.5,
   },
   confirmButton: {
@@ -141,7 +143,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     marginVertical: 12,
   },
   detailsGrid: {
@@ -157,8 +159,9 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#1A2845',
     fontWeight: '500',
+    opacity: 0.8,
   },
   broadcastPreview: {
     width: '100%',
