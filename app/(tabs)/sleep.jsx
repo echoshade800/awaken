@@ -7,64 +7,41 @@ import SleepTimesChart from '@/components/SleepTimesChart';
 import SleepDebtChart from '@/components/SleepDebtChart';
 import SleepActionBar from '@/components/SleepActionBar';
 import useStore from '@/lib/store';
-import { getSleepData, formatSleepDuration, formatTime } from '@/lib/sleepInference';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;
-
-const mockSleepData = [
-  { date: '2025-10-14', sleepTime: '00:25', wakeTime: '07:07', slept: 6.7 },
-  { date: '2025-10-15', sleepTime: '23:45', wakeTime: '06:30', slept: 6.75 },
-  { date: '2025-10-16', sleepTime: '01:15', wakeTime: '07:00', slept: 5.75 },
-  { date: '2025-10-17', sleepTime: '00:00', wakeTime: '08:15', slept: 8.25 },
-  { date: '2025-10-18', sleepTime: '23:30', wakeTime: '06:45', slept: 7.25 },
-  { date: '2025-10-19', sleepTime: '00:50', wakeTime: '06:20', slept: 5.5 },
-  { date: '2025-10-20', sleepTime: '23:20', wakeTime: '07:30', slept: 8.17 },
-];
 
 export default function SleepScreen() {
   const [activeTab, setActiveTab] = useState('times');
   const sleepNeed = useStore((state) => state.sleepNeed);
   const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);
+  const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
   const getAllSleepSessions = useStore((state) => state.getAllSleepSessions);
   const sleepSessions = useStore((state) => state.sleepSessions);
+  const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
 
-  const [chartData, setChartData] = useState([]);
+  const [timesChartData, setTimesChartData] = useState([]);
+  const [debtChartData, setDebtChartData] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
-  const [inferredSleepNeed, setInferredSleepNeed] = useState(8);
 
   useEffect(() => {
-    loadSleepDataFromStorage();
-    setChartData(getSleepSessionsForChart());
+    const initializeData = async () => {
+      await insertDemoSleepData();
+      setTimesChartData(getSleepSessionsForChart());
+      setDebtChartData(getSleepSessionsForDebtChart());
+      setAllSessions(getAllSleepSessions());
+    };
+    initializeData();
+  }, []);
+
+  useEffect(() => {
+    setTimesChartData(getSleepSessionsForChart());
+    setDebtChartData(getSleepSessionsForDebtChart());
     setAllSessions(getAllSleepSessions());
   }, [sleepSessions]);
 
-  const loadSleepDataFromStorage = async () => {
-    const data = await getSleepData();
-    if (data && data.sleepSeries) {
-      setInferredSleepNeed(data.sleepNeedMin / 60);
 
-      const formattedData = data.sleepSeries.slice(-7).map(session => {
-        const date = new Date(session.date);
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-        return {
-          date: session.date,
-          dayLabel: dayNames[date.getDay()],
-          sleepTime: formatTime(session.startISO),
-          wakeTime: formatTime(session.endISO),
-          duration: formatSleepDuration(session.durationMin),
-          slept: session.durationMin / 60,
-        };
-      });
-
-      if (formattedData.length > 0) {
-        setChartData(formattedData);
-      }
-    }
-  };
-
-  const processedTimesData = chartData.map((item) => {
+  const processedTimesData = timesChartData.map((item) => {
     const date = new Date(item.date);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return {
@@ -74,14 +51,15 @@ export default function SleepScreen() {
   });
 
   const processedDebtData = useMemo(() => {
-    return chartData.map((item) => {
+    if (debtChartData.length === 0) return [];
+
+    return debtChartData.map((item) => {
       const date = new Date(item.date);
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
       const slept = item.slept || 0;
-      const currentSleepNeed = inferredSleepNeed || sleepNeed;
-      const debt = currentSleepNeed - slept;
+      const debt = sleepNeed - slept;
 
       return {
         date: item.date,
@@ -92,7 +70,7 @@ export default function SleepScreen() {
         sleptDisplay: item.duration || '0h 0m',
       };
     });
-  }, [chartData, sleepNeed]);
+  }, [debtChartData, sleepNeed]);
 
   const averageSleep = useMemo(() => {
     const validData = processedDebtData.filter((item) => item.slept > 0);
@@ -119,13 +97,13 @@ export default function SleepScreen() {
   };
 
   const dateRange = useMemo(() => {
-    if (chartData.length === 0) return '';
-    const firstDate = new Date(chartData[0].date);
-    const lastDate = new Date(chartData[chartData.length - 1].date);
+    if (timesChartData.length === 0) return '';
+    const firstDate = new Date(timesChartData[0].date);
+    const lastDate = new Date(timesChartData[timesChartData.length - 1].date);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     return `${months[firstDate.getMonth()]} ${firstDate.getDate()}–${lastDate.getDate()}`;
-  }, [chartData]);
+  }, [timesChartData]);
 
   return (
     <LinearGradient colors={['#0E0E10', '#18181B']} style={styles.container}>
