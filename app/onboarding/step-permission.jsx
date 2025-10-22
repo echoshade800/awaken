@@ -7,8 +7,12 @@ import { checkStepPermission, requestStepPermission } from '../../lib/healthPerm
 
 export default function StepPermissionScreen() {
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [appState, setAppState] = useState(AppState.currentState);
+
+  useEffect(() => {
+    checkPermissionStatus();
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', handleAppStateChange);
@@ -26,12 +30,16 @@ export default function StepPermissionScreen() {
     setIsChecking(true);
     try {
       const status = await checkStepPermission();
+      console.log('Permission status:', status);
       if (status === 'granted') {
-        router.push('/onboarding/initializing');
+        setTimeout(() => {
+          router.push('/onboarding/initializing');
+        }, 500);
+      } else {
+        setIsChecking(false);
       }
     } catch (error) {
       console.error('Error checking permission:', error);
-    } finally {
       setIsChecking(false);
     }
   };
@@ -56,15 +64,22 @@ export default function StepPermissionScreen() {
     setIsChecking(true);
     try {
       const status = await requestStepPermission();
+      console.log('Request permission result:', status);
       if (status === 'granted') {
-        router.push('/onboarding/initializing');
+        setTimeout(() => {
+          router.push('/onboarding/initializing');
+        }, 500);
       } else {
-        await handleOpenSettings();
+        if (Platform.OS !== 'web') {
+          await handleOpenSettings();
+        }
+        setIsChecking(false);
       }
     } catch (error) {
       console.error('Error requesting permission:', error);
-      await handleOpenSettings();
-    } finally {
+      if (Platform.OS !== 'web') {
+        await handleOpenSettings();
+      }
       setIsChecking(false);
     }
   };
@@ -113,28 +128,34 @@ export default function StepPermissionScreen() {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleRequestPermission}
-            disabled={isChecking}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.primaryButtonText}>
-              {isChecking ? 'Checking...' : 'Grant Permission'}
-            </Text>
-            <ChevronRight size={20} color="#FFF" />
-          </TouchableOpacity>
+          {isChecking ? (
+            <View style={styles.checkingContainer}>
+              <Text style={styles.checkingText}>Checking permissions...</Text>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={handleRequestPermission}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.primaryButtonText}>
+                  Grant Permission
+                </Text>
+                <ChevronRight size={20} color="#FFF" />
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handleCheckPermission}
-            disabled={isChecking}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.secondaryButtonText}>
-              I've Enabled It
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={handleCheckPermission}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.secondaryButtonText}>
+                  I've Enabled It
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         <Text style={styles.helpText}>
@@ -234,6 +255,15 @@ const styles = StyleSheet.create({
   buttonContainer: {
     gap: 12,
     marginBottom: 24,
+  },
+  checkingContainer: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  checkingText: {
+    fontSize: 16,
+    color: '#4A5F8F',
+    fontWeight: '500',
   },
   primaryButton: {
     flexDirection: 'row',
