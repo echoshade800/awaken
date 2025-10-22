@@ -4,9 +4,11 @@ import { useRouter } from 'expo-router';
 import { Brain, Activity, Moon, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { initializeSleepData } from '../../lib/sleepInference';
+import useStore from '../../lib/store';
 
 export default function InitializingScreen() {
   const router = useRouter();
+  const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState(null);
 
@@ -33,6 +35,7 @@ export default function InitializingScreen() {
         }
 
         await initializeSleepData();
+        await insertDemoSleepData();
 
         setTimeout(() => {
           router.replace('/(tabs)');
