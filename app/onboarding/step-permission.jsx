@@ -136,6 +136,10 @@ export default function StepPermissionScreen() {
           </View>
         </View>
 
+        <Text style={styles.helpText}>
+          Need help? Go to Settings → Privacy → Health → Awaken
+        </Text>
+
         <View style={styles.buttonContainer}>
           {isChecking ? (
             <View style={styles.checkingContainer}>
@@ -166,10 +170,6 @@ export default function StepPermissionScreen() {
             </>
           )}
         </View>
-
-        <Text style={styles.helpText}>
-          Need help? Go to Settings → Privacy → Health → Awaken
-        </Text>
       </View>
     </View>
   );
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     gap: 12,
-    marginBottom: 24,
+    marginTop: 20,
   },
   checkingContainer: {
     paddingVertical: 16,

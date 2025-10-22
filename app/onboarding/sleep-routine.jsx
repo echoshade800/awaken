@@ -196,12 +196,12 @@ export default function SleepRoutineScreen() {
             setWakeMinute,
             'When do you usually wake up? 🌅'
           )}
+        </View>
 
-          <View style={styles.tipContainer}>
-            <Text style={styles.tipText}>
-              💭 Monster says: Your natural rhythm is unique!
-            </Text>
-          </View>
+        <View style={styles.tipContainer}>
+          <Text style={styles.tipText}>
+            💭 Monster says: Your natural rhythm is unique!
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -336,6 +336,7 @@ const styles = StyleSheet.create({
   },
   tipContainer: {
     marginTop: 16,
+    marginBottom: 20,
     padding: 16,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
@@ -349,7 +350,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   button: {
-    marginTop: 24,
     borderRadius: 20,
     shadowColor: '#FFB88C',
     shadowOffset: { width: 0, height: 4 },
