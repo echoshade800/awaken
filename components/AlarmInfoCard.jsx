@@ -20,6 +20,7 @@ const VOICE_PACKAGE_LABELS = {
 export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = false }) {
   if (!alarm) return null;
 
+  const hasLabel = alarm.label && alarm.label !== '';
   const hasTime = alarm.time && alarm.time !== '';
   const hasPeriod = alarm.period && alarm.period !== '';
   const hasWakeMode = alarm.wakeMode && alarm.wakeMode !== '';
@@ -27,7 +28,7 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
   const hasInteraction = alarm.interactionEnabled && alarm.interactionType;
   const hasBroadcast = alarm.broadcastContent && alarm.broadcastContent.trim() !== '';
 
-  const hasAnyDetails = hasPeriod || hasWakeMode || hasInteraction || hasBroadcast;
+  const hasAnyDetails = hasLabel || hasPeriod || hasWakeMode || hasInteraction || hasBroadcast;
 
   if (!hasTime && !hasAnyDetails) {
     return null;
@@ -39,12 +40,19 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
 
   return (
     <View style={styles.card}>
+      {hasLabel && !hasTime && (
+        <Text style={styles.label}>{alarm.label}</Text>
+      )}
+
       {hasTime && (
         <>
           <View style={styles.timeRow}>
             <View style={styles.timeInfo}>
               <Clock size={32} color="#1A2845" />
-              <Text style={styles.time}>{alarm.time}</Text>
+              <View style={styles.timeAndLabel}>
+                <Text style={styles.time}>{alarm.time}</Text>
+                {hasLabel && <Text style={styles.labelSmall}>{alarm.label}</Text>}
+              </View>
             </View>
             {showConfirmButton && onConfirm && (
               <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
@@ -142,11 +150,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  timeAndLabel: {
+    flexDirection: 'column',
+    gap: 2,
+  },
   time: {
     fontSize: 36,
     fontWeight: '700',
     color: '#1A2845',
     letterSpacing: -0.5,
+  },
+  label: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A2845',
+    marginBottom: 8,
+  },
+  labelSmall: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1A2845',
+    opacity: 0.7,
   },
   confirmButton: {
     flexDirection: 'row',

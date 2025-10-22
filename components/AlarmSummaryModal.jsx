@@ -37,14 +37,21 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel,
 
           <ScrollView style={styles.scrollContent}>
             <View style={styles.content}>
+            {alarm.label && (
+              <View style={styles.summaryItem}>
+                <Text style={styles.label}>📛 名称</Text>
+                <Text style={styles.value}>{alarm.label}</Text>
+              </View>
+            )}
+
             <View style={styles.summaryItem}>
               <Text style={styles.label}>⏰ 时间</Text>
-              <Text style={styles.value}>{alarm.time}</Text>
+              <Text style={styles.value}>{alarm.time || '未设置'}</Text>
             </View>
 
             <View style={styles.summaryItem}>
               <Text style={styles.label}>📅 周期</Text>
-              <Text style={styles.value}>{periodLabel}</Text>
+              <Text style={styles.value}>{periodLabel || '未设置'}</Text>
             </View>
 
             <View style={styles.summaryItem}>
