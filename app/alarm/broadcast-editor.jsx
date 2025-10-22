@@ -12,12 +12,11 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
-import { BROADCAST_MODULES, VOICE_PACKAGES, generateMockData, replaceTags } from '../../lib/broadcastModules';
+import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
 
 export default function BroadcastEditor() {
   const router = useRouter();
   const { currentAlarmDraft, updateDraft } = useStore();
-  const inputRef = useRef(null);
 
   const [broadcastContent, setBroadcastContent] = useState(
     currentAlarmDraft?.broadcastContent || ''
@@ -25,36 +24,10 @@ export default function BroadcastEditor() {
   const [selectedVoicePackage, setSelectedVoicePackage] = useState(
     currentAlarmDraft?.voicePackage || 'energetic-girl'
   );
-  const [cursorPosition, setCursorPosition] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleSelectionChange = (event) => {
-    setCursorPosition(event.nativeEvent.selection.start);
-  };
-
   const insertModule = (module) => {
-    const beforeCursor = broadcastContent.substring(0, cursorPosition);
-    const afterCursor = broadcastContent.substring(cursorPosition);
-    const newText = beforeCursor + module.tag + afterCursor;
-
-    setBroadcastContent(newText);
-
-    const newCursorPos = cursorPosition + module.tag.length;
-    setCursorPosition(newCursorPos);
-
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-
-        if (Platform.OS === 'web') {
-          inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
-        } else {
-          inputRef.current.setNativeProps({
-            selection: { start: newCursorPos, end: newCursorPos }
-          });
-        }
-      }
-    }, 100);
+    setBroadcastContent(prev => prev + module.tag + ' ');
   };
 
   const handlePreviewSpeech = async () => {
@@ -112,29 +85,25 @@ export default function BroadcastEditor() {
         locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
         style={styles.backgroundGradient}
       />
-      {/* Header - fixed */}
+
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#1C1C1E" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Broadcast</Text>
+        <Text style={styles.headerTitle}>自定义语音播报</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Input area - fixed at top */}
+      {/* 固定的文本框 */}
       <View style={styles.editorCard}>
-        <Text style={styles.sectionTitle}>Broadcast Content</Text>
-        <Text style={styles.sectionDescription}>
-          Enter text below, click module buttons to insert dynamic info at cursor
-        </Text>
+        <Text style={styles.sectionTitle}>播报内容</Text>
         <View style={styles.inputWrapper}>
           <TextInput
-            ref={inputRef}
             style={styles.input}
             value={broadcastContent}
             onChangeText={setBroadcastContent}
-            onSelectionChange={handleSelectionChange}
-            placeholder="Example: Good morning! It's {time}, today is {date}, weather is {weather}"
+            placeholder="点击下方模块添加播报内容..."
             placeholderTextColor="#999"
             multiline
             textAlignVertical="top"
@@ -142,36 +111,42 @@ export default function BroadcastEditor() {
         </View>
       </View>
 
-      {/* Middle scroll area - modules and voice packages */}
+      {/* 可滑动区域 */}
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
-        {/* Insert modules area */}
-        <View style={styles.modulesCard}>
-          <Text style={styles.sectionTitle}>Insert Modules</Text>
-          <View style={styles.modulesGrid}>
+        {/* 横向滑动的模块选择 */}
+        <View style={styles.modulesSection}>
+          <Text style={styles.sectionTitle}>选择播报模块</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.modulesHorizontalScroll}
+          >
             {BROADCAST_MODULES.map((module) => {
               const IconComponent = module.icon;
               return (
                 <TouchableOpacity
                   key={module.id}
-                  style={styles.moduleButton}
+                  style={styles.moduleCard}
                   onPress={() => insertModule(module)}
                   activeOpacity={0.7}
                 >
-                  <IconComponent size={20} color="#007AFF" strokeWidth={2} />
+                  <View style={styles.moduleIconContainer}>
+                    <IconComponent size={24} color="#007AFF" strokeWidth={2} />
+                  </View>
                   <Text style={styles.moduleLabel}>{module.label}</Text>
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
         </View>
 
-        {/* Voice package selection area */}
-        <View style={styles.voicePackageCard}>
-          <Text style={styles.sectionTitle}>Select Voice</Text>
+        {/* 语音包选择 */}
+        <View style={styles.voicePackageSection}>
+          <Text style={styles.sectionTitle}>选择语音包</Text>
           <View style={styles.voicePackageGrid}>
             {VOICE_PACKAGES.map((voicePackage) => {
               const isSelected = selectedVoicePackage === voicePackage.id;
@@ -208,9 +183,8 @@ export default function BroadcastEditor() {
         </View>
       </ScrollView>
 
-      {/* Bottom actions - fixed */}
+      {/* 底部按钮 */}
       <View style={styles.bottomActions}>
-        {/* Voice preview button */}
         {broadcastContent.trim().length > 0 && (
           <TouchableOpacity
             style={[
@@ -231,18 +205,17 @@ export default function BroadcastEditor() {
                 isPlaying && styles.previewButtonTextPlaying,
               ]}
             >
-              {isPlaying ? 'Stop' : 'Preview'}
+              {isPlaying ? '停止' : '预览'}
             </Text>
           </TouchableOpacity>
         )}
 
-        {/* Complete button */}
         <TouchableOpacity
           style={styles.completeButton}
           onPress={handleComplete}
           activeOpacity={0.8}
         >
-          <Text style={styles.completeButtonText}>Complete</Text>
+          <Text style={styles.completeButtonText}>确认返回</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -304,16 +277,10 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#1C1C1E',
-    marginBottom: 8,
-  },
-  sectionDescription: {
-    fontSize: 13,
-    color: '#666',
     marginBottom: 12,
-    lineHeight: 18,
   },
   inputWrapper: {
-    height: 100,
+    height: 120,
     backgroundColor: '#F9F9F9',
     borderRadius: 12,
     padding: 14,
@@ -333,7 +300,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 20,
   },
-  modulesCard: {
+  modulesSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     marginHorizontal: 16,
     marginBottom: 12,
@@ -345,28 +312,35 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  modulesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+  modulesHorizontalScroll: {
+    paddingRight: 20,
+    gap: 12,
   },
-  moduleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  moduleCard: {
+    width: 100,
     backgroundColor: '#F5F5F7',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
-    gap: 6,
+    borderRadius: 16,
+    padding: 14,
+    alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderColor: '#E5E5EA',
+  },
+  moduleIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E3F2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   moduleLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#1C1C1E',
     fontWeight: '500',
+    textAlign: 'center',
   },
-  voicePackageCard: {
+  voicePackageSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     marginHorizontal: 16,
     marginBottom: 12,

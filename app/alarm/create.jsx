@@ -69,6 +69,26 @@ export default function AlarmCreate() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [chatHistory, suggestedOptions]);
 
+  // 检测从语音播报编辑器返回
+  useEffect(() => {
+    if (currentAlarmDraft?.wakeMode === 'voice' &&
+        currentAlarmDraft?.broadcastContent &&
+        chatHistory.length > 0) {
+      // 检查最后一条消息是否是"编辑语音播报"
+      const lastUserMessage = [...chatHistory].reverse().find(msg => msg.role === 'user');
+      if (lastUserMessage?.content === '📝 编辑语音播报') {
+        // 用户刚从编辑器返回，继续对话流程
+        setTimeout(async () => {
+          addChatMessage({
+            role: 'ai',
+            content: '语音播报已设置完成～继续下一步吧！',
+          });
+          await continueConversation('已完成语音设置', currentAlarmDraft);
+        }, 300);
+      }
+    }
+  }, [currentAlarmDraft?.broadcastContent]);
+
 
   const handleOptionSelect = async (option) => {
     const { field, value, label } = option;
@@ -118,6 +138,101 @@ export default function AlarmCreate() {
       // 传递更新后的完整 draft 给 AI
       setTimeout(async () => {
         const updatedDraft = { ...currentAlarmDraft, ...updatedFields };
+        await continueConversation(label, updatedDraft);
+      }, 500);
+      return;
+    }
+
+    // 处理唤醒方式选择 (wakeMode)
+    if (field === 'wakeMode') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+
+      updateDraft({ wakeMode: value });
+      setSuggestedOptions(null);
+
+      // 如果选择语音播报，显示"编辑语音播报"按钮
+      if (value === 'voice') {
+        setTimeout(() => {
+          addChatMessage({
+            role: 'ai',
+            content: '语音播报很温柔呢～点击下方按钮去编辑你的语音内容吧！',
+          });
+          setSuggestedOptions([
+            { label: '📝 编辑语音播报', value: 'edit-voice', field: 'action' }
+          ]);
+        }, 500);
+        return;
+      }
+
+      // 如果选择铃声，显示铃声选项
+      if (value === 'ringtone') {
+        setTimeout(() => {
+          addChatMessage({
+            role: 'ai',
+            content: '好哒～选择一个你喜欢的铃声吧！可以点击试听哦～',
+          });
+          setSuggestedOptions([
+            { label: '🔔 铃声1', value: 'ringtone-1', field: 'ringtone' },
+            { label: '🔔 铃声2', value: 'ringtone-2', field: 'ringtone' },
+            { label: '🔔 铃声3', value: 'ringtone-3', field: 'ringtone' },
+            { label: '📱 自定义铃声', value: 'custom-ringtone', field: 'ringtone' }
+          ]);
+        }, 500);
+        return;
+      }
+
+      // 其他唤醒方式直接继续对话
+      setTimeout(async () => {
+        const updatedDraft = { ...currentAlarmDraft, wakeMode: value };
+        await continueConversation(label, updatedDraft);
+      }, 500);
+      return;
+    }
+
+    // 处理编辑语音播报动作
+    if (field === 'action' && value === 'edit-voice') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+      setSuggestedOptions(null);
+
+      // 跳转到语音播报编辑器
+      router.push('/alarm/broadcast-editor');
+      return;
+    }
+
+    // 处理铃声选择
+    if (field === 'ringtone') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+
+      const ringtoneMap = {
+        'ringtone-1': { name: '铃声1', url: 'placeholder-url-1' },
+        'ringtone-2': { name: '铃声2', url: 'placeholder-url-2' },
+        'ringtone-3': { name: '铃声3', url: 'placeholder-url-3' },
+        'custom-ringtone': { name: '自定义铃声', url: 'placeholder-custom' }
+      };
+
+      const selectedRingtone = ringtoneMap[value];
+      updateDraft({
+        ringtoneName: selectedRingtone.name,
+        ringtoneUrl: selectedRingtone.url
+      });
+
+      setSuggestedOptions(null);
+
+      setTimeout(async () => {
+        const updatedDraft = {
+          ...currentAlarmDraft,
+          ringtoneName: selectedRingtone.name,
+          ringtoneUrl: selectedRingtone.url
+        };
         await continueConversation(label, updatedDraft);
       }, 500);
       return;
