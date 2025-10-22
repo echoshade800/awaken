@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState, Platform, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Activity, Shield, ChevronRight } from 'lucide-react-native';
+import { Activity, Shield } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { checkStepPermission, requestStepPermission } from '../../lib/healthPermissions';
 
 export default function StepPermissionScreen() {
   const router = useRouter();
+  const [permissionStatus, setPermissionStatus] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     console.log('[StepPermission] Component mounted, Platform:', Platform.OS);
+    checkCurrentPermission();
   }, []);
 
   useEffect(() => {
@@ -21,77 +23,73 @@ export default function StepPermissionScreen() {
 
   const handleAppStateChange = async (nextAppState) => {
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
-      await checkPermissionStatus();
+      console.log('[StepPermission] App returned to foreground, rechecking permission');
+      await checkCurrentPermission();
     }
     setAppState(nextAppState);
   };
 
-  const checkPermissionStatus = async () => {
+  const checkCurrentPermission = async () => {
     setIsChecking(true);
     try {
       const status = await checkStepPermission();
       console.log('[StepPermission] Permission status:', status);
-      console.log('[StepPermission] Platform:', Platform.OS);
+      setPermissionStatus(status);
 
       if (status === 'granted') {
-        console.log('[StepPermission] Permission granted, navigating to initializing...');
+        console.log('[StepPermission] Permission granted, proceeding to initialization');
         router.replace('/onboarding/initializing');
-      } else {
-        console.log('[StepPermission] Permission denied, showing buttons');
-        setIsChecking(false);
       }
     } catch (error) {
       console.error('[StepPermission] Error checking permission:', error);
+      setPermissionStatus('unavailable');
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const handleAllowAccess = async () => {
+    console.log('[StepPermission] User tapped Allow Access');
+    setIsChecking(true);
+
+    try {
+      const status = await requestStepPermission();
+      console.log('[StepPermission] Permission request result:', status);
+      setPermissionStatus(status);
+
+      if (status === 'granted') {
+        console.log('[StepPermission] Permission granted, proceeding to initialization');
+        router.replace('/onboarding/initializing');
+      } else {
+        console.log('[StepPermission] Permission denied, staying on this screen');
+      }
+    } catch (error) {
+      console.error('[StepPermission] Error requesting permission:', error);
+      setPermissionStatus('denied');
+    } finally {
       setIsChecking(false);
     }
   };
 
   const handleOpenSettings = async () => {
+    console.log('[StepPermission] Opening system settings');
     try {
       if (Platform.OS === 'ios') {
         await Linking.openURL('app-settings:');
-      } else {
+      } else if (Platform.OS === 'android') {
         await Linking.openSettings();
       }
     } catch (error) {
-      console.error('Error opening settings:', error);
+      console.error('[StepPermission] Error opening settings:', error);
     }
   };
 
-  const handleCheckPermission = () => {
-    console.log('[StepPermission] handleCheckPermission called - User confirmed permission enabled');
-    // User says they've enabled it, so trust them and proceed
-    // This allows users to continue the onboarding flow
-    console.log('[StepPermission] Navigating to initializing page');
-    router.replace('/onboarding/initializing');
+  const handleIveEnabledIt = async () => {
+    console.log('[StepPermission] User claims to have enabled permission, rechecking...');
+    await checkCurrentPermission();
   };
 
-  const handleRequestPermission = () => {
-    console.log('[StepPermission] handleRequestPermission called');
-    // For web platform, just navigate directly
-    if (Platform.OS === 'web') {
-      console.log('[StepPermission] Web platform, navigating to initializing');
-      router.replace('/onboarding/initializing');
-      return;
-    }
-    // For native platforms, request permission
-    setIsChecking(true);
-    requestStepPermission()
-      .then(status => {
-        console.log('[StepPermission] Request permission result:', status);
-        if (status === 'granted') {
-          router.replace('/onboarding/initializing');
-        } else {
-          handleOpenSettings();
-          setIsChecking(false);
-        }
-      })
-      .catch(error => {
-        console.error('[StepPermission] Error requesting permission:', error);
-        handleOpenSettings();
-        setIsChecking(false);
-      });
-  };
+  const showOpenSettingsButton = permissionStatus === 'denied' || permissionStatus === 'unavailable';
 
   return (
     <View style={styles.container}>
@@ -104,35 +102,38 @@ export default function StepPermissionScreen() {
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <Activity size={48} color="#FF9A76" strokeWidth={2} />
+            <Activity size={52} color="#FF9A76" strokeWidth={2.5} />
           </View>
         </View>
 
-        <Text style={styles.title}>Allow Health Access to Continue</Text>
+        <Text style={styles.title}>Help Awaken understand your rhythm</Text>
 
         <Text style={styles.subtitle}>
-          Awaken needs step data to understand your sleep and circadian rhythm.
+          We use your step data to estimate your sleep and build your circadian rhythm.
         </Text>
 
         <View style={styles.securityCard}>
-          <Shield size={20} color="#4A5F8F" />
+          <Shield size={22} color="#4A5F8F" strokeWidth={2} />
           <Text style={styles.securityText}>
-            We only read step counts — no personal data or location is collected.
+            We only read step counts – no personal data or location is collected.
           </Text>
         </View>
 
-        <View style={styles.featureList}>
-          <View style={styles.featureItem}>
-            <View style={styles.featureDot} />
-            <Text style={styles.featureText}>Detect your sleep patterns automatically</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureDot} />
-            <Text style={styles.featureText}>Calculate your personal sleep need</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureDot} />
-            <Text style={styles.featureText}>Track your circadian rhythm</Text>
+        <View style={styles.benefitsContainer}>
+          <Text style={styles.benefitsTitle}>What we'll detect:</Text>
+          <View style={styles.benefitsList}>
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitDot} />
+              <Text style={styles.benefitText}>Your natural sleep patterns</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitDot} />
+              <Text style={styles.benefitText}>Personal sleep need calculation</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitDot} />
+              <Text style={styles.benefitText}>Real-time circadian rhythm tracking</Text>
+            </View>
           </View>
         </View>
 
@@ -143,33 +144,61 @@ export default function StepPermissionScreen() {
             </View>
           ) : (
             <>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={handleRequestPermission}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.primaryButtonText}>
-                  Grant Permission
-                </Text>
-                <ChevronRight size={20} color="#FFF" />
-              </TouchableOpacity>
+              {!showOpenSettingsButton ? (
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={handleAllowAccess}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient
+                    colors={['#FF9A76', '#FFB08C', '#FFC5A2']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.primaryButtonGradient}
+                  >
+                    <Text style={styles.primaryButtonText}>Allow Access</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={handleOpenSettings}
+                  activeOpacity={0.85}
+                >
+                  <LinearGradient
+                    colors={['#FF9A76', '#FFB08C', '#FFC5A2']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.primaryButtonGradient}
+                  >
+                    <Text style={styles.primaryButtonText}>Open Settings</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
 
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handleCheckPermission}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  I've Enabled It
-                </Text>
-              </TouchableOpacity>
+              {showOpenSettingsButton && (
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={handleIveEnabledIt}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.linkButtonText}>I've Enabled It</Text>
+                </TouchableOpacity>
+              )}
             </>
           )}
         </View>
 
-        <Text style={styles.helpText}>
-          Need help? Go to Settings → Privacy → Health → Awaken
-        </Text>
+        {showOpenSettingsButton && (
+          <View style={styles.instructionCard}>
+            <Text style={styles.instructionTitle}>How to enable:</Text>
+            <Text style={styles.instructionText}>
+              {Platform.OS === 'ios'
+                ? '1. Open the Health app\n2. Tap your profile icon (top right)\n3. Privacy → Apps → Awaken\n4. Enable "Steps" permission\n5. Return here and tap "I\'ve Enabled It"'
+                : '1. Open Settings\n2. Apps → Awaken\n3. Permissions → Physical Activity\n4. Allow access\n5. Return here and tap "I\'ve Enabled It"'}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -188,33 +217,35 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingHorizontal: 28,
+    paddingTop: 70,
     paddingBottom: 40,
+    justifyContent: 'center',
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
   },
   iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#FF9A76',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
     color: '#1A2845',
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 36,
+    marginBottom: 12,
+    lineHeight: 34,
   },
   subtitle: {
     fontSize: 16,
@@ -222,93 +253,124 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 24,
+    paddingHorizontal: 8,
   },
   securityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 32,
-    gap: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    padding: 18,
+    borderRadius: 18,
+    marginBottom: 28,
+    gap: 14,
     borderWidth: 1,
-    borderColor: 'rgba(74, 95, 143, 0.2)',
+    borderColor: 'rgba(74, 95, 143, 0.15)',
+    shadowColor: '#4A5F8F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   securityText: {
     flex: 1,
     fontSize: 14,
     color: '#4A5F8F',
-    lineHeight: 20,
+    lineHeight: 21,
+    fontWeight: '500',
   },
-  featureList: {
-    marginBottom: 40,
-    gap: 16,
+  benefitsContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    padding: 20,
+    borderRadius: 18,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 154, 118, 0.2)',
   },
-  featureItem: {
+  benefitsTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#4A5F8F',
+    marginBottom: 14,
+  },
+  benefitsList: {
+    gap: 12,
+  },
+  benefitItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  featureDot: {
+  benefitDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#FF9A76',
   },
-  featureText: {
+  benefitText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     color: '#4A5F8F',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   buttonContainer: {
-    gap: 12,
-    marginBottom: 24,
+    gap: 14,
+    marginBottom: 20,
   },
   checkingContainer: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     alignItems: 'center',
   },
   checkingText: {
     fontSize: 16,
     color: '#4A5F8F',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FF9A76',
-    paddingVertical: 16,
-    borderRadius: 20,
-    gap: 8,
+    borderRadius: 22,
     shadowColor: '#FF9A76',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  primaryButtonGradient: {
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    borderRadius: 22,
+    alignItems: 'center',
   },
   primaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
-  secondaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  linkButton: {
     paddingVertical: 14,
-    borderRadius: 16,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(74, 95, 143, 0.3)',
   },
-  secondaryButtonText: {
+  linkButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#4A5F8F',
+    textDecorationLine: 'underline',
   },
-  helpText: {
-    fontSize: 13,
-    color: '#8B9BAE',
-    textAlign: 'center',
-    lineHeight: 18,
+  instructionCard: {
+    backgroundColor: 'rgba(255, 184, 140, 0.12)',
+    padding: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 184, 140, 0.25)',
+  },
+  instructionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#4A5F8F',
+    marginBottom: 10,
+  },
+  instructionText: {
+    fontSize: 14,
+    color: '#6B7C99',
+    lineHeight: 22,
   },
 });
