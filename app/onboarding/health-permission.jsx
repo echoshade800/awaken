@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Activity } from 'lucide-react-native';
@@ -11,22 +11,66 @@ export default function HealthPermissionScreen() {
   const requestHealthPermission = useStore((state) => state.requestHealthPermission);
   const syncHealthData = useStore((state) => state.syncHealthData);
 
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      console.log('[Health Permission] Web platform detected - health features not available');
+    }
+  }, []);
+
   const handleRequestPermission = async () => {
+    console.log('[Health Permission] Request button pressed');
     setIsRequesting(true);
 
     try {
+      if (Platform.OS === 'web') {
+        console.log('[Health Permission] Web platform - skipping to loading');
+        Alert.alert(
+          'Demo Mode',
+          'Health tracking requires iOS or Android. Continuing with demo data.',
+          [{ text: 'OK', onPress: () => router.replace('/onboarding/loading') }]
+        );
+        setIsRequesting(false);
+        return;
+      }
+
+      console.log('[Health Permission] Requesting permission...');
       const granted = await requestHealthPermission();
+      console.log('[Health Permission] Permission result:', granted);
 
       if (granted) {
+        console.log('[Health Permission] Permission granted, syncing data...');
         await syncHealthData();
+        console.log('[Health Permission] Data synced, navigating to loading...');
         router.replace('/onboarding/loading');
       } else {
+        console.log('[Health Permission] Permission denied');
+        Alert.alert(
+          'Permission Required',
+          'Health access is needed to track your sleep. Please allow access in Settings.',
+          [
+            { text: 'Skip for Now', onPress: () => router.replace('/onboarding/loading') },
+            { text: 'Try Again', onPress: () => setIsRequesting(false) }
+          ]
+        );
         setIsRequesting(false);
       }
     } catch (error) {
-      console.error('Permission request error:', error);
+      console.error('[Health Permission] Error:', error);
+      Alert.alert(
+        'Error',
+        'Could not request health permission. Continue with limited features?',
+        [
+          { text: 'Continue', onPress: () => router.replace('/onboarding/loading') },
+          { text: 'Retry', onPress: () => setIsRequesting(false) }
+        ]
+      );
       setIsRequesting(false);
     }
+  };
+
+  const handleSkip = () => {
+    console.log('[Health Permission] Skip button pressed');
+    router.replace('/onboarding/loading');
   };
 
   return (
@@ -70,9 +114,15 @@ export default function HealthPermissionScreen() {
               <Text style={styles.loadingText}>Requesting permission...</Text>
             </View>
           ) : (
-            <TouchableOpacity style={styles.primaryButton} onPress={handleRequestPermission}>
-              <Text style={styles.primaryButtonText}>Allow Health Access</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity style={styles.primaryButton} onPress={handleRequestPermission}>
+                <Text style={styles.primaryButtonText}>Allow Health Access</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.secondaryButton} onPress={handleSkip}>
+                <Text style={styles.secondaryButtonText}>Skip for Now</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
 
@@ -142,6 +192,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     marginBottom: 24,
+    gap: 12,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -163,6 +214,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  secondaryButton: {
+    width: '100%',
+    height: 56,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   privacyNote: {
     fontSize: 13,
