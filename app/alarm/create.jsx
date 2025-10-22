@@ -198,7 +198,7 @@ export default function AlarmCreate() {
 
       addChatMessage({
         role: 'ai',
-        content: `姐妹！还差一点点～\n缺少：${missingText}\n\n继续输入或选择吧～😊`,
+        content: `还差一点点～\n缺少：${missingText}\n\n继续输入或选择吧～😊`,
       });
 
       const firstMissing = missingInfo[0];
@@ -210,7 +210,7 @@ export default function AlarmCreate() {
 
   const askForMissingInfo = async (field) => {
     const prompts = {
-      label: '姐妹！这个闹钟是干嘛用的呀？😊',
+      label: '这个闹钟是干嘛用的呀？😊',
       time: '几点叫你呢～早起的话记得早睡哦💤',
       period: '要每天都叫你嘛？还是就明天一次？',
       wakeMode: '想用什么方式叫醒你呀？铃声、语音播报还是震动？',
