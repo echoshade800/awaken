@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 100,
     right: 24,
     flexDirection: 'row',
     alignItems: 'center',
