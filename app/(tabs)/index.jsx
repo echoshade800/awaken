@@ -279,7 +279,7 @@ export default function HomeScreen() {
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
                   <SleepDebtPuzzle />
                 </UnifiedPanelBorder>
-                <Text style={styles.panelLabel}>Sleep Quality</Text>
+                <Text style={styles.panelLabel}>Sleep Debt</Text>
               </View>
             </View>
           </View>
