@@ -177,6 +177,7 @@ export default function AlarmCreate() {
     if (!draft.time) missing.push('time');
     if (!draft.period) missing.push('period');
     if (!draft.wakeMode) missing.push('wakeMode');
+    if (draft.interactionEnabled === undefined) missing.push('interaction');
 
     return missing;
   };
@@ -190,31 +191,30 @@ export default function AlarmCreate() {
         time: '时间',
         period: '周期',
         wakeMode: '唤醒方式',
+        interaction: '互动任务',
       };
 
       const missingText = missingInfo.map((key) => missingLabels[key]).join('、');
 
       addChatMessage({
         role: 'ai',
-        content: `还缺少一些信息哦～\n缺少：${missingText}\n\n请继续输入或选择～`,
+        content: `姐妹！还差一点点～\n缺少：${missingText}\n\n继续输入或选择吧～😊`,
       });
 
       const firstMissing = missingInfo[0];
       await askForMissingInfo(firstMissing);
     } else {
-      if (currentAlarmDraft.interactionEnabled === undefined) {
-        updateDraft({ interactionEnabled: false });
-      }
       setShowSummaryModal(true);
     }
   };
 
   const askForMissingInfo = async (field) => {
     const prompts = {
-      label: '这个闹钟是做什么用的呢？',
-      time: '你想什么时候叫你呢？',
-      period: '要每天都叫你，还是只一次呢？',
-      wakeMode: '想用什么方式叫你呢？',
+      label: '姐妹！这个闹钟是干嘛用的呀？😊',
+      time: '几点叫你呢～早起的话记得早睡哦💤',
+      period: '要每天都叫你嘛？还是就明天一次？',
+      wakeMode: '想用什么方式叫醒你呀？铃声、语音播报还是震动？',
+      interaction: '要不要加个互动小游戏？保证能把你摇清醒！🎮',
     };
 
     const message = prompts[field] || '请继续输入～';
