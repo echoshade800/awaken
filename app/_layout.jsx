@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
-import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import useStore from '@/lib/store';
+import { useFrameworkReady } from '../hooks/useFrameworkReady';
+import useStore from '../lib/store';
 
 export default function RootLayout() {
   useFrameworkReady();

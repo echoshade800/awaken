@@ -3,10 +3,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useMemo, useEffect } from 'react';
 import { BlurView } from 'expo-blur';
-import SleepTimesChart from '@/components/SleepTimesChart';
-import SleepDebtChart from '@/components/SleepDebtChart';
-import SleepActionBar from '@/components/SleepActionBar';
-import useStore from '@/lib/store';
+import SleepTimesChart from '../../components/SleepTimesChart';
+import SleepDebtChart from '../../components/SleepDebtChart';
+import SleepActionBar from '../../components/SleepActionBar';
+import useStore from '../../lib/store';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;

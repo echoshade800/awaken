@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
+import UnifiedPanelBorder from './UnifiedPanelBorder';
 import { useEffect, useRef } from 'react';
 
 export default function SleepDebtCard({ sleepDebt = 0 }) {

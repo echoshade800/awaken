@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useStore from '@/lib/store';
+import useStore from '../../lib/store';
 
 export default function LoadingScreen() {
   const router = useRouter();

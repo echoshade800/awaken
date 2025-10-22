@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, Plus } from 'lucide-react-native';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import useStore from '@/lib/store';
+import useStore from '../lib/store';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const IS_SMALL_DEVICE = SCREEN_HEIGHT < 700;

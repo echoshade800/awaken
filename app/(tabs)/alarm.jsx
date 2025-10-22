@@ -3,9 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, AlarmClock } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import useStore from '@/lib/store';
-import AlarmCard from '@/components/AlarmCard';
-import StarBackground from '@/components/StarBackground';
+import useStore from '../../lib/store';
+import AlarmCard from '../../components/AlarmCard';
+import StarBackground from '../../components/StarBackground';
 
 export default function AlarmScreen() {
   const router = useRouter();

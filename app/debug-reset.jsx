@@ -3,8 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import useStore from '@/lib/store';
-import StorageUtils from '@/lib/StorageUtils';
+import useStore from '../lib/store';
+import StorageUtils from '../lib/StorageUtils';
 
 export default function DebugResetScreen() {
   const router = useRouter();
