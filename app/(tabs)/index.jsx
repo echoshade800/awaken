@@ -18,6 +18,7 @@ import DreamBubble from '@/components/DreamBubble';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeBackgroundTasks } from '@/lib/backgroundTasks';
+import { getSleepData, refreshSleepDataIfNeeded } from '@/lib/sleepInference';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -54,9 +55,10 @@ export default function HomeScreen() {
   useEffect(() => {
     const initializeSleepData = async () => {
       console.log('[Home] Initializing sleep data...');
+      await refreshSleepDataIfNeeded();
       await loadSleepData();
       await initializeBackgroundTasks();
-      updateRhythmData();
+      await updateRhythmDataFromStorage();
       console.log('[Home] Sleep data initialized');
     };
     initializeSleepData();
@@ -66,6 +68,50 @@ export default function HomeScreen() {
   useEffect(() => {
     updateRhythmData();
   }, [sleepDebt]);
+
+  const updateRhythmDataFromStorage = async () => {
+    const sleepData = await getSleepData();
+
+    if (sleepData && sleepData.circadianDay && sleepData.circadianDay.length > 0) {
+      console.log('[Home] Using calculated sleep data from storage');
+
+      const curve = sleepData.circadianDay.map(point => ({
+        time: point.t,
+        energy: point.value,
+      }));
+
+      const peak = curve.reduce((max, point) => point.energy > max.energy ? point : max, curve[0]);
+      const valley = curve.reduce((min, point) => point.energy < min.energy ? point : min, curve[0]);
+
+      let debtInfo = { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' };
+      if (sleepData.sleepDebtMin > 180) {
+        debtInfo = { label: 'High', emoji: '😰', color: '#FF6B6B', severity: 'high' };
+      } else if (sleepData.sleepDebtMin > 60) {
+        debtInfo = { label: 'Moderate', emoji: '😐', color: '#FFD93D', severity: 'moderate' };
+      }
+
+      const currentEnergy = curve.find(p => {
+        const now = new Date();
+        const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        return p.time === currentTimeStr;
+      }) || curve[0];
+
+      setRhythmData({
+        energyScore: currentEnergy.energy,
+        peak,
+        valley,
+        curve,
+        monsterTip: debtInfo.severity === 'high'
+          ? "😴 You need more sleep! Try to rest earlier tonight."
+          : debtInfo.severity === 'moderate'
+          ? "💤 Sleep debt is building. Consider an earlier bedtime."
+          : "✨ Energy's balanced. Keep it calm and consistent 🌙",
+        debtInfo,
+      });
+    } else {
+      updateRhythmData();
+    }
+  };
 
   const updateRhythmData = () => {
     const energyData = getEnergyRhythmData();
@@ -80,7 +126,6 @@ export default function HomeScreen() {
       setRhythmData(energyData);
     } else {
       console.log('[Home] Using mock data fallback');
-      // Fallback to mock data if no calculated data available
       const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
       const mockData = generateMockRhythm({
         wake: nextAlarm?.time || '07:30',

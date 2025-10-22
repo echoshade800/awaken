@@ -223,7 +223,7 @@ export default function SmartAlarmScreen() {
         setIsAIProcessing(false);
 
         setTimeout(() => {
-          router.push('/onboarding/loading');
+          router.push('/onboarding/step-permission');
         }, 1500);
       } catch (error) {
         console.error('Final encouragement error:', error);
@@ -236,7 +236,7 @@ export default function SmartAlarmScreen() {
         setIsAIProcessing(false);
 
         setTimeout(() => {
-          router.push('/onboarding/loading');
+          router.push('/onboarding/step-permission');
         }, 1500);
       }
     }, 300);
@@ -244,7 +244,7 @@ export default function SmartAlarmScreen() {
 
   const handleSkip = () => {
     clearAlarmDraft();
-    router.push('/onboarding/loading');
+    router.push('/onboarding/step-permission');
   };
 
   const handleTextInput = async () => {

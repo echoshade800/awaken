@@ -7,6 +7,7 @@ import SleepTimesChart from '@/components/SleepTimesChart';
 import SleepDebtChart from '@/components/SleepDebtChart';
 import SleepActionBar from '@/components/SleepActionBar';
 import useStore from '@/lib/store';
+import { getSleepData, formatSleepDuration, formatTime } from '@/lib/sleepInference';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;
@@ -30,11 +31,38 @@ export default function SleepScreen() {
 
   const [chartData, setChartData] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
+  const [inferredSleepNeed, setInferredSleepNeed] = useState(8);
 
   useEffect(() => {
+    loadSleepDataFromStorage();
     setChartData(getSleepSessionsForChart());
     setAllSessions(getAllSleepSessions());
   }, [sleepSessions]);
+
+  const loadSleepDataFromStorage = async () => {
+    const data = await getSleepData();
+    if (data && data.sleepSeries) {
+      setInferredSleepNeed(data.sleepNeedMin / 60);
+
+      const formattedData = data.sleepSeries.slice(-7).map(session => {
+        const date = new Date(session.date);
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        return {
+          date: session.date,
+          dayLabel: dayNames[date.getDay()],
+          sleepTime: formatTime(session.startISO),
+          wakeTime: formatTime(session.endISO),
+          duration: formatSleepDuration(session.durationMin),
+          slept: session.durationMin / 60,
+        };
+      });
+
+      if (formattedData.length > 0) {
+        setChartData(formattedData);
+      }
+    }
+  };
 
   const processedTimesData = chartData.map((item) => {
     const date = new Date(item.date);
@@ -51,10 +79,9 @@ export default function SleepScreen() {
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-      const slept = item.duration
-        ? parseInt(item.duration.split('h')[0]) + parseInt(item.duration.split(' ')[1]) / 60
-        : 0;
-      const debt = sleepNeed - slept;
+      const slept = item.slept || 0;
+      const currentSleepNeed = inferredSleepNeed || sleepNeed;
+      const debt = currentSleepNeed - slept;
 
       return {
         date: item.date,
