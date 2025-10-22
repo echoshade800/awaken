@@ -1,22 +1,30 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
-import { X, Sparkles } from 'lucide-react-native';
+import { X, Sparkles, Edit2 } from 'lucide-react-native';
 import { getGameLabel } from '../lib/interactionOptions';
 
 const PERIOD_LABELS = {
-  everyday: '每天',
-  workday: '工作日',
-  weekend: '周末',
-  tomorrow: '只一次',
+  everyday: 'Every day',
+  workday: 'Weekdays',
+  weekend: 'Weekends',
+  tomorrow: 'Just once',
 };
 
 const VOICE_PACKAGE_LABELS = {
-  'energetic-girl': '元气少女🎀',
-  'calm-man': '沉稳大叔🧠',
-  'ancient-style': '古风公子🌙',
-  'cat': '小猫咪🐱',
+  'energetic-girl': 'Energetic Girl 🎀',
+  'calm-man': 'Calm Man 🧠',
+  'ancient-style': 'Ancient Style 🌙',
+  'cat': 'Cat 🐱',
 };
 
-export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel, onAddInteraction }) {
+export default function AlarmSummaryModal({
+  visible,
+  alarm,
+  onConfirm,
+  onClose,
+  onAddInteraction,
+  allowEdit = false,
+  onEdit
+}) {
   if (!alarm) return null;
 
   const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
@@ -29,102 +37,162 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel,
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
-            <Text style={styles.title}>闹钟设置总结</Text>
-            <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
+            <Text style={styles.title}>Alarm Summary</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color="#666" />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.scrollContent}>
             <View style={styles.content}>
-            {alarm.label && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.label}>📛 名称</Text>
-                <Text style={styles.value}>{alarm.label}</Text>
-              </View>
-            )}
-
-            <View style={styles.summaryItem}>
-              <Text style={styles.label}>⏰ 时间</Text>
-              <Text style={styles.value}>{alarm.time || '未设置'}</Text>
-            </View>
-
-            <View style={styles.summaryItem}>
-              <Text style={styles.label}>📅 周期</Text>
-              <Text style={styles.value}>{periodLabel || '未设置'}</Text>
-            </View>
-
-            <View style={styles.summaryItem}>
-              <Text style={styles.label}>🎙️ 唤醒方式</Text>
-              {alarm.wakeMode === 'voice' ? (
-                <Text style={styles.value}>语音播报（{voiceLabel}）</Text>
-              ) : alarm.wakeMode === 'ringtone' ? (
-                <Text style={styles.value}>铃声</Text>
-              ) : alarm.wakeMode === 'vibration' ? (
-                <Text style={styles.value}>震动</Text>
-              ) : (
-                <Text style={styles.value}>未设置</Text>
-              )}
-            </View>
-
-            {alarm.broadcastContent && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.label}>📻 播报内容</Text>
-                <Text style={styles.value}>
-                  {alarm.broadcastContent === 'default' ? '默认播报' : '自定义播报'}
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.summaryItem}>
-              <Text style={styles.label}>🎮 互动游戏</Text>
-              {hasInteraction ? (
-                <Text style={styles.value}>{gameLabel}</Text>
-              ) : (
-                <Text style={styles.value}>无</Text>
-              )}
-            </View>
-
-            {!hasInteraction && onAddInteraction && (
-              <View style={styles.recommendation}>
-                <View style={styles.recommendHeader}>
-                  <Sparkles size={18} color="#FF9A76" />
-                  <Text style={styles.recommendTitle}>推荐：添加互动任务</Text>
+              {alarm.label && (
+                <View style={styles.summaryItem}>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.label}>📛 Name</Text>
+                    {allowEdit && onEdit && (
+                      <TouchableOpacity
+                        onPress={() => onEdit('label')}
+                        style={styles.editButton}
+                      >
+                        <Edit2 size={16} color="#FF9A76" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <Text style={styles.value}>{alarm.label}</Text>
                 </View>
-                <Text style={styles.recommendDesc}>
-                  加个小任务让起床更清醒！比如答题、摇一摇或小拼图～😆
-                </Text>
-                <View style={styles.gameOptions}>
-                  <TouchableOpacity
-                    style={styles.gameOption}
-                    onPress={() => onAddInteraction('quiz')}
-                  >
-                    <Text style={styles.gameOptionText}>🧠 答题</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.gameOption}
-                    onPress={() => onAddInteraction('shake')}
-                  >
-                    <Text style={styles.gameOptionText}>📱 摇一摇</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.gameOption}
-                    onPress={() => onAddInteraction('game')}
-                  >
-                    <Text style={styles.gameOptionText}>🎮 小游戏</Text>
-                  </TouchableOpacity>
+              )}
+
+              <View style={styles.summaryItem}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>⏰ Time</Text>
+                  {allowEdit && onEdit && (
+                    <TouchableOpacity
+                      onPress={() => onEdit('time')}
+                      style={styles.editButton}
+                    >
+                      <Edit2 size={16} color="#FF9A76" />
+                    </TouchableOpacity>
+                  )}
                 </View>
+                <Text style={styles.value}>{alarm.time || 'Not set'}</Text>
               </View>
-            )}
+
+              <View style={styles.summaryItem}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>📅 Period</Text>
+                  {allowEdit && onEdit && (
+                    <TouchableOpacity
+                      onPress={() => onEdit('period')}
+                      style={styles.editButton}
+                    >
+                      <Edit2 size={16} color="#FF9A76" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text style={styles.value}>{periodLabel || 'Not set'}</Text>
+              </View>
+
+              <View style={styles.summaryItem}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>🎙️ Wake Mode</Text>
+                  {allowEdit && onEdit && (
+                    <TouchableOpacity
+                      onPress={() => onEdit('wakeMode')}
+                      style={styles.editButton}
+                    >
+                      <Edit2 size={16} color="#FF9A76" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {alarm.wakeMode === 'voice' ? (
+                  <Text style={styles.value}>Voice Broadcast ({voiceLabel})</Text>
+                ) : alarm.wakeMode === 'ringtone' ? (
+                  <Text style={styles.value}>Ringtone</Text>
+                ) : alarm.wakeMode === 'vibration' ? (
+                  <Text style={styles.value}>Vibration</Text>
+                ) : (
+                  <Text style={styles.value}>Not set</Text>
+                )}
+              </View>
+
+              {alarm.broadcastContent && (
+                <View style={styles.summaryItem}>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.label}>📻 Broadcast Content</Text>
+                    {allowEdit && onEdit && (
+                      <TouchableOpacity
+                        onPress={() => onEdit('broadcast')}
+                        style={styles.editButton}
+                      >
+                        <Edit2 size={16} color="#FF9A76" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <Text style={styles.value}>
+                    {alarm.broadcastContent === 'default' ? 'Default broadcast' : 'Custom broadcast'}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.summaryItem}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.label}>🎮 Interactive Game</Text>
+                  {allowEdit && onEdit && hasInteraction && (
+                    <TouchableOpacity
+                      onPress={() => onEdit('interaction')}
+                      style={styles.editButton}
+                    >
+                      <Edit2 size={16} color="#FF9A76" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {hasInteraction ? (
+                  <Text style={styles.value}>{gameLabel}</Text>
+                ) : (
+                  <Text style={styles.value}>None</Text>
+                )}
+              </View>
+
+              {!hasInteraction && onAddInteraction && (
+                <View style={styles.recommendation}>
+                  <View style={styles.recommendHeader}>
+                    <Sparkles size={18} color="#FF9A76" />
+                    <Text style={styles.recommendTitle}>Suggestion: Add Interactive Task</Text>
+                  </View>
+                  <Text style={styles.recommendDesc}>
+                    Add a mini-task to wake up more alert! Like a quiz, shake, or puzzle~ 😆
+                  </Text>
+                  <View style={styles.gameOptions}>
+                    <TouchableOpacity
+                      style={styles.gameOption}
+                      onPress={() => onAddInteraction('quiz')}
+                    >
+                      <Text style={styles.gameOptionText}>🧠 Quiz</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.gameOption}
+                      onPress={() => onAddInteraction('shake')}
+                    >
+                      <Text style={styles.gameOptionText}>📱 Shake</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.gameOption}
+                      onPress={() => onAddInteraction('game')}
+                    >
+                      <Text style={styles.gameOptionText}>🎮 Puzzle</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
           </ScrollView>
 
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-              <Text style={styles.cancelButtonText}>继续修改</Text>
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+              <Text style={styles.cancelButtonText}>Continue Editing</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
-              <Text style={styles.confirmButtonText}>确认保存</Text>
+              <Text style={styles.confirmButtonText}>Confirm & Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -177,6 +245,27 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 16,
   },
+  summaryItem: {
+    gap: 8,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#666',
+  },
+  editButton: {
+    padding: 4,
+  },
+  value: {
+    fontSize: 17,
+    fontWeight: '500',
+    color: '#1C1C1E',
+  },
   recommendation: {
     marginTop: 8,
     padding: 16,
@@ -199,8 +288,8 @@ const styles = StyleSheet.create({
   recommendDesc: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 12,
     lineHeight: 20,
+    marginBottom: 12,
   },
   gameOptions: {
     flexDirection: 'row',
@@ -209,35 +298,17 @@ const styles = StyleSheet.create({
   gameOption: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FFD4B8',
+    borderWidth: 1.5,
+    borderColor: '#FFE5CC',
   },
   gameOptionText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  summaryItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 16,
-    color: '#8E8E93',
     fontWeight: '500',
-  },
-  value: {
-    fontSize: 16,
-    color: '#1C1C1E',
-    fontWeight: '600',
-    textAlign: 'right',
-    flex: 1,
-    marginLeft: 16,
+    color: '#FF9A76',
   },
   actions: {
     flexDirection: 'row',
@@ -248,22 +319,27 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 12,
     paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
+    backgroundColor: '#F5F5F7',
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: '#666',
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#FF9A76',
-    borderRadius: 12,
     paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
+    backgroundColor: '#FF9A76',
+    shadowColor: '#FF9A76',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   confirmButtonText: {
     fontSize: 16,

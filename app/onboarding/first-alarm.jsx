@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Send, Mic } from 'lucide-react-native';
+import { Send, Mic } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
 import ChatBubble from '../../components/ChatBubble';
@@ -20,13 +20,14 @@ import AlarmInfoCard from '../../components/AlarmInfoCard';
 import AlarmSummaryModal from '../../components/AlarmSummaryModal';
 import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
 
-export default function AlarmCreate() {
+export default function FirstAlarmOnboarding() {
   const router = useRouter();
   const scrollViewRef = useRef(null);
   const [inputText, setInputText] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [suggestedOptions, setSuggestedOptions] = useState(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [canSkip, setCanSkip] = useState(false);
 
   const {
     currentAlarmDraft,
@@ -41,26 +42,17 @@ export default function AlarmCreate() {
   useEffect(() => {
     initNewAlarm();
 
-    // 随机选择一个开场白
-    const greetings = [
-      '嘿～要不要我帮你定个闹钟？今天太累啦，早点休息嘛💤',
-      '呀～新的一天要开始啦☀️ 让我帮你设个闹钟吧！',
-      '早安～🌤️ 要给闹钟取个名字吗？比如上班、健身～',
-    ];
-    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-
     addChatMessage({
       role: 'ai',
-      content: randomGreeting,
+      content: 'Welcome! Let\'s create your very first alarm together~ 🎉\n\nWhat would you like to use this alarm for?',
     });
 
-    // 提供快捷名称选项
     setTimeout(() => {
       setSuggestedOptions([
-        { label: '上班', value: '上班', field: 'label' },
-        { label: '健身', value: '健身', field: 'label' },
-        { label: '午睡', value: '午睡', field: 'label' },
-        { label: '自定义', value: 'custom', field: 'label' },
+        { label: 'Work', value: 'Work', field: 'label' },
+        { label: 'Gym', value: 'Gym', field: 'label' },
+        { label: 'Nap', value: 'Nap', field: 'label' },
+        { label: 'Custom', value: 'custom', field: 'label' },
       ]);
     }, 500);
   }, []);
@@ -69,15 +61,12 @@ export default function AlarmCreate() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [chatHistory, suggestedOptions]);
 
-  // Detect return from voice broadcast editor
   useEffect(() => {
     if (currentAlarmDraft?.wakeMode === 'voice' &&
         currentAlarmDraft?.broadcastContent &&
         chatHistory.length > 0) {
-      // Check if last message is "Edit Voice Broadcast"
       const lastUserMessage = [...chatHistory].reverse().find(msg => msg.role === 'user');
       if (lastUserMessage?.content === '📝 Edit Voice Broadcast') {
-        // User just returned from editor, continue conversation
         setTimeout(async () => {
           addChatMessage({
             role: 'ai',
@@ -89,11 +78,9 @@ export default function AlarmCreate() {
     }
   }, [currentAlarmDraft?.broadcastContent]);
 
-
   const handleOptionSelect = async (option) => {
     const { field, value, label } = option;
 
-    // 处理自定义输入
     if (value === 'custom') {
       addChatMessage({
         role: 'user',
@@ -103,9 +90,9 @@ export default function AlarmCreate() {
       setTimeout(() => {
         let prompt = '';
         if (field === 'time') {
-          prompt = '好的～请输入你想要的时间，比如"7:30"或者"18:00"～';
+          prompt = 'Okay~ Please enter your desired time, like "7:30" or "18:00"~';
         } else if (field === 'label') {
-          prompt = '好的～请输入闹钟名称，比如"早起"、"晨练"等～';
+          prompt = 'Okay~ Please enter an alarm name, like "Morning" or "Exercise"~';
         }
         addChatMessage({
           role: 'ai',
@@ -115,14 +102,12 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理任务类型选择
     if (field === 'interactionType') {
       addChatMessage({
         role: 'user',
         content: label,
       });
 
-      // 构建更新后的 draft
       let updatedFields;
       if (value === 'none') {
         updatedFields = { interactionEnabled: false, interactionType: null };
@@ -130,12 +115,9 @@ export default function AlarmCreate() {
         updatedFields = { interactionEnabled: true, interactionType: value };
       }
 
-      // 立即更新 draft
       updateDraft(updatedFields);
-
       setSuggestedOptions(null);
 
-      // 传递更新后的完整 draft 给 AI
       setTimeout(async () => {
         const updatedDraft = { ...currentAlarmDraft, ...updatedFields };
         await continueConversation(label, updatedDraft);
@@ -143,7 +125,6 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理唤醒方式选择 (wakeMode)
     if (field === 'wakeMode') {
       addChatMessage({
         role: 'user',
@@ -153,38 +134,35 @@ export default function AlarmCreate() {
       updateDraft({ wakeMode: value });
       setSuggestedOptions(null);
 
-      // 如果选择语音播报，显示"编辑语音播报"按钮
       if (value === 'voice') {
         setTimeout(() => {
           addChatMessage({
             role: 'ai',
-            content: '语音播报很温柔呢～点击下方按钮去编辑你的语音内容吧！',
+            content: 'Voice broadcast is so gentle~ Click the button below to edit your voice content!',
           });
           setSuggestedOptions([
-            { label: '📝 编辑语音播报', value: 'edit-voice', field: 'action' }
+            { label: '📝 Edit Voice Broadcast', value: 'edit-voice', field: 'action' }
           ]);
         }, 500);
         return;
       }
 
-      // 如果选择铃声，显示铃声选项
       if (value === 'ringtone') {
         setTimeout(() => {
           addChatMessage({
             role: 'ai',
-            content: '好哒～选择一个你喜欢的铃声吧！可以点击试听哦～',
+            content: 'Alright~ Choose a ringtone you like! You can tap to preview~',
           });
           setSuggestedOptions([
-            { label: '🔔 铃声1', value: 'ringtone-1', field: 'ringtone' },
-            { label: '🔔 铃声2', value: 'ringtone-2', field: 'ringtone' },
-            { label: '🔔 铃声3', value: 'ringtone-3', field: 'ringtone' },
-            { label: '📱 自定义铃声', value: 'custom-ringtone', field: 'ringtone' }
+            { label: '🔔 Ringtone 1', value: 'ringtone-1', field: 'ringtone' },
+            { label: '🔔 Ringtone 2', value: 'ringtone-2', field: 'ringtone' },
+            { label: '🔔 Ringtone 3', value: 'ringtone-3', field: 'ringtone' },
+            { label: '📱 Custom Ringtone', value: 'custom-ringtone', field: 'ringtone' }
           ]);
         }, 500);
         return;
       }
 
-      // 其他唤醒方式直接继续对话
       setTimeout(async () => {
         const updatedDraft = { ...currentAlarmDraft, wakeMode: value };
         await continueConversation(label, updatedDraft);
@@ -192,7 +170,6 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理编辑语音播报动作
     if (field === 'action' && value === 'edit-voice') {
       addChatMessage({
         role: 'user',
@@ -200,12 +177,10 @@ export default function AlarmCreate() {
       });
       setSuggestedOptions(null);
 
-      // 跳转到语音播报编辑器
       router.push('/alarm/broadcast-editor');
       return;
     }
 
-    // 处理铃声选择
     if (field === 'ringtone') {
       addChatMessage({
         role: 'user',
@@ -213,10 +188,10 @@ export default function AlarmCreate() {
       });
 
       const ringtoneMap = {
-        'ringtone-1': { name: '铃声1', url: 'placeholder-url-1' },
-        'ringtone-2': { name: '铃声2', url: 'placeholder-url-2' },
-        'ringtone-3': { name: '铃声3', url: 'placeholder-url-3' },
-        'custom-ringtone': { name: '自定义铃声', url: 'placeholder-custom' }
+        'ringtone-1': { name: 'Ringtone 1', url: 'placeholder-url-1' },
+        'ringtone-2': { name: 'Ringtone 2', url: 'placeholder-url-2' },
+        'ringtone-3': { name: 'Ringtone 3', url: 'placeholder-url-3' },
+        'custom-ringtone': { name: 'Custom Ringtone', url: 'placeholder-custom' }
       };
 
       const selectedRingtone = ringtoneMap[value];
@@ -238,7 +213,6 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 普通选项处理
     addChatMessage({
       role: 'user',
       content: label,
@@ -264,25 +238,22 @@ export default function AlarmCreate() {
       if (!aiResult.success) {
         addChatMessage({
           role: 'ai',
-          content: '抱歉，我遇到了一点问题。请重新输入～',
+          content: 'Sorry, I encountered a problem. Please try again~',
         });
         setIsAIProcessing(false);
         return;
       }
 
-      // 更新 draft（如果 AI 提取了新参数）
       if (aiResult.extracted && Object.keys(aiResult.extracted).length > 0) {
         updateDraft(aiResult.extracted);
       }
 
-      // 显示 AI 回复
       setTimeout(() => {
         addChatMessage({
           role: 'ai',
           content: aiResult.message,
         });
 
-        // 如果 AI 建议显示选项，渲染选项
         if (aiResult.suggestOptions && aiResult.suggestOptions.length > 0) {
           setSuggestedOptions(aiResult.suggestOptions);
         } else {
@@ -295,23 +266,21 @@ export default function AlarmCreate() {
       console.error('Conversation error:', error);
       addChatMessage({
         role: 'ai',
-        content: '抱歉，我遇到了一点问题。请重新输入～',
+        content: 'Sorry, I encountered a problem. Please try again~',
       });
       setIsAIProcessing(false);
     }
   };
 
   const handleConfirm = async () => {
-    // 检查是否所有信息都已收集
     if (!isAlarmComplete(currentAlarmDraft)) {
       addChatMessage({
         role: 'ai',
-        content: '还差一点点～请继续回答问题完成设置😊',
+        content: 'Almost there~ Please continue answering to complete the setup 😊',
       });
       return;
     }
 
-    // 所有信息完整，显示确认弹窗
     setShowSummaryModal(true);
   };
 
@@ -330,21 +299,18 @@ export default function AlarmCreate() {
   const handleFinalSave = async () => {
     setShowSummaryModal(false);
 
-    // 保存闹钟
     await saveAlarmFromDraft();
 
-    // 模拟用户点击确认
     addChatMessage({
       role: 'user',
-      content: '确认',
+      content: 'Confirm',
     });
 
-    // 调用 AI 生成鼓励话术
     setTimeout(async () => {
       setIsAIProcessing(true);
 
       try {
-        const aiResult = await parseUserInputWithAI('确认创建闹钟', currentAlarmDraft);
+        const aiResult = await parseUserInputWithAI('Confirm creating alarm', currentAlarmDraft);
 
         if (aiResult.success) {
           addChatMessage({
@@ -352,43 +318,34 @@ export default function AlarmCreate() {
             content: aiResult.message,
           });
         } else {
-          // 降级：使用默认鼓励
           addChatMessage({
             role: 'ai',
-            content: '好的～闹钟已设置完成！快去试试吧！🎉',
+            content: 'Done~ Your first alarm is all set! 🎉',
           });
         }
 
         setIsAIProcessing(false);
 
-        // 延迟 1.5 秒后返回列表页
         setTimeout(() => {
-          router.back();
+          clearAlarmDraft();
+          router.replace('/(tabs)');
         }, 1500);
       } catch (error) {
-        console.error('Final encouragement error:', error);
-
-        // 降级：使用默认鼓励
         addChatMessage({
           role: 'ai',
-          content: '好的～闹钟已设置完成！快去试试吧！🎉',
+          content: 'Done~ Your first alarm is all set! 🎉',
         });
-
         setIsAIProcessing(false);
 
         setTimeout(() => {
-          router.back();
+          clearAlarmDraft();
+          router.replace('/(tabs)');
         }, 1500);
       }
-    }, 300);
+    }, 500);
   };
 
-  const handleCancel = () => {
-    clearAlarmDraft();
-    router.back();
-  };
-
-  const handleTextInput = async () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
     const userMessage = inputText.trim();
@@ -405,108 +362,104 @@ export default function AlarmCreate() {
   const handleVoiceInput = () => {
     addChatMessage({
       role: 'ai',
-      content: '语音输入功能开发中～请使用选项或文字输入',
+      content: 'Voice input is under development~ Please use options or text input',
     });
   };
 
-  const renderSuggestedOptions = () => {
-    if (!suggestedOptions || suggestedOptions.length === 0) return null;
-
-    return (
-      <TagOptions
-        options={suggestedOptions}
-        selectedValue={null}
-        onSelect={(value) => {
-          const option = suggestedOptions.find((opt) => opt.value === value);
-          if (option) {
-            handleOptionSelect(option);
-          }
-        }}
-      />
-    );
-  };
-
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+      keyboardVerticalOffset={0}
+    >
       <LinearGradient
         colors={['#3D5A80', '#5A7BA5', '#7A9BC4', '#FFB88C', '#E8F4FF', '#F0F8FF', '#FAFCFF']}
         locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
         style={styles.backgroundGradient}
       />
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
-            <ArrowLeft size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Alarm</Text>
-          <View style={{ width: 24 }} />
-        </View>
 
-        {currentAlarmDraft && (
-          <AlarmInfoCard
-            alarm={currentAlarmDraft}
-            onConfirm={handleConfirm}
-            showConfirmButton={isAlarmComplete(currentAlarmDraft)}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Create Your First Alarm</Text>
+      </View>
+
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.chatContainer}
+        contentContainerStyle={styles.chatContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {chatHistory.map((message, index) => (
+          <ChatBubble
+            key={index}
+            message={message.content}
+            isUser={message.role === 'user'}
+          />
+        ))}
+
+        {suggestedOptions && (
+          <TagOptions
+            options={suggestedOptions}
+            onSelect={handleOptionSelect}
           />
         )}
 
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.chatArea}
-          contentContainerStyle={styles.chatContent}
-          showsVerticalScrollIndicator={false}
+        {isAIProcessing && (
+          <View style={styles.aiLoadingContainer}>
+            <ActivityIndicator size="small" color="#FF9A76" />
+            <Text style={styles.aiLoadingText}>Monster is thinking...</Text>
+          </View>
+        )}
+
+        {isAlarmComplete(currentAlarmDraft) && !isAIProcessing && (
+          <View style={styles.confirmButtonContainer}>
+            <AlarmInfoCard alarm={currentAlarmDraft} />
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={handleConfirm}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.confirmButtonText}>Confirm Alarm</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Type a message..."
+          placeholderTextColor="#999"
+          returnKeyType="send"
+          onSubmitEditing={handleSendMessage}
+        />
+        <TouchableOpacity
+          style={styles.voiceButton}
+          onPress={handleVoiceInput}
+          activeOpacity={0.7}
         >
-          {chatHistory.map((message) => (
-            <ChatBubble key={message.id} role={message.role} content={message.content} />
-          ))}
-
-          {isAIProcessing && (
-            <View style={styles.aiLoadingContainer}>
-              <ActivityIndicator size="small" color="#FF9A76" />
-              <Text style={styles.aiLoadingText}>Monster 正在思考中...</Text>
-            </View>
-          )}
-
-          {renderSuggestedOptions()}
-        </ScrollView>
-
-        <View style={styles.inputContainer}>
-          <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
-            <Mic size={24} color="#FF9A76" />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.textInput}
-            placeholder="输入消息..."
-            placeholderTextColor="#999"
-            value={inputText}
-            onChangeText={setInputText}
-            onSubmitEditing={handleTextInput}
-            returnKeyType="send"
-            multiline
-            maxLength={200}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-            onPress={handleTextInput}
-            disabled={!inputText.trim()}
-          >
-            <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+          <Mic size={22} color="#FF9A76" strokeWidth={2} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+          onPress={handleSendMessage}
+          disabled={!inputText.trim()}
+          activeOpacity={0.7}
+        >
+          <Send size={20} color="#FFFFFF" strokeWidth={2} />
+        </TouchableOpacity>
+      </View>
 
       <AlarmSummaryModal
         visible={showSummaryModal}
         alarm={currentAlarmDraft}
+        onClose={() => setShowSummaryModal(false)}
         onConfirm={handleFinalSave}
-        onCancel={() => setShowSummaryModal(false)}
         onAddInteraction={handleAddInteraction}
+        allowEdit={true}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -521,75 +474,102 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
   },
-  keyboardView: {
-    flex: 1,
-  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingTop: 60,
     paddingBottom: 16,
     paddingHorizontal: 20,
-  },
-  backButton: {
-    padding: 8,
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
-  chatArea: {
+  chatContainer: {
     flex: 1,
   },
   chatContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 20,
   },
   aiLoadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
+    gap: 8,
   },
   aiLoadingText: {
-    marginLeft: 8,
     fontSize: 14,
     color: '#FF9A76',
+    fontWeight: '500',
+  },
+  confirmButtonContainer: {
+    marginTop: 20,
+    gap: 16,
+  },
+  confirmButton: {
+    backgroundColor: '#FF9A76',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#FF9A76',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  confirmButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingBottom: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#F5F5F7',
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1C1C1E',
+    maxHeight: 100,
   },
   voiceButton: {
-    padding: 10,
-    marginRight: 8,
-  },
-  textInput: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
-    maxHeight: 100,
-    color: '#333',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFF5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFE5D9',
   },
   sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#FF9A76',
-    borderRadius: 20,
-    padding: 10,
-    marginLeft: 8,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FF9A76',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   sendButtonDisabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#D5D5D7',
+    shadowOpacity: 0,
   },
 });
