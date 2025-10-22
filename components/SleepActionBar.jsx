@@ -60,7 +60,7 @@ export default function SleepActionBar() {
   return (
     <>
       <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        <BlurView intensity={50} tint="light" style={styles.blur}>
+        <BlurView intensity={60} tint="light" style={styles.blur}>
             <View style={styles.content}>
             <TouchableOpacity
               style={styles.alarmButton}
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
   blur: {
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,

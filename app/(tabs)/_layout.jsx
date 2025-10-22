@@ -37,7 +37,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         },
       ]}
     >
-      <BlurView intensity={40} tint="light" style={styles.tabBarContainer}>
+      <BlurView intensity={60} tint="light" style={styles.tabBarContainer}>
           <View style={styles.tabBar}>
           <TouchableOpacity
             style={styles.tabItem}
@@ -104,9 +104,9 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
