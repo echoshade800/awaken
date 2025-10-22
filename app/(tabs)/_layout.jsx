@@ -1,10 +1,7 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Sun, Home, Moon } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { useEffect, useState } from 'react';
-import useStore from '@/lib/store';
-import HealthPermissionBlocker from '@/components/HealthPermissionBlocker';
 
 function CustomTabBar({ state, descriptors, navigation }) {
   return (
@@ -41,49 +38,6 @@ function CustomTabBar({ state, descriptors, navigation }) {
 }
 
 export default function TabLayout() {
-  const router = useRouter();
-  const hasHealthPermission = useStore((state) => state.hasHealthPermission);
-  const healthPermissionChecked = useStore((state) => state.healthPermissionChecked);
-  const requestHealthPermission = useStore((state) => state.requestHealthPermission);
-  const [checkingPermission, setCheckingPermission] = useState(true);
-
-  useEffect(() => {
-    const checkPermission = async () => {
-      if (!healthPermissionChecked) {
-        return;
-      }
-
-      if (!hasHealthPermission) {
-        setCheckingPermission(false);
-      } else {
-        setCheckingPermission(false);
-      }
-    };
-
-    checkPermission();
-  }, [hasHealthPermission, healthPermissionChecked]);
-
-  const handleOpenSettings = () => {
-    console.log('Opening settings...');
-  };
-
-  const handleExit = () => {
-    router.replace('/onboarding/welcome');
-  };
-
-  if (!healthPermissionChecked || checkingPermission) {
-    return null;
-  }
-
-  if (!hasHealthPermission) {
-    return (
-      <HealthPermissionBlocker
-        onOpenSettings={handleOpenSettings}
-        onExit={handleExit}
-      />
-    );
-  }
-
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}

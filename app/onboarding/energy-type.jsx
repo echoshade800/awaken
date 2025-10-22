@@ -41,7 +41,7 @@ export default function EnergyTypeScreen() {
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      router.push('/onboarding/health-permission');
+      router.push('/onboarding/sleep-routine');
     });
   };
 

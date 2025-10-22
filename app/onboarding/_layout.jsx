@@ -7,7 +7,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="sleep-routine" />
       <Stack.Screen name="permissions" />
       <Stack.Screen name="energy-type" />
-      <Stack.Screen name="health-permission" />
+      <Stack.Screen name="smart-alarm" />
       <Stack.Screen name="loading" />
     </Stack>
   );

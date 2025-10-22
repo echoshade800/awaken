@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import useStore from '@/lib/store';
-import HealthPermissionBlocker from '@/components/HealthPermissionBlocker';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -18,10 +17,14 @@ export default function RootLayout() {
       try {
         console.log('[Root] Starting initialization...');
 
+        // Initialize store
         await initialize();
         console.log('[Root] Store initialized');
 
+        // Mark as ready first
         setIsReady(true);
+
+        // Signal that we want to navigate
         setShouldNavigate(true);
       } catch (error) {
         console.error('[Root] Initialization error:', error);
@@ -29,6 +32,7 @@ export default function RootLayout() {
       }
     };
 
+    // Add a safety timeout to prevent infinite loading
     const safetyTimeout = setTimeout(() => {
       console.warn('[Root] Safety timeout triggered - forcing ready state');
       setIsReady(true);
