@@ -11,14 +11,7 @@ export default function StepPermissionScreen() {
   const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
-    // Auto-check on mount for web platform
-    if (Platform.OS === 'web') {
-      console.log('[StepPermission] Web platform detected, auto-navigating...');
-      // Give a moment for the component to render first
-      setTimeout(() => {
-        router.replace('/onboarding/initializing');
-      }, 100);
-    }
+    console.log('[StepPermission] Component mounted, Platform:', Platform.OS);
   }, []);
 
   useEffect(() => {
