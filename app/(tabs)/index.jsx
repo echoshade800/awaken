@@ -9,12 +9,9 @@ import RhythmChart from '@/components/RhythmChart';
 import StarBackground from '@/components/StarBackground';
 import SleepDebtPuzzle from '@/components/SleepDebtPuzzle';
 import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
-import GlowingText from '@/components/GlowingText';
 import EnergyHelpModal from '@/components/EnergyHelpModal';
 import MonsterTipsBanner from '@/components/MonsterTipsBanner';
-import SleepDebtCard from '@/components/SleepDebtCard';
 import WelcomeToast from '@/components/WelcomeToast';
-import DreamBubble from '@/components/DreamBubble';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeBackgroundTasks } from '@/lib/backgroundTasks';
@@ -38,8 +35,6 @@ export default function HomeScreen() {
   // Welcome toast state
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
 
-  // Dream keyword state
-  const [dreamKeyword, setDreamKeyword] = useState(null);
 
   // Energy rhythm data
   const [rhythmData, setRhythmData] = useState({
@@ -197,13 +192,6 @@ export default function HomeScreen() {
 
       <WelcomeToast visible={showWelcomeToast} onDismiss={() => setShowWelcomeToast(false)} />
 
-      <DreamBubble
-        keyword={dreamKeyword}
-        onPress={() => {
-          console.log('Dream bubble pressed - navigate to dream records');
-        }}
-      />
-
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
           style={styles.scrollView}
@@ -276,29 +264,12 @@ export default function HomeScreen() {
                 <Text style={styles.panelLabel}>Energy Status</Text>
               </View>
 
-              {/* Sleep Debt Card - 替换原Monster Tips */}
-              <SleepDebtCard sleepDebt={sleepDebt} debtInfo={rhythmData?.debtInfo} />
-            </View>
-
-            <View style={styles.horizontalContainer}>
               <View style={styles.panelWithLabel}>
                 <UnifiedPanelBorder style={styles.unifiedPanel}>
                   <SleepDebtPuzzle />
                 </UnifiedPanelBorder>
                 <Text style={styles.panelLabel}>Sleep Quality</Text>
               </View>
-
-              <TouchableOpacity
-                style={styles.panelWithLabel}
-                onPress={() => {
-                  setDreamKeyword(dreamKeyword ? null : 'Flying');
-                }}
-              >
-                <UnifiedPanelBorder style={styles.unifiedPanel}>
-                  <GlowingText>{dreamKeyword || 'No Dream Yet'}</GlowingText>
-                </UnifiedPanelBorder>
-                <Text style={styles.panelLabel}>Dream Keyword (Tap to Toggle)</Text>
-              </TouchableOpacity>
             </View>
           </View>
 
