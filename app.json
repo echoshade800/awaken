@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMotionUsageDescription": "This app uses your step count data to analyze your sleep patterns and circadian rhythm."
+      }
     },
     "web": {
       "bundler": "metro",
