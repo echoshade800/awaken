@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Send, Mic } from 'lucide-react-native';
@@ -16,292 +17,229 @@ import useStore from '../../lib/store';
 import ChatBubble from '../../components/ChatBubble';
 import TagOptions from '../../components/TagOptions';
 import AlarmInfoCard from '../../components/AlarmInfoCard';
-import GameSelector from '../../components/GameSelector';
-import {
-  INTERACTION_ENABLE_OPTIONS,
-  getGameLabel,
-} from '../../lib/interactionOptions';
+import AlarmSummaryModal from '../../components/AlarmSummaryModal';
+import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
 
-const LABEL_OPTIONS = [
-  { label: '起床闹钟', value: '起床闹钟' },
-  { label: '午睡提醒', value: '午睡提醒' },
-  { label: '上班闹钟', value: '上班闹钟' },
-  { label: '锻炼时间', value: '锻炼时间' },
-  { label: '喝水提醒', value: '喝水提醒' },
-  { label: '自定义...', value: 'custom' },
-];
-
-const TIME_OPTIONS = [
-  { label: '明天早上7点', value: '07:00' },
-  { label: '明天早上8点', value: '08:00' },
-  { label: '今晚10点', value: '22:00' },
-];
-
-const PERIOD_OPTIONS = [
-  { label: '每天', value: 'everyday' },
-  { label: '工作日', value: 'workday' },
-  { label: '周末', value: 'weekend' },
-  { label: '只一次', value: 'tomorrow' },
-];
-
-const WAKE_MODE_OPTIONS = [
-  { label: '语音播报', value: 'voice' },
-  { label: '铃声', value: 'ringtone' },
-  { label: '震动', value: 'vibration' },
-];
-
-const RINGTONE_OPTIONS = [
-  { label: 'Gentle Wake', value: 'gentle-wake' },
-  { label: 'Ocean Flow', value: 'ocean-flow' },
-  { label: 'Morning Sun', value: 'morning-sun' },
-];
-
-const VOICE_PACKAGE_OPTIONS = [
-  { label: '元气少女', value: 'energetic-girl' },
-  { label: '沉稳大叔', value: 'calm-man' },
-];
-
-const STEP_CONFIGS = [
-  {
-    step: 0,
-    aiMessage: '先给这个闹钟起个名字吧～',
-    field: 'label',
-    options: LABEL_OPTIONS,
-    allowCustomInput: true,
-  },
-  {
-    step: 1,
-    aiMessage: '你想什么时候起床呢？',
-    field: 'time',
-    options: TIME_OPTIONS,
-  },
-  {
-    step: 2,
-    aiMessage: '好的～需要每天都响吗？',
-    field: 'period',
-    options: PERIOD_OPTIONS,
-  },
-  {
-    step: 3,
-    aiMessage: '想用什么方式叫醒你呢？',
-    field: 'wakeMode',
-    options: WAKE_MODE_OPTIONS,
-  },
-  {
-    step: 3.5,
-    aiMessage: '选择你想播报的内容吧～',
-    field: 'voiceModules',
-    isCustom: true,
-    condition: (draft) => draft.wakeMode === 'voice',
-  },
-  {
-    step: 3.6,
-    aiMessage: '想用什么声音播报呢？',
-    field: 'voicePackage',
-    options: VOICE_PACKAGE_OPTIONS,
-    condition: (draft) => draft.wakeMode === 'voice',
-  },
-  {
-    step: 3.8,
-    aiMessage: '选择铃声',
-    field: 'ringtone',
-    options: RINGTONE_OPTIONS,
-    condition: (draft) => draft.wakeMode === 'ringtone',
-  },
-  {
-    step: 4,
-    aiMessage: '要不要加点互动游戏，让起床更有趣呢？🎮',
-    field: 'interactionEnabled',
-    options: INTERACTION_ENABLE_OPTIONS,
-  },
-  {
-    step: 4.5,
-    aiMessage: '选一个你喜欢的游戏吧！',
-    field: 'interactionType',
-    isGameSelection: true,
-    condition: (draft) => draft.interactionEnabled === true,
-  },
-];
 
 export default function SmartAlarmScreen() {
   const router = useRouter();
   const scrollViewRef = useRef(null);
   const [inputText, setInputText] = useState('');
-  const [isCustomLabelInput, setIsCustomLabelInput] = useState(false);
+  const [isAIProcessing, setIsAIProcessing] = useState(false);
+  const [suggestedOptions, setSuggestedOptions] = useState(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   const {
     currentAlarmDraft,
     chatHistory,
-    currentStep,
     initNewAlarm,
     updateDraft,
     addChatMessage,
-    nextStep,
     saveAlarmFromDraft,
     clearAlarmDraft,
   } = useStore();
 
   useEffect(() => {
     initNewAlarm();
+
+    const greetings = [
+      '嘿～要不要我帮你定个闹钟？让我们开始吧💤',
+      '呀～新的一天要开始啦☀️ 让我帮你设个闹钟吧！',
+      '早安～🌤️ 要给闹钟取个名字吗？比如上班、健身～',
+    ];
+    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+
     addChatMessage({
       role: 'ai',
-      content: '嗨～让我帮你设置一个闹钟吧！',
+      content: randomGreeting,
     });
+
     setTimeout(() => {
-      addChatMessage({
-        role: 'ai',
-        content: STEP_CONFIGS[0].aiMessage,
-      });
+      setSuggestedOptions([
+        { label: '上班', value: '上班', field: 'label' },
+        { label: '健身', value: '健身', field: 'label' },
+        { label: '午睡', value: '午睡', field: 'label' },
+        { label: '自定义', value: 'custom', field: 'label' },
+      ]);
     }, 500);
   }, []);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [chatHistory]);
+  }, [chatHistory, suggestedOptions]);
 
-  useEffect(() => {
-    const stepConfig = getCurrentStepConfig();
-    if (
-      stepConfig &&
-      stepConfig.field === 'voiceModules' &&
-      currentAlarmDraft?.broadcastContent &&
-      chatHistory.length > 0 &&
-      !chatHistory[chatHistory.length - 1]?.content?.includes('播报内容已设置')
-    ) {
+  const handleOptionSelect = async (option) => {
+    const { field, value, label } = option;
+
+    if (value === 'custom') {
       addChatMessage({
         role: 'user',
-        content: '播报内容已设置完成',
+        content: label,
       });
+      setSuggestedOptions(null);
       setTimeout(() => {
-        proceedToNextStep();
-      }, 500);
-    }
-  }, [currentAlarmDraft?.broadcastContent]);
-
-  const handleTagSelect = (field, value) => {
-    if (field === 'label' && value === 'custom') {
-      setIsCustomLabelInput(true);
-      addChatMessage({
-        role: 'user',
-        content: '自定义...',
-      });
-      setTimeout(() => {
+        let prompt = '';
+        if (field === 'time') {
+          prompt = '好的～请输入你想要的时间，比如"7:30"或者"18:00"～';
+        } else if (field === 'label') {
+          prompt = '好的～请输入闹钟名称，比如"早起"、"晨练"等～';
+        }
         addChatMessage({
           role: 'ai',
-          content: '好的！请输入你想要的闹钟名字～',
+          content: prompt,
         });
-      }, 300);
+      }, 500);
       return;
     }
 
-    updateDraft({ [field]: value });
+    if (field === 'interactionType') {
+      addChatMessage({
+        role: 'user',
+        content: label,
+      });
+
+      if (value === 'none') {
+        updateDraft({ interactionEnabled: false, interactionType: null });
+      } else {
+        updateDraft({ interactionEnabled: true, interactionType: value });
+      }
+
+      setSuggestedOptions(null);
+
+      setTimeout(async () => {
+        await continueConversation(label);
+      }, 500);
+      return;
+    }
 
     addChatMessage({
       role: 'user',
-      content: getSelectedOptionLabel(field, value),
+      content: label,
     });
 
-    proceedToNextStep();
-  };
+    updateDraft({ [field]: value });
+    setSuggestedOptions(null);
 
-  const getSelectedOptionLabel = (field, value) => {
-    if (field === 'interactionType') {
-      return getGameLabel(value);
-    }
-
-    const stepConfig = STEP_CONFIGS.find((s) => s.field === field);
-    const option = stepConfig?.options?.find((o) => o.value === value);
-    return option?.label || value;
-  };
-
-  const proceedToNextStep = () => {
-    setTimeout(() => {
-      let nextStepIndex = currentStep + 1;
-
-      while (nextStepIndex < STEP_CONFIGS.length) {
-        const nextStepConfig = STEP_CONFIGS[nextStepIndex];
-
-        if (nextStepConfig.condition && !nextStepConfig.condition(currentAlarmDraft)) {
-          nextStepIndex++;
-          continue;
-        }
-
-        nextStep();
-
-        setTimeout(() => {
-          addChatMessage({
-            role: 'ai',
-            content: nextStepConfig.aiMessage,
-          });
-        }, 500);
-
-        return;
-      }
-
-      showSummary();
-    }, 300);
-  };
-
-  const showSummary = () => {
-    setTimeout(() => {
-      const summaryText = generateSummary();
-      addChatMessage({
-        role: 'ai',
-        content: summaryText,
-      });
-      nextStep();
+    setTimeout(async () => {
+      await continueConversation(label);
     }, 500);
   };
 
-  const generateSummary = () => {
-    const { time, period, wakeMode, voicePackage, ringtone, interactionEnabled, interactionType } = currentAlarmDraft;
-    const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label;
+  const continueConversation = async (userMessage) => {
+    setIsAIProcessing(true);
 
-    let summary = `好的！我帮你总结一下：\n\n`;
-    summary += `⏰ 时间：${time}\n`;
-    summary += `📅 周期：${periodLabel}\n`;
+    try {
+      const aiResult = await parseUserInputWithAI(userMessage, currentAlarmDraft);
 
-    if (wakeMode === 'voice') {
-      const voiceLabel = VOICE_PACKAGE_OPTIONS.find((o) => o.value === voicePackage)?.label;
-      summary += `🎙️ 方式：语音播报（${voiceLabel}）\n`;
-    } else if (wakeMode === 'ringtone') {
-      const ringtoneLabel = RINGTONE_OPTIONS.find((o) => o.value === ringtone)?.label;
-      summary += `🎵 方式：铃声（${ringtoneLabel || '默认'}）\n`;
-    } else if (wakeMode === 'vibration') {
-      summary += `📳 方式：震动\n`;
+      if (!aiResult.success) {
+        addChatMessage({
+          role: 'ai',
+          content: '抱歉，我遇到了一点问题。请重新输入～',
+        });
+        setIsAIProcessing(false);
+        return;
+      }
+
+      if (aiResult.extracted && Object.keys(aiResult.extracted).length > 0) {
+        updateDraft(aiResult.extracted);
+      }
+
+      setTimeout(() => {
+        addChatMessage({
+          role: 'ai',
+          content: aiResult.message,
+        });
+
+        if (aiResult.suggestOptions && aiResult.suggestOptions.length > 0) {
+          setSuggestedOptions(aiResult.suggestOptions);
+        } else {
+          setSuggestedOptions(null);
+        }
+
+        setIsAIProcessing(false);
+      }, 500);
+    } catch (error) {
+      console.error('Conversation error:', error);
+      addChatMessage({
+        role: 'ai',
+        content: '抱歉，我遇到了一点问题。请重新输入～',
+      });
+      setIsAIProcessing(false);
     }
-
-    if (interactionEnabled && interactionType) {
-      const gameLabel = getGameLabel(interactionType);
-      summary += `🎮 互动：${gameLabel}\n`;
-    } else {
-      summary += `🎮 互动：无\n`;
-    }
-
-    summary += `\n确认保存吗？`;
-    return summary;
   };
 
-  const generateDefaultLabel = () => {
-    const { time, period } = currentAlarmDraft;
-    const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label || '';
-    return `${time} ${periodLabel}闹钟`;
-  };
-
-  const handleSave = async () => {
-    if (!currentAlarmDraft.label || currentAlarmDraft.label.trim() === '') {
-      updateDraft({ label: generateDefaultLabel() });
+  const handleConfirm = async () => {
+    if (!isAlarmComplete(currentAlarmDraft)) {
+      addChatMessage({
+        role: 'ai',
+        content: '还差一点点～请继续回答问题完成设置😊',
+      });
+      return;
     }
 
-    await saveAlarmFromDraft();
-    addChatMessage({
-      role: 'ai',
-      content: '闹钟已保存！祝你好梦～',
+    setShowSummaryModal(true);
+  };
+
+  const handleAddInteraction = (interactionType) => {
+    updateDraft({
+      interactionEnabled: true,
+      interactionType: interactionType,
     });
+    setShowSummaryModal(false);
 
     setTimeout(() => {
-      router.push('/onboarding/loading');
-    }, 1000);
+      setShowSummaryModal(true);
+    }, 100);
+  };
+
+  const handleFinalSave = async () => {
+    setShowSummaryModal(false);
+
+    await saveAlarmFromDraft();
+
+    addChatMessage({
+      role: 'user',
+      content: '确认',
+    });
+
+    setTimeout(async () => {
+      setIsAIProcessing(true);
+
+      try {
+        const aiResult = await parseUserInputWithAI('确认创建闹钟', currentAlarmDraft);
+
+        if (aiResult.success) {
+          addChatMessage({
+            role: 'ai',
+            content: aiResult.message,
+          });
+        } else {
+          addChatMessage({
+            role: 'ai',
+            content: '好的～闹钟已设置完成！快去试试吧！🎉',
+          });
+        }
+
+        setIsAIProcessing(false);
+
+        setTimeout(() => {
+          router.push('/onboarding/loading');
+        }, 1500);
+      } catch (error) {
+        console.error('Final encouragement error:', error);
+
+        addChatMessage({
+          role: 'ai',
+          content: '好的～闹钟已设置完成！快去试试吧！🎉',
+        });
+
+        setIsAIProcessing(false);
+
+        setTimeout(() => {
+          router.push('/onboarding/loading');
+        }, 1500);
+      }
+    }, 300);
   };
 
   const handleSkip = () => {
@@ -309,79 +247,18 @@ export default function SmartAlarmScreen() {
     router.push('/onboarding/loading');
   };
 
-  const handleTextInput = () => {
+  const handleTextInput = async () => {
     if (!inputText.trim()) return;
 
-    if (isCustomLabelInput) {
-      const customLabel = inputText.trim();
-      addChatMessage({
-        role: 'user',
-        content: customLabel,
-      });
-      updateDraft({ label: customLabel });
-      setIsCustomLabelInput(false);
-      setInputText('');
-      proceedToNextStep();
-      return;
-    }
+    const userMessage = inputText.trim();
+    setInputText('');
 
     addChatMessage({
       role: 'user',
-      content: inputText.trim(),
+      content: userMessage,
     });
 
-    const currentConfig = getCurrentStepConfig();
-    if (currentConfig && !isInSummary) {
-      parseTextInput(inputText.trim(), currentConfig);
-    }
-
-    setInputText('');
-  };
-
-  const parseTextInput = (text, stepConfig) => {
-    const lowerText = text.toLowerCase().replace(/\s+/g, '');
-
-    if (stepConfig.field === 'label') {
-      updateDraft({ label: text.trim() });
-      proceedToNextStep();
-      return;
-    }
-
-    if (stepConfig.field === 'time') {
-      const timeMatch = text.match(/(?:早上|上午|中午|下午|晚上|夜里)?(\d{1,2})[:.：点]?(\d{2})?/);
-      if (timeMatch) {
-        let hour = parseInt(timeMatch[1]);
-        const minute = timeMatch[2] ? timeMatch[2].padStart(2, '0') : '00';
-
-        if (text.includes('晚上') || text.includes('夜里')) {
-          if (hour < 12) hour += 12;
-        } else if (text.includes('下午')) {
-          if (hour < 12 && hour !== 12) hour += 12;
-        }
-
-        const timeValue = `${String(hour).padStart(2, '0')}:${minute}`;
-        updateDraft({ time: timeValue });
-        proceedToNextStep();
-        return;
-      }
-    }
-
-    const matchedOption = stepConfig.options?.find((opt) => {
-      const label = opt.label.toLowerCase().replace(/\s+/g, '');
-      return lowerText.includes(label) || label.includes(lowerText);
-    });
-
-    if (matchedOption) {
-      updateDraft({ [stepConfig.field]: matchedOption.value });
-      proceedToNextStep();
-    } else {
-      setTimeout(() => {
-        addChatMessage({
-          role: 'ai',
-          content: '抱歉，我没理解。请选择下面的选项或重新输入～',
-        });
-      }, 300);
-    }
+    await continueConversation(userMessage);
   };
 
   const handleVoiceInput = () => {
@@ -391,12 +268,22 @@ export default function SmartAlarmScreen() {
     });
   };
 
-  const getCurrentStepConfig = () => {
-    return STEP_CONFIGS[currentStep];
-  };
+  const renderSuggestedOptions = () => {
+    if (!suggestedOptions || suggestedOptions.length === 0) return null;
 
-  const stepConfig = getCurrentStepConfig();
-  const isInSummary = currentStep >= STEP_CONFIGS.length;
+    return (
+      <TagOptions
+        options={suggestedOptions}
+        selectedValue={null}
+        onSelect={(value) => {
+          const option = suggestedOptions.find((opt) => opt.value === value);
+          if (option) {
+            handleOptionSelect(option);
+          }
+        }}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -418,7 +305,13 @@ export default function SmartAlarmScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        {currentAlarmDraft && <AlarmInfoCard alarm={currentAlarmDraft} />}
+        {currentAlarmDraft && (
+          <AlarmInfoCard
+            alarm={currentAlarmDraft}
+            onConfirm={handleConfirm}
+            showConfirmButton={isAlarmComplete(currentAlarmDraft)}
+          />
+        )}
 
         <ScrollView
           ref={scrollViewRef}
@@ -430,84 +323,48 @@ export default function SmartAlarmScreen() {
             <ChatBubble key={message.id} role={message.role} content={message.content} />
           ))}
 
-          {stepConfig && !isInSummary && !stepConfig.isCustom && !stepConfig.isGameSelection && stepConfig.options && (
-            <TagOptions
-              options={stepConfig.options}
-              selectedValue={currentAlarmDraft?.[stepConfig.field]}
-              onSelect={(value) => handleTagSelect(stepConfig.field, value)}
-            />
-          )}
-
-          {stepConfig && !isInSummary && stepConfig.isGameSelection && (
-            <GameSelector
-              selectedValue={currentAlarmDraft?.interactionType}
-              onSelect={(value) => handleTagSelect('interactionType', value)}
-            />
-          )}
-
-          {stepConfig && !isInSummary && stepConfig.isCustom && stepConfig.field === 'voiceModules' && (
-            <View style={styles.customAction}>
-              <TouchableOpacity
-                style={styles.editModulesButton}
-                onPress={() => router.push('/alarm/broadcast-editor')}
-              >
-                <Text style={styles.editModulesText}>编辑播报内容</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.skipButton2}
-                onPress={() => {
-                  addChatMessage({ role: 'user', content: '使用默认设置' });
-                  proceedToNextStep();
-                }}
-              >
-                <Text style={styles.skipButtonText2}>使用默认设置</Text>
-              </TouchableOpacity>
+          {isAIProcessing && (
+            <View style={styles.aiLoadingContainer}>
+              <ActivityIndicator size="small" color="#FF9A76" />
+              <Text style={styles.aiLoadingText}>Monster 正在思考中...</Text>
             </View>
           )}
 
-          {isInSummary && (
-            <View style={styles.summaryActions}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>保存闹钟</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.skipButtonAlt} onPress={handleSkip}>
-                <Text style={styles.skipButtonTextAlt}>跳过</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          {renderSuggestedOptions()}
         </ScrollView>
 
         <View style={styles.inputContainer}>
-          <TouchableOpacity
-            style={styles.voiceButton}
-            onPress={handleVoiceInput}
-            activeOpacity={0.7}
-          >
-            <Mic size={22} color="#FF9A76" />
+          <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
+            <Mic size={24} color="#FF9A76" />
           </TouchableOpacity>
-
           <TextInput
-            style={styles.input}
-            placeholder="输入时间或选择选项..."
+            style={styles.textInput}
+            placeholder="输入消息..."
             placeholderTextColor="#999"
             value={inputText}
             onChangeText={setInputText}
             onSubmitEditing={handleTextInput}
             returnKeyType="send"
-            editable={!isInSummary}
-            multiline={false}
+            multiline
+            maxLength={200}
           />
-
           <TouchableOpacity
             style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
             onPress={handleTextInput}
             disabled={!inputText.trim()}
-            activeOpacity={0.7}
           >
-            <Send size={20} color={inputText.trim() ? '#FF9A76' : 'rgba(255, 255, 255, 0.5)'} />
+            <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <AlarmSummaryModal
+        visible={showSummaryModal}
+        alarm={currentAlarmDraft}
+        onConfirm={handleFinalSave}
+        onCancel={() => setShowSummaryModal(false)}
+        onAddInteraction={handleAddInteraction}
+      />
     </View>
   );
 }
@@ -530,139 +387,68 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: 60,
+    paddingBottom: 16,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: 'transparent',
-    borderBottomWidth: 0,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '300',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   chatArea: {
     flex: 1,
-    backgroundColor: 'transparent',
   },
   chatContent: {
-    paddingVertical: 8,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  summaryActions: {
-    paddingHorizontal: 16,
-    marginTop: 16,
-    gap: 12,
-  },
-  saveButton: {
-    backgroundColor: '#FF9A76',
-    paddingVertical: 16,
-    borderRadius: 20,
+  aiLoadingContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#FF9A76',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    justifyContent: 'center',
+    paddingVertical: 12,
   },
-  saveButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  skipButtonAlt: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  skipButtonTextAlt: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  customAction: {
-    paddingHorizontal: 16,
-    marginTop: 16,
-    gap: 12,
-  },
-  editModulesButton: {
-    backgroundColor: '#FF9A76',
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  editModulesText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  skipButton2: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  skipButtonText2: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '400',
+  aiLoadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#FF9A76',
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderTopWidth: 0,
-    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
   },
   voiceButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    padding: 10,
+    marginRight: 8,
   },
-  input: {
+  textInput: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: '#F5F5F5',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    fontSize: 15,
-    color: '#4A5F8F',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 16,
+    maxHeight: 100,
+    color: '#333',
   },
   sendButton: {
-    width: 40,
-    height: 40,
+    backgroundColor: '#FF9A76',
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    alignItems: 'center',
+    padding: 10,
+    marginLeft: 8,
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    alignItems: 'center',
   },
   sendButtonDisabled: {
-    opacity: 0.5,
+    backgroundColor: '#E0E0E0',
   },
 });
