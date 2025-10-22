@@ -7,11 +7,18 @@ import { checkStepPermission, requestStepPermission } from '../../lib/healthPerm
 
 export default function StepPermissionScreen() {
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
+  const [isChecking, setIsChecking] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
-    checkPermissionStatus();
+    // Auto-check on mount for web platform
+    if (Platform.OS === 'web') {
+      console.log('[StepPermission] Web platform detected, auto-navigating...');
+      // Give a moment for the component to render first
+      setTimeout(() => {
+        router.replace('/onboarding/initializing');
+      }, 100);
+    }
   }, []);
 
   useEffect(() => {
@@ -58,32 +65,43 @@ export default function StepPermissionScreen() {
     }
   };
 
-  const handleCheckPermission = async () => {
-    await checkPermissionStatus();
+  const handleCheckPermission = () => {
+    console.log('[StepPermission] handleCheckPermission called');
+    // For web platform, just navigate directly
+    if (Platform.OS === 'web') {
+      console.log('[StepPermission] Web platform, navigating to initializing');
+      router.replace('/onboarding/initializing');
+      return;
+    }
+    // For native platforms, check permission
+    checkPermissionStatus();
   };
 
-  const handleRequestPermission = async () => {
-    setIsChecking(true);
-    try {
-      const status = await requestStepPermission();
-      console.log('[StepPermission] Request permission result:', status);
-
-      if (status === 'granted') {
-        console.log('[StepPermission] Permission granted after request, navigating...');
-        router.replace('/onboarding/initializing');
-      } else {
-        if (Platform.OS !== 'web') {
-          await handleOpenSettings();
-        }
-        setIsChecking(false);
-      }
-    } catch (error) {
-      console.error('[StepPermission] Error requesting permission:', error);
-      if (Platform.OS !== 'web') {
-        await handleOpenSettings();
-      }
-      setIsChecking(false);
+  const handleRequestPermission = () => {
+    console.log('[StepPermission] handleRequestPermission called');
+    // For web platform, just navigate directly
+    if (Platform.OS === 'web') {
+      console.log('[StepPermission] Web platform, navigating to initializing');
+      router.replace('/onboarding/initializing');
+      return;
     }
+    // For native platforms, request permission
+    setIsChecking(true);
+    requestStepPermission()
+      .then(status => {
+        console.log('[StepPermission] Request permission result:', status);
+        if (status === 'granted') {
+          router.replace('/onboarding/initializing');
+        } else {
+          handleOpenSettings();
+          setIsChecking(false);
+        }
+      })
+      .catch(error => {
+        console.error('[StepPermission] Error requesting permission:', error);
+        handleOpenSettings();
+        setIsChecking(false);
+      });
   };
 
   return (
