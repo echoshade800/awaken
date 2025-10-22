@@ -11,15 +11,20 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [shouldNavigate, setShouldNavigate] = useState(false);
   const initialize = useStore((state) => state.initialize);
+  const hasOnboarded = useStore((state) => state.hasOnboarded);
 
   useEffect(() => {
-    const startOnboarding = async () => {
+    const startApp = async () => {
       try {
         console.log('[Root] Starting initialization...');
 
         // Initialize store
         await initialize();
+
+        // Get the latest state after initialization
+        const currentHasOnboarded = useStore.getState().hasOnboarded;
         console.log('[Root] Store initialized');
+        console.log('[Root] hasOnboarded:', currentHasOnboarded);
 
         // Mark as ready first
         setIsReady(true);
@@ -29,6 +34,7 @@ export default function RootLayout() {
       } catch (error) {
         console.error('[Root] Initialization error:', error);
         setIsReady(true);
+        setShouldNavigate(true);
       }
     };
 
@@ -36,9 +42,10 @@ export default function RootLayout() {
     const safetyTimeout = setTimeout(() => {
       console.warn('[Root] Safety timeout triggered - forcing ready state');
       setIsReady(true);
+      setShouldNavigate(true);
     }, 5000);
 
-    startOnboarding().finally(() => {
+    startApp().finally(() => {
       clearTimeout(safetyTimeout);
     });
   }, []);
@@ -46,13 +53,14 @@ export default function RootLayout() {
   // Navigate after layout is mounted
   useEffect(() => {
     if (isReady && shouldNavigate) {
-      console.log('[Root] Redirecting to onboarding...');
+      const destination = hasOnboarded ? '/(tabs)' : '/onboarding/welcome';
+      console.log('[Root] Redirecting to:', destination);
       const timer = setTimeout(() => {
-        router.replace('/onboarding/welcome');
+        router.replace(destination);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isReady, shouldNavigate]);
+  }, [isReady, shouldNavigate, hasOnboarded]);
 
   if (!isReady) {
     return (
