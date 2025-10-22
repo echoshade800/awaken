@@ -41,11 +41,11 @@ export default function AlarmCreate() {
   useEffect(() => {
     initNewAlarm();
 
-    // 随机选择一个开场白
+    // Random greeting
     const greetings = [
-      '嘿～要不要我帮你定个闹钟？今天太累啦，早点休息嘛💤',
-      '呀～新的一天要开始啦☀️ 让我帮你设个闹钟吧！',
-      '早安～🌤️ 要给闹钟取个名字吗？比如上班、健身～',
+      'Hey~ Want me to set an alarm for you? Time to rest up! 💤',
+      'Oh~ A new day is starting! ☀️ Let me help you set an alarm!',
+      'Good morning~ 🌤️ Want to give your alarm a name? Like Work, Gym~',
     ];
     const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
 
@@ -54,13 +54,13 @@ export default function AlarmCreate() {
       content: randomGreeting,
     });
 
-    // 提供快捷名称选项
+    // Provide quick name options
     setTimeout(() => {
       setSuggestedOptions([
-        { label: '上班', value: '上班', field: 'label' },
-        { label: '健身', value: '健身', field: 'label' },
-        { label: '午睡', value: '午睡', field: 'label' },
-        { label: '自定义', value: 'custom', field: 'label' },
+        { label: 'Work', value: 'Work', field: 'label' },
+        { label: 'Gym', value: 'Gym', field: 'label' },
+        { label: 'Nap', value: 'Nap', field: 'label' },
+        { label: 'Custom', value: 'custom', field: 'label' },
       ]);
     }, 500);
   }, []);
@@ -103,9 +103,9 @@ export default function AlarmCreate() {
       setTimeout(() => {
         let prompt = '';
         if (field === 'time') {
-          prompt = '好的～请输入你想要的时间，比如"7:30"或者"18:00"～';
+          prompt = 'Okay~ Please enter your desired time, like "7:30" or "18:00"~';
         } else if (field === 'label') {
-          prompt = '好的～请输入闹钟名称，比如"早起"、"晨练"等～';
+          prompt = 'Okay~ Please enter an alarm name, like "Morning" or "Exercise"~';
         }
         addChatMessage({
           role: 'ai',
@@ -158,10 +158,10 @@ export default function AlarmCreate() {
         setTimeout(() => {
           addChatMessage({
             role: 'ai',
-            content: '语音播报很温柔呢～点击下方按钮去编辑你的语音内容吧！',
+            content: 'Voice broadcast is so gentle~ Click the button below to edit your voice content!',
           });
           setSuggestedOptions([
-            { label: '📝 编辑语音播报', value: 'edit-voice', field: 'action' }
+            { label: '📝 Edit Voice Broadcast', value: 'edit-voice', field: 'action' }
           ]);
         }, 500);
         return;
@@ -172,13 +172,13 @@ export default function AlarmCreate() {
         setTimeout(() => {
           addChatMessage({
             role: 'ai',
-            content: '好哒～选择一个你喜欢的铃声吧！可以点击试听哦～',
+            content: 'Alright~ Choose a ringtone you like! You can tap to preview~',
           });
           setSuggestedOptions([
-            { label: '🔔 铃声1', value: 'ringtone-1', field: 'ringtone' },
-            { label: '🔔 铃声2', value: 'ringtone-2', field: 'ringtone' },
-            { label: '🔔 铃声3', value: 'ringtone-3', field: 'ringtone' },
-            { label: '📱 自定义铃声', value: 'custom-ringtone', field: 'ringtone' }
+            { label: '🔔 Ringtone 1', value: 'ringtone-1', field: 'ringtone' },
+            { label: '🔔 Ringtone 2', value: 'ringtone-2', field: 'ringtone' },
+            { label: '🔔 Ringtone 3', value: 'ringtone-3', field: 'ringtone' },
+            { label: '📱 Custom Ringtone', value: 'custom-ringtone', field: 'ringtone' }
           ]);
         }, 500);
         return;
@@ -213,10 +213,10 @@ export default function AlarmCreate() {
       });
 
       const ringtoneMap = {
-        'ringtone-1': { name: '铃声1', url: 'placeholder-url-1' },
-        'ringtone-2': { name: '铃声2', url: 'placeholder-url-2' },
-        'ringtone-3': { name: '铃声3', url: 'placeholder-url-3' },
-        'custom-ringtone': { name: '自定义铃声', url: 'placeholder-custom' }
+        'ringtone-1': { name: 'Ringtone 1', url: 'placeholder-url-1' },
+        'ringtone-2': { name: 'Ringtone 2', url: 'placeholder-url-2' },
+        'ringtone-3': { name: 'Ringtone 3', url: 'placeholder-url-3' },
+        'custom-ringtone': { name: 'Custom Ringtone', url: 'placeholder-custom' }
       };
 
       const selectedRingtone = ringtoneMap[value];
