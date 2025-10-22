@@ -22,37 +22,36 @@ export default function InitializingScreen() {
   }, []);
 
   const initializeApp = async () => {
-    let retryCount = 0;
-    const maxRetries = 3;
-
-    while (retryCount < maxRetries) {
-      try {
-        for (let i = 0; i < steps.length; i++) {
-          setCurrentStep(i);
-          await new Promise(resolve => setTimeout(resolve, steps[i].duration));
-        }
-
-        await initializeSleepData();
-
-        setTimeout(() => {
-          router.replace('/(tabs)');
-        }, 500);
-
-        return;
-      } catch (err) {
-        console.error('Initialization error:', err);
-        retryCount++;
-
-        if (retryCount >= maxRetries) {
-          setError('Unable to initialize. Please check your health permissions and try again.');
-          setTimeout(() => {
-            router.back();
-          }, 3000);
-          return;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+    try {
+      for (let i = 0; i < steps.length; i++) {
+        setCurrentStep(i);
+        await new Promise(resolve => setTimeout(resolve, steps[i].duration));
       }
+
+      await initializeSleepData();
+
+      setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 500);
+    } catch (err) {
+      console.error('Initialization error:', err);
+
+      let errorMessage = 'Unable to initialize sleep data.';
+
+      if (err.message.includes('permission')) {
+        errorMessage = 'Step counting permission not granted. Please enable Motion & Fitness permissions in your device settings.';
+      } else if (err.message.includes('not available')) {
+        errorMessage = 'Step counting is not available on this device. This app requires a device with step counting capability.';
+      } else if (err.message.includes('No step data')) {
+        errorMessage = 'No step data found. Please use your device for a few days with step tracking enabled, then try again.';
+      } else if (err.message.includes('sleep patterns')) {
+        errorMessage = 'Unable to detect sleep patterns. Please ensure you have at least 3-5 days of step tracking data.';
+      }
+
+      setError(errorMessage);
+      setTimeout(() => {
+        router.back();
+      }, 5000);
     }
   };
 
