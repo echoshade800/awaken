@@ -27,7 +27,7 @@ export default function MonsterTipsBanner({ tip = "✨ Energy's balanced. Keep i
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
-    marginBottom: 16,
+    marginBottom: 8,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
