@@ -8,7 +8,7 @@ export default function SmartAlarmScreen() {
   const router = useRouter();
 
   const handleCreateAlarm = () => {
-    router.push('/alarm/create');
+    router.push('/alarm/create?fromOnboarding=true');
   };
 
   return (

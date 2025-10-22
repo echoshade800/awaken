@@ -10,7 +10,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Send, Mic } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
@@ -22,6 +22,7 @@ import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
 
 export default function AlarmCreate() {
   const router = useRouter();
+  const { fromOnboarding } = useLocalSearchParams();
   const scrollViewRef = useRef(null);
   const [inputText, setInputText] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
@@ -361,9 +362,13 @@ export default function AlarmCreate() {
 
         setIsAIProcessing(false);
 
-        // Return after 1.5s delay
+        // Navigate to next step after 1.5s delay
         setTimeout(() => {
-          router.back();
+          if (fromOnboarding === 'true') {
+            router.replace('/onboarding/initializing');
+          } else {
+            router.back();
+          }
         }, 1500);
       } catch (error) {
         console.error('Final encouragement error:', error);
@@ -377,7 +382,11 @@ export default function AlarmCreate() {
         setIsAIProcessing(false);
 
         setTimeout(() => {
-          router.back();
+          if (fromOnboarding === 'true') {
+            router.replace('/onboarding/initializing');
+          } else {
+            router.back();
+          }
         }, 1500);
       }
     }, 300);
