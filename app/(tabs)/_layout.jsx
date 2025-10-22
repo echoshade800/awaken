@@ -57,8 +57,8 @@ function CustomTabBar({ state, descriptors, navigation }) {
           backgroundColor: 'rgba(200, 220, 255, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.25)',
           shadowColor: 'rgba(0, 0, 0, 0.12)',
-          inactiveIconColor: 'rgba(100, 116, 139, 0.6)',
-          inactiveLabelColor: 'rgba(100, 116, 139, 0.7)',
+          inactiveIconColor: 'rgba(255, 255, 255, 0.7)',
+          inactiveLabelColor: 'rgba(255, 255, 255, 0.7)',
           activeIconColor: '#7DBBFF',
           activeLabelColor: '#5A9FE6',
         };
