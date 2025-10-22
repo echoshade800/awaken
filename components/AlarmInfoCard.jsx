@@ -20,12 +20,36 @@ const VOICE_PACKAGE_LABELS = {
 export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = false }) {
   if (!alarm) return null;
 
-  const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
-  const voiceLabel = VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage;
+  // 检查是否有任何信息
+  const hasAnyInfo = alarm.label || alarm.time || alarm.period || alarm.wakeMode || alarm.interactionEnabled !== undefined;
+
+  // 如果没有任何信息，显示空状态
+  if (!hasAnyInfo) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.emptyState}>
+          <Clock size={32} color="rgba(26, 40, 69, 0.3)" />
+          <Text style={styles.emptyText}>正在收集闹钟信息...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const periodLabel = alarm.period ? (PERIOD_LABELS[alarm.period] || alarm.period) : null;
+  const voiceLabel = alarm.voicePackage ? (VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage) : null;
   const gameLabel = alarm.interactionType ? getGameLabel(alarm.interactionType) : null;
+
+  // 计算有多少信息已经填写
+  const hasDetails = alarm.period || alarm.wakeMode || alarm.interactionEnabled || alarm.broadcastContent;
 
   return (
     <View style={styles.card}>
+      {alarm.label && (
+        <View style={styles.labelRow}>
+          <Text style={styles.labelText}>📛 {alarm.label}</Text>
+        </View>
+      )}
+
       <View style={styles.timeRow}>
         <View style={styles.timeInfo}>
           <Clock size={32} color="#1A2845" />
@@ -39,52 +63,69 @@ export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = fa
         )}
       </View>
 
-      <View style={styles.divider} />
+      {hasDetails && <View style={styles.divider} />}
 
-      <View style={styles.detailsGrid}>
-        <View style={styles.detailItem}>
-          <Calendar size={20} color="#1A2845" />
-          <Text style={styles.detailText}>{periodLabel}</Text>
+      {hasDetails && (
+        <View style={styles.detailsGrid}>
+          {alarm.period && (
+            <View style={styles.detailItem}>
+              <Calendar size={20} color="#1A2845" />
+              <Text style={styles.detailText}>{periodLabel}</Text>
+            </View>
+          )}
+
+          {alarm.wakeMode === 'voice' && (
+            <>
+              <View style={styles.detailItem}>
+                <Mic size={20} color="#1A2845" />
+                <Text style={styles.detailText}>语音播报</Text>
+              </View>
+              {voiceLabel && (
+                <View style={styles.detailItem}>
+                  <Music size={20} color="#1A2845" />
+                  <Text style={styles.detailText}>{voiceLabel}</Text>
+                </View>
+              )}
+            </>
+          )}
+
+          {alarm.wakeMode === 'ringtone' && (
+            <View style={styles.detailItem}>
+              <Music size={20} color="#666" />
+              <Text style={styles.detailText}>{alarm.ringtone || '默认铃声'}</Text>
+            </View>
+          )}
+
+          {alarm.wakeMode === 'vibration' && (
+            <View style={styles.detailItem}>
+              <Music size={20} color="#666" />
+              <Text style={styles.detailText}>震动</Text>
+            </View>
+          )}
+
+          {alarm.interactionEnabled && gameLabel && (
+            <View style={styles.detailItem}>
+              <Gamepad2 size={20} color="#1A2845" />
+              <Text style={styles.detailText}>{gameLabel}</Text>
+            </View>
+          )}
+
+          {alarm.interactionEnabled === false && (
+            <View style={styles.detailItem}>
+              <Gamepad2 size={20} color="rgba(26, 40, 69, 0.4)" />
+              <Text style={[styles.detailText, { opacity: 0.5 }]}>无游戏</Text>
+            </View>
+          )}
+
+          {alarm.broadcastContent && (
+            <View style={[styles.detailItem, styles.broadcastPreview]}>
+              <Text style={styles.broadcastText} numberOfLines={2}>
+                播报: {alarm.broadcastContent}
+              </Text>
+            </View>
+          )}
         </View>
-
-        {alarm.wakeMode === 'voice' ? (
-          <>
-            <View style={styles.detailItem}>
-              <Mic size={20} color="#1A2845" />
-              <Text style={styles.detailText}>Voice Broadcast</Text>
-            </View>
-            <View style={styles.detailItem}>
-              <Music size={20} color="#1A2845" />
-              <Text style={styles.detailText}>{voiceLabel}</Text>
-            </View>
-          </>
-        ) : alarm.wakeMode === 'ringtone' ? (
-          <View style={styles.detailItem}>
-            <Music size={20} color="#666" />
-            <Text style={styles.detailText}>{alarm.ringtone || 'Default Ringtone'}</Text>
-          </View>
-        ) : alarm.wakeMode === 'vibration' ? (
-          <View style={styles.detailItem}>
-            <Music size={20} color="#666" />
-            <Text style={styles.detailText}>Vibration</Text>
-          </View>
-        ) : null}
-
-        {alarm.interactionEnabled && gameLabel && (
-          <View style={styles.detailItem}>
-            <Gamepad2 size={20} color="#1A2845" />
-            <Text style={styles.detailText}>{gameLabel}</Text>
-          </View>
-        )}
-
-        {alarm.broadcastContent && (
-          <View style={[styles.detailItem, styles.broadcastPreview]}>
-            <Text style={styles.broadcastText} numberOfLines={2}>
-              Broadcast: {alarm.broadcastContent}
-            </Text>
-          </View>
-        )}
-      </View>
+      )}
     </View>
   );
 }
@@ -175,5 +216,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#007AFF',
     lineHeight: 18,
+  },
+  emptyState: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: 'rgba(26, 40, 69, 0.5)',
+    fontWeight: '500',
+  },
+  labelRow: {
+    marginBottom: 8,
+  },
+  labelText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A2845',
   },
 });
