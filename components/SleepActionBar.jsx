@@ -262,7 +262,7 @@ function ManualSleepModal({ visible, onClose }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: IS_SMALL_DEVICE ? 84 : 92,
+    bottom: IS_SMALL_DEVICE ? 104 : 112,
     left: 16,
     right: 16,
     zIndex: 100,
