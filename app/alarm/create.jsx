@@ -101,7 +101,14 @@ export default function AlarmCreate() {
         role: 'user',
         content: label,
       });
-      updateDraft({ interactionEnabled: true, interactionType: value });
+
+      // 如果选择"跳过"，则禁用互动
+      if (value === 'none') {
+        updateDraft({ interactionEnabled: false, interactionType: null });
+      } else {
+        updateDraft({ interactionEnabled: true, interactionType: value });
+      }
+
       setSuggestedOptions(null);
 
       setTimeout(async () => {
@@ -170,55 +177,18 @@ export default function AlarmCreate() {
     }
   };
 
-  const checkMissingInfo = (draft) => {
-    const missing = [];
-
-    if (!draft.label) missing.push('label');
-    if (!draft.time) missing.push('time');
-    if (!draft.period) missing.push('period');
-    if (!draft.wakeMode) missing.push('wakeMode');
-    if (draft.interactionEnabled === undefined) missing.push('interaction');
-
-    return missing;
-  };
-
   const handleConfirm = async () => {
-    const missingInfo = checkMissingInfo(currentAlarmDraft);
-
-    if (missingInfo.length > 0) {
-      const missingLabels = {
-        label: '闹钟名称',
-        time: '时间',
-        period: '周期',
-        wakeMode: '唤醒方式',
-        interaction: '互动任务',
-      };
-
-      const missingText = missingInfo.map((key) => missingLabels[key]).join('、');
-
+    // 检查是否所有信息都已收集
+    if (!isAlarmComplete(currentAlarmDraft)) {
       addChatMessage({
         role: 'ai',
-        content: `还差一点点～\n缺少：${missingText}\n\n继续输入或选择吧～😊`,
+        content: '还差一点点～请继续回答问题完成设置😊',
       });
-
-      const firstMissing = missingInfo[0];
-      await askForMissingInfo(firstMissing);
-    } else {
-      setShowSummaryModal(true);
+      return;
     }
-  };
 
-  const askForMissingInfo = async (field) => {
-    const prompts = {
-      label: '这个闹钟是干嘛用的呀？😊',
-      time: '几点叫你呢～早起的话记得早睡哦💤',
-      period: '要每天都叫你嘛？还是就明天一次？',
-      wakeMode: '想用什么方式叫醒你呀？铃声、语音播报还是震动？',
-      interaction: '要不要加个互动小游戏？保证能把你摇清醒！🎮',
-    };
-
-    const message = prompts[field] || '请继续输入～';
-    await continueConversation(message);
+    // 所有信息完整，显示确认弹窗
+    setShowSummaryModal(true);
   };
 
   const handleAddInteraction = (interactionType) => {
@@ -356,7 +326,7 @@ export default function AlarmCreate() {
           <AlarmInfoCard
             alarm={currentAlarmDraft}
             onConfirm={handleConfirm}
-            showConfirmButton={true}
+            showConfirmButton={isAlarmComplete(currentAlarmDraft)}
           />
         )}
 
