@@ -170,111 +170,44 @@ export default function AlarmCreate() {
     }
   };
 
-  const checkMissingInfo = (draft) => {
-    const missing = [];
-
-    if (!draft.label) missing.push('label');
-    if (!draft.time) missing.push('time');
-    if (!draft.period) missing.push('period');
-    if (!draft.wakeMode) missing.push('wakeMode');
-    if (draft.interactionEnabled === undefined) missing.push('interaction');
-
-    return missing;
-  };
-
   const handleConfirm = async () => {
-    // 检查必要信息是否完整
-    const missingInfo = checkMissingInfo(currentAlarmDraft);
-
-    if (missingInfo.length > 0) {
-      const missingLabels = {
-        label: '闹钟名称',
-        time: '时间',
-        period: '周期',
-        wakeMode: '唤醒方式',
-        interaction: '互动任务',
-      };
-
-      const missingText = missingInfo.map((key) => missingLabels[key]).join('、');
-
+    if (!isAlarmComplete(currentAlarmDraft)) {
       addChatMessage({
         role: 'ai',
-        content: `还缺少一些信息哦～\n缺少：${missingText}\n\n请继续输入或选择～`,
+        content: '还有一些信息没有填写完整哦～请继续完成设置～',
       });
-
-      const firstMissing = missingInfo[0];
-      await askForMissingInfo(firstMissing);
-    } else {
-      setShowSummaryModal(true);
+      return;
     }
-  };
-
-  const askForMissingInfo = async (field) => {
-    const prompts = {
-      label: '这个闹钟是做什么用的呢？',
-      time: '你想什么时候叫你呢？',
-      period: '要每天都叫你，还是只一次呢？',
-      wakeMode: '想用什么方式叫你呢？',
-      interaction: '要不要加个小任务让起床更清醒？',
-    };
-
-    const message = prompts[field] || '请继续输入～';
-    await continueConversation(message);
+    setShowSummaryModal(true);
   };
 
   const handleFinalSave = async () => {
     setShowSummaryModal(false);
 
-    // 保存闹钟
     await saveAlarmFromDraft();
 
-    // 模拟用户点击确认
     addChatMessage({
       role: 'user',
       content: '确认',
     });
 
-    // 调用 AI 生成鼓励话术
     setTimeout(async () => {
       setIsAIProcessing(true);
 
-      try {
-        const aiResult = await parseUserInputWithAI('确认创建闹钟', currentAlarmDraft);
+      const aiResult = await parseUserInputWithAI('确认创建闹钟', currentAlarmDraft);
 
-        if (aiResult.success) {
-          addChatMessage({
-            role: 'ai',
-            content: aiResult.message,
-          });
-        } else {
-          // 降级：使用默认鼓励
-          addChatMessage({
-            role: 'ai',
-            content: '好的～闹钟已设置完成！快去试试吧！🎉',
-          });
-        }
-
-        setIsAIProcessing(false);
-
-        // 延迟 1.5 秒后返回列表页
-        setTimeout(() => {
-          router.back();
-        }, 1500);
-      } catch (error) {
-        console.error('Final encouragement error:', error);
-
-        // 降级：使用默认鼓励
+      if (aiResult.success) {
         addChatMessage({
           role: 'ai',
-          content: '好的～闹钟已设置完成！快去试试吧！🎉',
+          content: aiResult.message,
         });
-
-        setIsAIProcessing(false);
-
-        setTimeout(() => {
-          router.back();
-        }, 1500);
       }
+
+      setIsAIProcessing(false);
+
+      setTimeout(() => {
+        router.back();
+      }, 1500);
     }, 300);
   };
 
@@ -298,10 +231,7 @@ export default function AlarmCreate() {
   };
 
   const handleVoiceInput = () => {
-    addChatMessage({
-      role: 'ai',
-      content: '语音输入功能开发中～请使用选项或文字输入',
-    });
+    // 语音输入功能预留
   };
 
   const renderSuggestedOptions = () => {

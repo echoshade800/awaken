@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { X } from 'lucide-react-native';
-import { getGameLabel } from '../lib/interactionOptions';
 
 const PERIOD_LABELS = {
   everyday: '每天',
@@ -9,32 +8,35 @@ const PERIOD_LABELS = {
   tomorrow: '只一次',
 };
 
-const VOICE_PACKAGE_LABELS = {
-  'energetic-girl': '元气少女🎀',
-  'calm-man': '沉稳大叔🧠',
-  'ancient-style': '古风公子🌙',
-  'cat': '小猫咪🐱',
+const WAKEMODE_LABELS = {
+  ringtone: '默认铃声',
+  voice: '语音播报',
+  vibration: '震动',
 };
 
 export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel }) {
   if (!alarm) return null;
 
   const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
-  const voiceLabel = VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage;
-  const gameLabel = alarm.interactionType ? getGameLabel(alarm.interactionType) : null;
+  const wakeModeLabel = WAKEMODE_LABELS[alarm.wakeMode] || alarm.wakeMode;
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
-            <Text style={styles.title}>闹钟设置总结</Text>
+            <Text style={styles.title}>确认闹钟设置</Text>
             <TouchableOpacity onPress={onCancel} style={styles.closeButton}>
               <X size={24} color="#666" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.content}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.label}>📛 名称</Text>
+              <Text style={styles.value}>{alarm.label || '未命名'}</Text>
+            </View>
+
             <View style={styles.summaryItem}>
               <Text style={styles.label}>⏰ 时间</Text>
               <Text style={styles.value}>{alarm.time}</Text>
@@ -46,34 +48,13 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel 
             </View>
 
             <View style={styles.summaryItem}>
-              <Text style={styles.label}>🎙️ 唤醒方式</Text>
-              {alarm.wakeMode === 'voice' ? (
-                <Text style={styles.value}>语音播报（{voiceLabel}）</Text>
-              ) : alarm.wakeMode === 'ringtone' ? (
-                <Text style={styles.value}>铃声</Text>
-              ) : alarm.wakeMode === 'vibration' ? (
-                <Text style={styles.value}>震动</Text>
-              ) : (
-                <Text style={styles.value}>未设置</Text>
-              )}
+              <Text style={styles.label}>🔔 唤醒方式</Text>
+              <Text style={styles.value}>{wakeModeLabel}</Text>
             </View>
 
-            {alarm.broadcastContent && (
-              <View style={styles.summaryItem}>
-                <Text style={styles.label}>📻 播报内容</Text>
-                <Text style={styles.value}>
-                  {alarm.broadcastContent === 'default' ? '默认播报' : '自定义播报'}
-                </Text>
-              </View>
-            )}
-
             <View style={styles.summaryItem}>
-              <Text style={styles.label}>🎮 互动游戏</Text>
-              {alarm.interactionEnabled && gameLabel ? (
-                <Text style={styles.value}>{gameLabel}</Text>
-              ) : (
-                <Text style={styles.value}>无</Text>
-              )}
+              <Text style={styles.label}>🎮 互动任务</Text>
+              <Text style={styles.value}>{alarm.interactionEnabled ? '已开启' : '未开启'}</Text>
             </View>
           </View>
 
