@@ -27,7 +27,6 @@ export default function AlarmCreate() {
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [suggestedOptions, setSuggestedOptions] = useState(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
-  const [hasGoneToBroadcastEditor, setHasGoneToBroadcastEditor] = useState(false);
 
   const {
     currentAlarmDraft,
@@ -44,9 +43,9 @@ export default function AlarmCreate() {
 
     // 随机选择一个开场白
     const greetings = [
-      '呀～新的一天要开始啦☀️ 想几点起呢？',
-      '早安～🌤️ 要我几点叫你起床？',
-      '嘿～让我帮你设个闹钟吧！想几点叫你？',
+      '嘿～要不要我帮你定个闹钟？今天太累啦，早点休息嘛💤',
+      '呀～新的一天要开始啦☀️ 让我帮你设个闹钟吧！',
+      '早安～🌤️ 要给闹钟取个名字吗？比如上班、健身～',
     ];
     const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
 
@@ -55,13 +54,13 @@ export default function AlarmCreate() {
       content: randomGreeting,
     });
 
-    // 提供快捷时间选项
+    // 提供快捷名称选项
     setTimeout(() => {
       setSuggestedOptions([
-        { label: '6:30', value: '06:30', field: 'time' },
-        { label: '7:00', value: '07:00', field: 'time' },
-        { label: '7:30', value: '07:30', field: 'time' },
-        { label: '自定义时间', value: 'custom', field: 'time' },
+        { label: '上班', value: '上班', field: 'label' },
+        { label: '健身', value: '健身', field: 'label' },
+        { label: '午睡', value: '午睡', field: 'label' },
+        { label: '自定义', value: 'custom', field: 'label' },
       ]);
     }, 500);
   }, []);
@@ -70,124 +69,33 @@ export default function AlarmCreate() {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [chatHistory, suggestedOptions]);
 
-  // 监听从 broadcast-editor 返回
-  useEffect(() => {
-    // 只有真正去过编辑器，并且 broadcastContent 被设置了，才触发返回逻辑
-    if (hasGoneToBroadcastEditor && currentAlarmDraft?.broadcastContent) {
-      // 重置标记，避免重复触发
-      setHasGoneToBroadcastEditor(false);
-
-      addChatMessage({
-        role: 'user',
-        content: '播报内容已设置完成',
-      });
-
-      setTimeout(async () => {
-        // 继续对话流程 - 询问 period
-        await continueConversation('播报内容已配置好');
-      }, 500);
-    }
-  }, [currentAlarmDraft?.broadcastContent, hasGoneToBroadcastEditor]);
 
   const handleOptionSelect = async (option) => {
-    // 用户点击了选项按钮
     const { field, value, label } = option;
 
-    // 处理特殊情况：自定义时间
-    if (field === 'time' && value === 'custom') {
+    // 处理自定义输入
+    if (value === 'custom') {
       addChatMessage({
         role: 'user',
         content: label,
       });
       setSuggestedOptions(null);
       setTimeout(() => {
+        let prompt = '';
+        if (field === 'time') {
+          prompt = '好的～请输入你想要的时间，比如"7:30"或者"18:00"～';
+        } else if (field === 'label') {
+          prompt = '好的～请输入闹钟名称，比如"早起"、"晨练"等～';
+        }
         addChatMessage({
           role: 'ai',
-          content: '好的～请输入你想要的时间，比如"7:30"或者"18:00"～',
+          content: prompt,
         });
       }, 500);
       return;
     }
 
-    // 处理特殊情况：自定义播报内容
-    if (field === 'broadcastContent' && value === 'custom') {
-      addChatMessage({
-        role: 'user',
-        content: label,
-      });
-      setSuggestedOptions(null);
-      // 设置标记：即将跳转到编辑器
-      setHasGoneToBroadcastEditor(true);
-      // 跳转到 broadcast-editor
-      setTimeout(() => {
-        router.push('/alarm/broadcast-editor');
-      }, 300);
-      return;
-    }
-
-    // 处理特殊情况：两级选择 - 用户点击了 [铃声]
-    if (field === 'wakeMode' && value === 'ringtone') {
-      addChatMessage({
-        role: 'user',
-        content: label,
-      });
-      setSuggestedOptions(null);
-
-      // 显示铃声子选项
-      setTimeout(() => {
-        addChatMessage({
-          role: 'ai',
-          content: '好的～我们有3种铃声供你选择：',
-        });
-        setSuggestedOptions([
-          { label: '铃声 1 - 轻柔唤醒', value: 'gentle-wake', field: 'ringtone' },
-          { label: '铃声 2 - 清晨鸟鸣', value: 'morning-birds', field: 'ringtone' },
-          { label: '铃声 3 - 渐强提示', value: 'gradual-alert', field: 'ringtone' },
-        ]);
-      }, 500);
-      return;
-    }
-
-    // 处理特殊情况：用户点击了 [语音播报]
-    if (field === 'wakeMode' && value === 'voice') {
-      addChatMessage({
-        role: 'user',
-        content: label,
-      });
-      updateDraft({ wakeMode: 'voice' });
-      setSuggestedOptions(null);
-
-      // 询问是否进入编辑页面（使用两段式格式）
-      setTimeout(() => {
-        addChatMessage({
-          role: 'ai',
-          content: '好耶～语音播报很棒！🎙️\n\n要进入语音播报页面自定义内容吗？你可以设置播报词、插入天气、时间等动态信息～\n\n也可以直接使用默认播报！',
-        });
-        setSuggestedOptions([
-          { label: '进入编辑页面', value: 'custom', field: 'broadcastContent' },
-          { label: '使用默认播报', value: 'default', field: 'broadcastContent' },
-        ]);
-      }, 500);
-      return;
-    }
-
-    // 处理特殊情况：用户选择了具体的铃声
-    if (field === 'ringtone') {
-      addChatMessage({
-        role: 'user',
-        content: label,
-      });
-      updateDraft({ wakeMode: 'ringtone', ringtone: value });
-      setSuggestedOptions(null);
-
-      // 继续对话
-      setTimeout(async () => {
-        await continueConversation(label);
-      }, 500);
-      return;
-    }
-
-    // 处理特殊情况：用户选择了具体的任务类型
+    // 处理任务类型选择
     if (field === 'interactionType') {
       addChatMessage({
         role: 'user',
@@ -196,7 +104,6 @@ export default function AlarmCreate() {
       updateDraft({ interactionEnabled: true, interactionType: value });
       setSuggestedOptions(null);
 
-      // 继续对话
       setTimeout(async () => {
         await continueConversation(label);
       }, 500);
@@ -212,7 +119,6 @@ export default function AlarmCreate() {
     updateDraft({ [field]: value });
     setSuggestedOptions(null);
 
-    // 继续对话
     setTimeout(async () => {
       await continueConversation(label);
     }, 500);
@@ -271,14 +177,7 @@ export default function AlarmCreate() {
     if (!draft.time) missing.push('time');
     if (!draft.period) missing.push('period');
     if (!draft.wakeMode) missing.push('wakeMode');
-
-    if (draft.wakeMode === 'voice') {
-      if (!draft.broadcastContent) missing.push('broadcastContent');
-    }
-
-    if (draft.wakeMode === 'ringtone') {
-      if (!draft.ringtone) missing.push('ringtone');
-    }
+    if (draft.interactionEnabled === undefined) missing.push('interaction');
 
     return missing;
   };
@@ -288,14 +187,12 @@ export default function AlarmCreate() {
     const missingInfo = checkMissingInfo(currentAlarmDraft);
 
     if (missingInfo.length > 0) {
-      // 有缺失信息，询问用户
       const missingLabels = {
         label: '闹钟名称',
         time: '时间',
         period: '周期',
         wakeMode: '唤醒方式',
-        ringtone: '铃声选择',
-        broadcastContent: '播报内容',
+        interaction: '互动任务',
       };
 
       const missingText = missingInfo.map((key) => missingLabels[key]).join('、');
@@ -305,24 +202,20 @@ export default function AlarmCreate() {
         content: `还缺少一些信息哦～\n缺少：${missingText}\n\n请继续输入或选择～`,
       });
 
-      // 根据第一个缺失项提供建议
       const firstMissing = missingInfo[0];
       await askForMissingInfo(firstMissing);
     } else {
-      // 信息完整，显示总结弹窗
       setShowSummaryModal(true);
     }
   };
 
   const askForMissingInfo = async (field) => {
-    // 根据缺失字段，让 AI 主动询问
     const prompts = {
       label: '这个闹钟是做什么用的呢？',
       time: '你想什么时候叫你呢？',
       period: '要每天都叫你，还是只一次呢？',
       wakeMode: '想用什么方式叫你呢？',
-      ringtone: '请选择一个铃声',
-      broadcastContent: '要进入编辑页面自定义播报内容吗？',
+      interaction: '要不要加个小任务让起床更清醒？',
     };
 
     const message = prompts[field] || '请继续输入～';
