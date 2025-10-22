@@ -42,7 +42,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         return {
           blurTint: 'light',
           blurIntensity: 80,
-          backgroundColor: 'rgba(255, 255, 255, 0.65)',
+          backgroundColor: 'rgba(255, 255, 255, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.3)',
           shadowColor: 'rgba(0, 0, 0, 0.08)',
           inactiveIconColor: 'rgba(100, 116, 139, 0.6)',
@@ -54,7 +54,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         return {
           blurTint: 'light',
           blurIntensity: 70,
-          backgroundColor: 'rgba(200, 220, 255, 0.3)',
+          backgroundColor: 'rgba(200, 220, 255, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.25)',
           shadowColor: 'rgba(0, 0, 0, 0.12)',
           inactiveIconColor: 'rgba(100, 116, 139, 0.6)',
@@ -66,7 +66,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         return {
           blurTint: 'dark',
           blurIntensity: 90,
-          backgroundColor: 'rgba(20, 20, 30, 0.7)',
+          backgroundColor: 'rgba(20, 20, 30, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.1)',
           shadowColor: 'rgba(0, 0, 0, 0.3)',
           inactiveIconColor: 'rgba(200, 200, 220, 0.5)',
