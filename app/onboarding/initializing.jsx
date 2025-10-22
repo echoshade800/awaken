@@ -22,43 +22,36 @@ export default function InitializingScreen() {
   }, []);
 
   const initializeApp = async () => {
-    try {
-      for (let i = 0; i < steps.length; i++) {
-        setCurrentStep(i);
-        await new Promise(resolve => setTimeout(resolve, steps[i].duration));
-      }
+    let retryCount = 0;
+    const maxRetries = 3;
 
-      await initializeSleepData();
+    while (retryCount < maxRetries) {
+      try {
+        for (let i = 0; i < steps.length; i++) {
+          setCurrentStep(i);
+          await new Promise(resolve => setTimeout(resolve, steps[i].duration));
+        }
 
-      setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 500);
-    } catch (err) {
-      console.error('Initialization error:', err);
+        await initializeSleepData();
 
-      let errorMessage = 'We couldn\'t find enough step data yet.';
-      let canRetry = false;
-
-      if (err.message.includes('permission')) {
-        errorMessage = 'Step counting permission not granted. Tap below to go back and enable permissions.';
-        canRetry = true;
-      } else if (err.message.includes('not available')) {
-        errorMessage = 'Step counting is not available on this device. This app requires a device with step counting capability.';
-        canRetry = true;
-      } else if (err.message.includes('No step data')) {
-        errorMessage = 'We couldn\'t find enough step data yet. Carry your phone during the day, and we\'ll update automatically.';
-        canRetry = false;
-      } else if (err.message.includes('sleep patterns') || err.message.includes('sleep data')) {
-        errorMessage = 'We need a bit more data to detect your sleep patterns. Please use your device for a few more days with step tracking enabled.';
-        canRetry = false;
-      }
-
-      setError(errorMessage);
-
-      if (canRetry) {
         setTimeout(() => {
-          router.back();
-        }, 4000);
+          router.replace('/(tabs)');
+        }, 500);
+
+        return;
+      } catch (err) {
+        console.error('Initialization error:', err);
+        retryCount++;
+
+        if (retryCount >= maxRetries) {
+          setError('Unable to initialize. Please check your health permissions and try again.');
+          setTimeout(() => {
+            router.back();
+          }, 3000);
+          return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
       }
     }
   };
