@@ -63,7 +63,7 @@ export default function SleepActionBar() {
         <BlurView intensity={40} tint="light" style={styles.blur}>
             <View style={styles.content}>
             <TouchableOpacity
-              style={styles.action}
+              style={styles.alarmButton}
               onPress={handleAlarmPress}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
@@ -71,17 +71,19 @@ export default function SleepActionBar() {
               accessibilityLabel={`Alarm, next at ${formatAlarmTime(nextAlarm?.time) || 'none'}, button`}
               accessibilityRole="button"
             >
-              <Clock size={20} color="#334155" strokeWidth={2} />
-              <Text style={styles.actionLabel}>Alarm</Text>
-              {nextAlarm && (
-                <View style={styles.pill}>
-                  <Text style={styles.pillText}>Next: {formatAlarmTime(nextAlarm.time)}</Text>
-                </View>
-              )}
+              <LinearGradient
+                colors={['#8B5CF6', '#7C3AED']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.alarmGradient}
+              >
+                <Clock size={20} color="#FFFFFF" strokeWidth={2.5} />
+                <Text style={styles.alarmTime}>{nextAlarm ? formatAlarmTime(nextAlarm.time) : '--:--'}</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.action}
+              style={styles.iconButton}
               onPress={toggleAutoTracking}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
@@ -89,15 +91,13 @@ export default function SleepActionBar() {
               accessibilityLabel={`Auto tracking, ${sleepAutoTracking ? 'on' : 'off'}, button`}
               accessibilityRole="button"
             >
-              <View style={styles.iconWithIndicator}>
-                <Text style={styles.zzzIcon}>zZ</Text>
-                <View style={[styles.indicator, sleepAutoTracking && styles.indicatorOn]} />
-              </View>
-              <Text style={styles.actionLabel}>Auto</Text>
+              <Text style={styles.autoIcon}>z</Text>
+              <Text style={styles.autoIconSmall}>Z</Text>
+              <Text style={styles.autoLabel}>Auto</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.action}
+              style={styles.iconButton}
               onPress={handleAddPress}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
@@ -105,8 +105,7 @@ export default function SleepActionBar() {
               accessibilityLabel="Add sleep record, button"
               accessibilityRole="button"
             >
-              <Plus size={20} color="#334155" strokeWidth={2} />
-              <Text style={styles.actionLabel}>Add</Text>
+              <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
             </TouchableOpacity>
             </View>
         </BlurView>
@@ -269,84 +268,75 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   blur: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backgroundColor: 'rgba(30, 30, 35, 0.85)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
   },
   content: {
     flexDirection: 'row',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    justifyContent: 'space-around',
-    minHeight: 56,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 8,
     alignItems: 'center',
   },
-  action: {
+  alarmButton: {
     flex: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  alarmGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 8,
   },
-  actionLabel: {
+  alarmTime: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  iconButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  autoIcon: {
+    position: 'absolute',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    left: 16,
+    top: 14,
+  },
+  autoIconSmall: {
+    position: 'absolute',
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    right: 14,
+    top: 10,
+  },
+  autoLabel: {
+    position: 'absolute',
     fontSize: 11,
     fontWeight: '600',
-    color: 'rgba(51, 65, 85, 0.85)',
-    marginTop: 4,
-    letterSpacing: 0.3,
-  },
-  pill: {
-    backgroundColor: '#A78BFA',
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginTop: 6,
-    shadowColor: '#A78BFA',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  pillText: {
-    fontSize: 10,
-    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.2,
-  },
-  iconWithIndicator: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  zzzIcon: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  indicator: {
-    position: 'absolute',
-    top: -3,
-    right: -10,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'rgba(156, 163, 175, 0.5)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  indicatorOn: {
-    backgroundColor: '#10B981',
-    borderColor: 'rgba(16, 185, 129, 0.5)',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
+    bottom: 10,
+    letterSpacing: 0.3,
   },
 });
 
