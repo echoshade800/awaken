@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   tipContainer: {
     marginTop: 12,
-    marginBottom: 20,
+    marginBottom: 56,
     padding: 16,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
