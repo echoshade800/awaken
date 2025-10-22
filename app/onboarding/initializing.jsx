@@ -9,7 +9,6 @@ import useStore from '../../lib/store';
 export default function InitializingScreen() {
   const router = useRouter();
   const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
-  const completeOnboarding = useStore((state) => state.completeOnboarding);
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState(null);
 
@@ -37,7 +36,6 @@ export default function InitializingScreen() {
 
         await initializeSleepData();
         await insertDemoSleepData();
-        await completeOnboarding();
 
         setTimeout(() => {
           router.replace('/(tabs)');

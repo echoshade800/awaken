@@ -8,7 +8,7 @@ import {
   FlatList,
   StyleSheet,
   Platform,
-  useWindowDimensions,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
@@ -17,8 +17,9 @@ import useStore from '../../lib/store';
 import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
 import { BROADCAST_TEMPLATES } from '../../lib/broadcastTemplates';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 export default function BroadcastEditor() {
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const router = useRouter();
   const { currentAlarmDraft, updateDraft } = useStore();
 
@@ -129,7 +130,7 @@ export default function BroadcastEditor() {
           data={BROADCAST_TEMPLATES}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={[styles.templateSlide, { width: SCREEN_WIDTH }]}>
+            <View style={styles.templateSlide}>
               <View style={styles.templateCard}>
                 <View style={styles.inputWrapper}>
                   <TextInput
@@ -315,6 +316,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   templateSlide: {
+    width: SCREEN_WIDTH,
     paddingHorizontal: 16,
   },
   templateCard: {

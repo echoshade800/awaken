@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useMemo, useEffect } from 'react';
@@ -8,6 +8,9 @@ import SleepDebtChart from '@/components/SleepDebtChart';
 import SleepActionBar from '@/components/SleepActionBar';
 import useStore from '@/lib/store';
 import { getSleepData, formatSleepDuration, formatTime } from '@/lib/sleepInference';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CHART_WIDTH = SCREEN_WIDTH;
 
 const mockSleepData = [
   { date: '2025-10-14', sleepTime: '00:25', wakeTime: '07:07', slept: 6.7 },
@@ -20,9 +23,6 @@ const mockSleepData = [
 ];
 
 export default function SleepScreen() {
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
-  const CHART_WIDTH = SCREEN_WIDTH;
-
   const [activeTab, setActiveTab] = useState('times');
   const sleepNeed = useStore((state) => state.sleepNeed);
   const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);

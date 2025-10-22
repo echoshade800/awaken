@@ -1,12 +1,14 @@
-import { View, StyleSheet, useWindowDimensions, useMemo } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 
-const generateStars = (count, width, height) => {
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const generateStars = (count) => {
   const stars = [];
   for (let i = 0; i < count; i++) {
     stars.push({
       id: i,
-      left: Math.random() * width,
-      top: (Math.random() * height / 2) + (height / 2),
+      left: Math.random() * SCREEN_WIDTH,
+      top: (Math.random() * SCREEN_HEIGHT / 2) + (SCREEN_HEIGHT / 2),
       size: Math.random() * 2 + 1,
       opacity: Math.random() * 0.5 + 0.3,
     });
@@ -14,13 +16,12 @@ const generateStars = (count, width, height) => {
   return stars;
 };
 
-export default function StarBackground({ opacity = 1 }) {
-  const { width, height } = useWindowDimensions();
-  const stars = useMemo(() => generateStars(50, width, height), [width, height]);
+const STARS = generateStars(50);
 
+export default function StarBackground({ opacity = 1 }) {
   return (
     <View style={styles.container}>
-      {stars.map((star) => (
+      {STARS.map((star) => (
         <View
           key={star.id}
           style={[

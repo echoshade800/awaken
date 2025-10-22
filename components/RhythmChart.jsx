@@ -1,15 +1,14 @@
-import { View, Text, StyleSheet, memo, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, memo } from 'react';
 import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CHART_WIDTH = SCREEN_WIDTH - 32;
 const CHART_HEIGHT = 260;
 const PADDING = { top: 40, right: 15, bottom: 20, left: 15 };
 
 function RhythmChart({ rhythmData }) {
-  const { width: screenWidth } = useWindowDimensions();
-  const CHART_WIDTH = screenWidth - 32;
-
   if (!rhythmData || !rhythmData.curve || rhythmData.curve.length === 0) {
     return null;
   }
@@ -143,7 +142,7 @@ function RhythmChart({ rhythmData }) {
 
   return (
     <View style={styles.containerWrapper}>
-      <View style={[styles.container, { width: CHART_WIDTH }]}>
+      <View style={styles.container}>
         <Svg width={CHART_WIDTH} height={CHART_HEIGHT} style={styles.chart} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
         <Defs>
           <LinearGradient id="auroraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -280,6 +279,7 @@ const styles = StyleSheet.create({
   },
   container: {
     position: 'relative',
+    width: CHART_WIDTH,
   },
   chart: {
     marginVertical: 4,
