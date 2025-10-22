@@ -9,15 +9,33 @@ const CHART_HEIGHT = 260;
 const PADDING = { top: 40, right: 15, bottom: 20, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
-  if (!rhythmData || !rhythmData.curve) {
+  if (!rhythmData || !rhythmData.curve || rhythmData.curve.length === 0) {
     return null;
   }
 
   // Convert curve data to points format expected by chart
-  const points = rhythmData.curve.map((point) => ({
-    minute: point.hour * 60,
-    energy: point.energy,
-  }));
+  const points = rhythmData.curve
+    .filter((point) => {
+      // Filter out invalid data points
+      return (
+        point &&
+        typeof point.hour === 'number' &&
+        typeof point.energy === 'number' &&
+        !isNaN(point.hour) &&
+        !isNaN(point.energy) &&
+        isFinite(point.hour) &&
+        isFinite(point.energy)
+      );
+    })
+    .map((point) => ({
+      minute: point.hour * 60,
+      energy: point.energy,
+    }));
+
+  // If no valid points after filtering, return null
+  if (points.length === 0) {
+    return null;
+  }
 
   const peak = rhythmData.peak ? {
     time: rhythmData.peak.time,
@@ -53,9 +71,27 @@ export default function RhythmChart({ rhythmData }) {
   const lineGenerator = line()
     .x((d) => xScale(d.minute))
     .y((d) => yScale(d.energy))
-    .curve(curveNatural);
+    .curve(curveNatural)
+    .defined((d) => {
+      // Ensure the point is valid before including it in the path
+      return (
+        d &&
+        typeof d.minute === 'number' &&
+        typeof d.energy === 'number' &&
+        !isNaN(d.minute) &&
+        !isNaN(d.energy) &&
+        isFinite(d.minute) &&
+        isFinite(d.energy)
+      );
+    });
 
   const pathData = lineGenerator(clampedPoints);
+
+  // If pathData is invalid or null, return null
+  if (!pathData || pathData.includes('NaN') || pathData.includes('undefined')) {
+    console.warn('Invalid path data generated, skipping chart render');
+    return null;
+  }
 
   const currentMinute = getCurrentMinute();
   

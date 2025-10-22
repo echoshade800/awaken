@@ -11,13 +11,25 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
 
   if (!data || data.length === 0) return null;
 
+  // Filter out invalid data points
+  const validData = data.filter((d) => {
+    return (
+      d &&
+      typeof d.debt === 'number' &&
+      !isNaN(d.debt) &&
+      isFinite(d.debt)
+    );
+  });
+
+  if (validData.length === 0) return null;
+
   const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
-  const maxDebt = Math.max(...data.map(d => Math.abs(d.debt)), 4);
-  const minDebt = Math.min(...data.map(d => d.debt), -4);
+  const maxDebt = Math.max(...validData.map(d => Math.abs(d.debt)), 4);
+  const minDebt = Math.min(...validData.map(d => d.debt), -4);
 
   const xScale = (index) => {
-    return PADDING.left + (index / (data.length - 1)) * (chartWidth - PADDING.left - PADDING.right);
+    return PADDING.left + (index / (validData.length - 1)) * (chartWidth - PADDING.left - PADDING.right);
   };
 
   const yScale = (debt) => {
@@ -31,9 +43,23 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
   const lineGenerator = line()
     .x((d, i) => xScale(i))
     .y((d) => yScale(d.debt))
-    .curve(curveMonotoneX);
+    .curve(curveMonotoneX)
+    .defined((d) => {
+      return (
+        d &&
+        typeof d.debt === 'number' &&
+        !isNaN(d.debt) &&
+        isFinite(d.debt)
+      );
+    });
 
-  const pathData = lineGenerator(data);
+  const pathData = lineGenerator(validData);
+
+  // If pathData is invalid, return null
+  if (!pathData || pathData.includes('NaN') || pathData.includes('undefined')) {
+    console.warn('Invalid path data in SleepDebtChart');
+    return null;
+  }
 
   const yAxisLabels = [];
   for (let i = Math.ceil(minDebt); i <= Math.floor(maxDebt); i += 2) {
@@ -93,7 +119,7 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
           strokeLinejoin="round"
         />
 
-        {data.map((point, index) => (
+        {validData.map((point, index) => (
           <Circle
             key={index}
             cx={xScale(index)}
@@ -105,8 +131,8 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
           />
         ))}
 
-        {data.map((point, index) => {
-          if (index % Math.ceil(data.length / 5) === 0 || index === data.length - 1) {
+        {validData.map((point, index) => {
+          if (index % Math.ceil(validData.length / 5) === 0 || index === validData.length - 1) {
             return (
               <SvgText
                 key={index}
@@ -124,12 +150,12 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
         })}
       </Svg>
 
-      {hoveredPoint !== null && (
+      {hoveredPoint !== null && validData[hoveredPoint] && (
         <View style={[styles.tooltip, { left: xScale(hoveredPoint) - 70 }]}>
-          <Text style={styles.tooltipDate}>📅 {data[hoveredPoint].fullDate}</Text>
-          <Text style={styles.tooltipText}>🕓 Slept: {data[hoveredPoint].sleptDisplay}</Text>
+          <Text style={styles.tooltipDate}>📅 {validData[hoveredPoint].fullDate}</Text>
+          <Text style={styles.tooltipText}>🕓 Slept: {validData[hoveredPoint].sleptDisplay}</Text>
           <Text style={styles.tooltipText}>😴 Ideal: {sleepNeed}h</Text>
-          <Text style={styles.tooltipText}>💤 Debt: {data[hoveredPoint].debt > 0 ? '+' : ''}{data[hoveredPoint].debt.toFixed(1)}h</Text>
+          <Text style={styles.tooltipText}>💤 Debt: {validData[hoveredPoint].debt > 0 ? '+' : ''}{validData[hoveredPoint].debt.toFixed(1)}h</Text>
         </View>
       )}
     </View>
