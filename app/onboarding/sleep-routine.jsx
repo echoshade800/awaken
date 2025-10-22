@@ -204,20 +204,22 @@ export default function SleepRoutineScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleContinue}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={['#FFD89C', '#FFE4B5', '#FFF5E6']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.buttonGradient}
+        <View style={styles.buttonWrapper}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleContinue}
+            activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Continue</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={['#FFD89C', '#FFE4B5', '#FFF5E6']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>Continue</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </Animated.View>
     </View>
   );
@@ -239,10 +241,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 60,
     paddingBottom: 40,
+    position: 'relative',
   },
   glassCard: {
-    marginTop: 20,
-    flex: 1,
+    position: 'absolute',
+    top: 80,
+    left: 24,
+    right: 24,
+    bottom: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 24,
     padding: 24,
@@ -335,19 +341,29 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   tipContainer: {
-    marginTop: 16,
-    marginBottom: 20,
+    position: 'absolute',
+    bottom: 112,
+    left: 48,
+    right: 48,
     padding: 16,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 184, 140, 0.2)',
+    zIndex: 10,
   },
   tipText: {
     fontSize: 14,
     color: '#6B7C99',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  buttonWrapper: {
+    position: 'absolute',
+    bottom: 40,
+    left: 24,
+    right: 24,
+    zIndex: 10,
   },
   button: {
     borderRadius: 20,
