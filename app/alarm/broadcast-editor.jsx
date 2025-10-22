@@ -129,7 +129,7 @@ export default function BroadcastEditor() {
           data={BROADCAST_TEMPLATES}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.templateSlide}>
+            <View style={[styles.templateSlide, { width: SCREEN_WIDTH }]}>
               <View style={styles.templateCard}>
                 <View style={styles.inputWrapper}>
                   <TextInput
@@ -315,7 +315,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   templateSlide: {
-    width: SCREEN_WIDTH,
     paddingHorizontal: 16,
   },
   templateCard: {

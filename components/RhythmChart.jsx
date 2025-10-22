@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Dimensions, memo, useWindowDimensions } from 'react';
+import { View, Text, StyleSheet, memo, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
