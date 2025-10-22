@@ -60,7 +60,7 @@ export default function SleepActionBar() {
   return (
     <>
       <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        <BlurView intensity={90} tint="dark" style={styles.blur}>
+        <BlurView intensity={60} tint="dark" style={styles.blur}>
             <View style={styles.content}>
             <TouchableOpacity
               style={styles.alarmButton}

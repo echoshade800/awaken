@@ -41,7 +41,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
       case 0: // Wake - warm light
         return {
           blurTint: 'light',
-          blurIntensity: 80,
+          blurIntensity: 50,
           backgroundColor: 'rgba(255, 255, 255, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.3)',
           shadowColor: 'rgba(0, 0, 0, 0.08)',
@@ -53,7 +53,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
       case 1: // Home - cool medium
         return {
           blurTint: 'light',
-          blurIntensity: 70,
+          blurIntensity: 50,
           backgroundColor: 'rgba(200, 220, 255, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.25)',
           shadowColor: 'rgba(0, 0, 0, 0.12)',
@@ -65,7 +65,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
       case 2: // Sleep - dark night
         return {
           blurTint: 'dark',
-          blurIntensity: 90,
+          blurIntensity: 60,
           backgroundColor: 'rgba(20, 20, 30, 0.4)',
           borderColor: 'rgba(255, 255, 255, 0.1)',
           shadowColor: 'rgba(0, 0, 0, 0.3)',
