@@ -60,7 +60,7 @@ export default function SleepActionBar() {
   return (
     <>
       <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        <BlurView intensity={40} tint="light" style={styles.blur}>
+        <BlurView intensity={50} tint="light" style={styles.blur}>
             <View style={styles.content}>
             <TouchableOpacity
               style={styles.alarmButton}
@@ -105,7 +105,7 @@ export default function SleepActionBar() {
               accessibilityLabel="Add sleep record, button"
               accessibilityRole="button"
             >
-              <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+              <Plus size={28} color="#334155" strokeWidth={2.5} />
             </TouchableOpacity>
             </View>
         </BlurView>
@@ -270,12 +270,12 @@ const styles = StyleSheet.create({
   blur: {
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(30, 30, 35, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
   },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(100, 116, 139, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#334155',
     left: 16,
     top: 14,
   },
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 10,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#334155',
     right: 14,
     top: 10,
   },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     fontSize: 11,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#334155',
     bottom: 10,
     letterSpacing: 0.3,
   },
