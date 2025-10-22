@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, memo } from 'react';
 import Svg, { Path, Circle, Line, Text as SvgText, Defs, RadialGradient, Stop, Polygon, LinearGradient } from 'react-native-svg';
 import { line, curveNatural } from 'd3-shape';
 import { getCurrentMinute } from '@/lib/rhythm';
@@ -8,7 +8,7 @@ const CHART_WIDTH = SCREEN_WIDTH - 32;
 const CHART_HEIGHT = 260;
 const PADDING = { top: 40, right: 15, bottom: 20, left: 15 };
 
-export default function RhythmChart({ rhythmData }) {
+function RhythmChart({ rhythmData }) {
   if (!rhythmData || !rhythmData.curve || rhythmData.curve.length === 0) {
     return null;
   }
@@ -284,4 +284,11 @@ const styles = StyleSheet.create({
   chart: {
     marginVertical: 4,
   },
+});
+
+export default memo(RhythmChart, (prevProps, nextProps) => {
+  return (
+    prevProps.rhythmData?.energyScore === nextProps.rhythmData?.energyScore &&
+    prevProps.rhythmData?.curve?.length === nextProps.rhythmData?.curve?.length
+  );
 });
