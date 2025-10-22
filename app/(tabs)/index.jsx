@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import useStore from '@/lib/store';
 import { generateMockRhythm } from '@/lib/rhythm';
 import RhythmChart from '@/components/RhythmChart';
@@ -41,62 +41,33 @@ export default function HomeScreen() {
   // Dream keyword state
   const [dreamKeyword, setDreamKeyword] = useState(null);
 
-  // Generate initial mock data immediately for faster rendering
-  const initialMockData = useMemo(() => {
-    const mockData = generateMockRhythm({
-      wake: '07:30',
-      sleep: '23:00',
-      chrono: 'neutral',
-    });
-
-    // Convert points to curve format with hour property
-    const curve = (mockData?.points || []).map(point => ({
-      hour: point.minute / 60,
-      energy: point.energy,
-      time: `${String(Math.floor(point.minute / 60)).padStart(2, '0')}:${String(point.minute % 60).padStart(2, '0')}`,
-    }));
-
-    return {
-      energyScore: mockData?.energyScore || 50,
-      peak: mockData?.peak || { time: '13:00', energy: 80 },
-      valley: mockData?.valley || { time: '03:00', energy: 20 },
-      curve: curve,
-      monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
-      debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
-    };
-  }, []);
-
   // Energy rhythm data
-  const [rhythmData, setRhythmData] = useState(initialMockData);
-
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [rhythmData, setRhythmData] = useState({
+    energyScore: 50,
+    peak: { time: '13:00', energy: 80 },
+    valley: { time: '03:00', energy: 20 },
+    curve: [],
+    monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
+    debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
+  });
 
   // Initialize sleep data and background tasks
   useEffect(() => {
     const initializeSleepData = async () => {
       console.log('[Home] Initializing sleep data...');
-
-      // Run independent operations in parallel
-      await Promise.all([
-        refreshSleepDataIfNeeded(),
-        loadSleepData(),
-        initializeBackgroundTasks(),
-      ]);
-
-      // Update rhythm data after data is loaded
+      await refreshSleepDataIfNeeded();
+      await loadSleepData();
+      await initializeBackgroundTasks();
       await updateRhythmDataFromStorage();
-      setIsInitialized(true);
       console.log('[Home] Sleep data initialized');
     };
     initializeSleepData();
   }, []);
 
-  // Update rhythm data when store changes (only after initialization)
+  // Update rhythm data when store changes
   useEffect(() => {
-    if (isInitialized) {
-      updateRhythmData();
-    }
-  }, [sleepDebt, isInitialized]);
+    updateRhythmData();
+  }, [sleepDebt]);
 
   const updateRhythmDataFromStorage = async () => {
     const sleepData = await getSleepData();
@@ -161,19 +132,11 @@ export default function HomeScreen() {
         sleep: '23:00',
         chrono: chronotype,
       });
-
-      // Convert points to curve format with hour property
-      const curve = (mockData?.points || []).map(point => ({
-        hour: point.minute / 60,
-        energy: point.energy,
-        time: `${String(Math.floor(point.minute / 60)).padStart(2, '0')}:${String(point.minute % 60).padStart(2, '0')}`,
-      }));
-
       setRhythmData({
         energyScore: mockData?.energyScore || 50,
         peak: mockData?.peak || { time: '13:00', energy: 80 },
         valley: mockData?.valley || { time: '03:00', energy: 20 },
-        curve: curve,
+        curve: mockData?.curve || [],
         monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
         debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
       });
