@@ -300,13 +300,13 @@ export default function SmartAlarmScreen() {
     });
 
     setTimeout(() => {
-      router.push('/onboarding/loading');
+      router.push('/onboarding/health-permission');
     }, 1000);
   };
 
   const handleSkip = () => {
     clearAlarmDraft();
-    router.push('/onboarding/loading');
+    router.push('/onboarding/health-permission');
   };
 
   const handleTextInput = () => {

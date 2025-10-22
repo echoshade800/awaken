@@ -27,6 +27,9 @@ export default function HomeScreen() {
   const getEnergyRhythmData = useStore((state) => state.getEnergyRhythmData);
   const loadSleepData = useStore((state) => state.loadSleepData);
   const sleepDebt = useStore((state) => state.sleepDebt);
+  const circadianCurve = useStore((state) => state.circadianCurve);
+  const syncHealthData = useStore((state) => state.syncHealthData);
+  const healthDataAvailable = useStore((state) => state.healthDataAvailable);
 
   // 实时时间状态
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -50,11 +53,16 @@ export default function HomeScreen() {
     debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
   });
 
-  // Initialize sleep data and background tasks
   useEffect(() => {
     const initializeSleepData = async () => {
       console.log('[Home] Initializing sleep data...');
       await loadSleepData();
+
+      if (!healthDataAvailable) {
+        console.log('[Home] Syncing health data...');
+        await syncHealthData();
+      }
+
       await initializeBackgroundTasks();
       updateRhythmData();
       console.log('[Home] Sleep data initialized');
@@ -62,39 +70,77 @@ export default function HomeScreen() {
     initializeSleepData();
   }, []);
 
-  // Update rhythm data when store changes
   useEffect(() => {
     updateRhythmData();
-  }, [sleepDebt]);
+  }, [sleepDebt, circadianCurve]);
 
   const updateRhythmData = () => {
-    const energyData = getEnergyRhythmData();
-    console.log('[Home] Energy data from store:', {
-      hasData: !!energyData,
-      curveLength: energyData?.curve?.length,
-      sleepDebt: sleepDebt,
-    });
+    if (circadianCurve && circadianCurve.length > 0) {
+      console.log('[Home] Using real health-inferred circadian data');
 
-    if (energyData && energyData.curve && energyData.curve.length > 0) {
-      console.log('[Home] Using calculated energy data');
-      setRhythmData(energyData);
-    } else {
-      console.log('[Home] Using mock data fallback');
-      // Fallback to mock data if no calculated data available
-      const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
-      const mockData = generateMockRhythm({
-        wake: nextAlarm?.time || '07:30',
-        sleep: '23:00',
-        chrono: chronotype,
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMin = now.getMinutes();
+
+      const currentPoint = circadianCurve.find(p => {
+        const [h, m] = p.t.split(':').map(Number);
+        return h === currentHour;
+      }) || circadianCurve[0];
+
+      let peakPoint = circadianCurve[0];
+      let valleyPoint = circadianCurve[0];
+
+      circadianCurve.forEach(p => {
+        if (p.value > peakPoint.value) peakPoint = p;
+        if (p.value < valleyPoint.value) valleyPoint = p;
       });
+
+      const debtInfo = sleepDebt <= 0
+        ? { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' }
+        : sleepDebt <= 2
+        ? { label: 'Fair', emoji: '😐', color: '#FFD700', severity: 'moderate' }
+        : { label: 'High', emoji: '😰', color: '#FF6347', severity: 'high' };
+
+      const monsterTip = sleepDebt > 2
+        ? "🌙 High sleep debt detected. Consider resting early tonight."
+        : "✨ Energy's balanced. Keep it calm and consistent 🌙";
+
       setRhythmData({
-        energyScore: mockData?.energyScore || 50,
-        peak: mockData?.peak || { time: '13:00', energy: 80 },
-        valley: mockData?.valley || { time: '03:00', energy: 20 },
-        curve: mockData?.curve || [],
-        monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
-        debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
+        energyScore: currentPoint.value,
+        peak: { time: peakPoint.t, energy: peakPoint.value },
+        valley: { time: valleyPoint.t, energy: valleyPoint.value },
+        curve: circadianCurve,
+        monsterTip,
+        debtInfo,
       });
+    } else {
+      const energyData = getEnergyRhythmData();
+      console.log('[Home] Energy data from store:', {
+        hasData: !!energyData,
+        curveLength: energyData?.curve?.length,
+        sleepDebt: sleepDebt,
+      });
+
+      if (energyData && energyData.curve && energyData.curve.length > 0) {
+        console.log('[Home] Using calculated energy data');
+        setRhythmData(energyData);
+      } else {
+        console.log('[Home] Using mock data fallback');
+        const nextAlarm = alarms.filter((a) => a.enabled).sort((a, b) => a.time.localeCompare(b.time))[0];
+        const mockData = generateMockRhythm({
+          wake: nextAlarm?.time || '07:30',
+          sleep: '23:00',
+          chrono: chronotype,
+        });
+        setRhythmData({
+          energyScore: mockData?.energyScore || 50,
+          peak: mockData?.peak || { time: '13:00', energy: 80 },
+          valley: mockData?.valley || { time: '03:00', energy: 20 },
+          curve: mockData?.curve || [],
+          monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
+          debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
+        });
+      }
     }
   };
 
