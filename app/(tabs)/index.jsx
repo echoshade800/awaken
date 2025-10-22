@@ -12,6 +12,7 @@ import UnifiedPanelBorder from '@/components/UnifiedPanelBorder';
 import EnergyHelpModal from '@/components/EnergyHelpModal';
 import MonsterTipsBanner from '@/components/MonsterTipsBanner';
 import WelcomeToast from '@/components/WelcomeToast';
+import DreamBubble from '@/components/DreamBubble';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeBackgroundTasks } from '@/lib/backgroundTasks';
@@ -34,6 +35,9 @@ export default function HomeScreen() {
 
   // Welcome toast state
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
+
+  // Dream keyword state
+  const [dreamKeyword, setDreamKeyword] = useState('Flying');
 
 
   // Energy rhythm data
@@ -191,6 +195,13 @@ export default function HomeScreen() {
       <StarBackground />
 
       <WelcomeToast visible={showWelcomeToast} onDismiss={() => setShowWelcomeToast(false)} />
+
+      <DreamBubble
+        keyword={dreamKeyword}
+        onPress={() => {
+          console.log('Dream bubble pressed - navigate to dream records');
+        }}
+      />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
