@@ -93,7 +93,7 @@ export default function AlarmCreate() {
   const handleOptionSelect = async (option) => {
     const { field, value, label } = option;
 
-    // 处理自定义输入
+    // Handle custom input
     if (value === 'custom') {
       addChatMessage({
         role: 'user',
@@ -115,14 +115,14 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理任务类型选择
+    // Handle task type selection
     if (field === 'interactionType') {
       addChatMessage({
         role: 'user',
         content: label,
       });
 
-      // 构建更新后的 draft
+      // Build updated draft
       let updatedFields;
       if (value === 'none') {
         updatedFields = { interactionEnabled: false, interactionType: null };
@@ -130,12 +130,12 @@ export default function AlarmCreate() {
         updatedFields = { interactionEnabled: true, interactionType: value };
       }
 
-      // 立即更新 draft
+      // Update draft immediately
       updateDraft(updatedFields);
 
       setSuggestedOptions(null);
 
-      // 传递更新后的完整 draft 给 AI
+      // Pass updated draft to AI
       setTimeout(async () => {
         const updatedDraft = { ...currentAlarmDraft, ...updatedFields };
         await continueConversation(label, updatedDraft);
@@ -143,7 +143,7 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理唤醒方式选择 (wakeMode)
+    // Handle wake mode selection
     if (field === 'wakeMode') {
       addChatMessage({
         role: 'user',
@@ -153,7 +153,7 @@ export default function AlarmCreate() {
       updateDraft({ wakeMode: value });
       setSuggestedOptions(null);
 
-      // 如果选择语音播报，显示"编辑语音播报"按钮
+      // If voice broadcast selected, show edit button
       if (value === 'voice') {
         setTimeout(() => {
           addChatMessage({
@@ -167,7 +167,7 @@ export default function AlarmCreate() {
         return;
       }
 
-      // 如果选择铃声，显示铃声选项
+      // If ringtone selected, show ringtone options
       if (value === 'ringtone') {
         setTimeout(() => {
           addChatMessage({
@@ -184,7 +184,7 @@ export default function AlarmCreate() {
         return;
       }
 
-      // 其他唤醒方式直接继续对话
+      // Other wake modes continue conversation
       setTimeout(async () => {
         const updatedDraft = { ...currentAlarmDraft, wakeMode: value };
         await continueConversation(label, updatedDraft);
@@ -192,7 +192,7 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 处理编辑语音播报动作
+    // Handle voice broadcast edit action
     if (field === 'action' && value === 'edit-voice') {
       addChatMessage({
         role: 'user',
@@ -200,12 +200,12 @@ export default function AlarmCreate() {
       });
       setSuggestedOptions(null);
 
-      // 跳转到语音播报编辑器
+      // Navigate to voice broadcast editor
       router.push('/alarm/broadcast-editor');
       return;
     }
 
-    // 处理铃声选择
+    // Handle ringtone selection
     if (field === 'ringtone') {
       addChatMessage({
         role: 'user',
@@ -238,7 +238,7 @@ export default function AlarmCreate() {
       return;
     }
 
-    // 普通选项处理
+    // Handle regular options
     addChatMessage({
       role: 'user',
       content: label,
@@ -264,25 +264,25 @@ export default function AlarmCreate() {
       if (!aiResult.success) {
         addChatMessage({
           role: 'ai',
-          content: '抱歉，我遇到了一点问题。请重新输入～',
+          content: 'Sorry, I encountered a problem. Please try again~',
         });
         setIsAIProcessing(false);
         return;
       }
 
-      // 更新 draft（如果 AI 提取了新参数）
+      // Update draft if AI extracted new parameters
       if (aiResult.extracted && Object.keys(aiResult.extracted).length > 0) {
         updateDraft(aiResult.extracted);
       }
 
-      // 显示 AI 回复
+      // Show AI response
       setTimeout(() => {
         addChatMessage({
           role: 'ai',
           content: aiResult.message,
         });
 
-        // 如果 AI 建议显示选项，渲染选项
+        // If AI suggests options, render them
         if (aiResult.suggestOptions && aiResult.suggestOptions.length > 0) {
           setSuggestedOptions(aiResult.suggestOptions);
         } else {
@@ -302,16 +302,16 @@ export default function AlarmCreate() {
   };
 
   const handleConfirm = async () => {
-    // 检查是否所有信息都已收集
+    // Check if all information collected
     if (!isAlarmComplete(currentAlarmDraft)) {
       addChatMessage({
         role: 'ai',
-        content: '还差一点点～请继续回答问题完成设置😊',
+        content: 'Almost there~ Please continue answering to complete the setup 😊',
       });
       return;
     }
 
-    // 所有信息完整，显示确认弹窗
+    // All information complete, show confirmation modal
     setShowSummaryModal(true);
   };
 
@@ -330,21 +330,21 @@ export default function AlarmCreate() {
   const handleFinalSave = async () => {
     setShowSummaryModal(false);
 
-    // 保存闹钟
+    // Save alarm
     await saveAlarmFromDraft();
 
-    // 模拟用户点击确认
+    // Simulate user confirm click
     addChatMessage({
       role: 'user',
-      content: '确认',
+      content: 'Confirm',
     });
 
-    // 调用 AI 生成鼓励话术
+    // Call AI to generate encouragement
     setTimeout(async () => {
       setIsAIProcessing(true);
 
       try {
-        const aiResult = await parseUserInputWithAI('确认创建闹钟', currentAlarmDraft);
+        const aiResult = await parseUserInputWithAI('Confirm alarm creation', currentAlarmDraft);
 
         if (aiResult.success) {
           addChatMessage({
@@ -352,16 +352,16 @@ export default function AlarmCreate() {
             content: aiResult.message,
           });
         } else {
-          // 降级：使用默认鼓励
+          // Fallback: use default encouragement
           addChatMessage({
             role: 'ai',
-            content: '好的～闹钟已设置完成！快去试试吧！🎉',
+            content: 'Done~ Alarm is all set! Go try it out! 🎉',
           });
         }
 
         setIsAIProcessing(false);
 
-        // 延迟 1.5 秒后返回列表页
+        // Return after 1.5s delay
         setTimeout(() => {
           router.back();
         }, 1500);
@@ -405,7 +405,7 @@ export default function AlarmCreate() {
   const handleVoiceInput = () => {
     addChatMessage({
       role: 'ai',
-      content: '语音输入功能开发中～请使用选项或文字输入',
+      content: 'Voice input under development~ Please use options or text input',
     });
   };
 
@@ -467,7 +467,7 @@ export default function AlarmCreate() {
           {isAIProcessing && (
             <View style={styles.aiLoadingContainer}>
               <ActivityIndicator size="small" color="#FF9A76" />
-              <Text style={styles.aiLoadingText}>Monster 正在思考中...</Text>
+              <Text style={styles.aiLoadingText}>Monster is thinking...</Text>
             </View>
           )}
 
@@ -480,7 +480,7 @@ export default function AlarmCreate() {
           </TouchableOpacity>
           <TextInput
             style={styles.textInput}
-            placeholder="输入消息..."
+            placeholder="Type a message..."
             placeholderTextColor="#999"
             value={inputText}
             onChangeText={setInputText}
