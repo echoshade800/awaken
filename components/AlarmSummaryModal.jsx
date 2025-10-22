@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import { X } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { X, Sparkles } from 'lucide-react-native';
 import { getGameLabel } from '../lib/interactionOptions';
 
 const PERIOD_LABELS = {
@@ -16,12 +16,13 @@ const VOICE_PACKAGE_LABELS = {
   'cat': '小猫咪🐱',
 };
 
-export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel }) {
+export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel, onAddInteraction }) {
   if (!alarm) return null;
 
   const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
   const voiceLabel = VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage;
   const gameLabel = alarm.interactionType ? getGameLabel(alarm.interactionType) : null;
+  const hasInteraction = alarm.interactionEnabled && alarm.interactionType;
 
   return (
     <Modal visible={visible} transparent animationType="fade">
@@ -34,7 +35,8 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel 
             </TouchableOpacity>
           </View>
 
-          <View style={styles.content}>
+          <ScrollView style={styles.scrollContent}>
+            <View style={styles.content}>
             <View style={styles.summaryItem}>
               <Text style={styles.label}>⏰ 时间</Text>
               <Text style={styles.value}>{alarm.time}</Text>
@@ -69,13 +71,45 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel 
 
             <View style={styles.summaryItem}>
               <Text style={styles.label}>🎮 互动游戏</Text>
-              {alarm.interactionEnabled && gameLabel ? (
+              {hasInteraction ? (
                 <Text style={styles.value}>{gameLabel}</Text>
               ) : (
                 <Text style={styles.value}>无</Text>
               )}
             </View>
-          </View>
+
+            {!hasInteraction && onAddInteraction && (
+              <View style={styles.recommendation}>
+                <View style={styles.recommendHeader}>
+                  <Sparkles size={18} color="#FF9A76" />
+                  <Text style={styles.recommendTitle}>推荐：添加互动任务</Text>
+                </View>
+                <Text style={styles.recommendDesc}>
+                  加个小任务让起床更清醒！比如答题、摇一摇或小拼图～😆
+                </Text>
+                <View style={styles.gameOptions}>
+                  <TouchableOpacity
+                    style={styles.gameOption}
+                    onPress={() => onAddInteraction('quiz')}
+                  >
+                    <Text style={styles.gameOptionText}>🧠 答题</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.gameOption}
+                    onPress={() => onAddInteraction('shake')}
+                  >
+                    <Text style={styles.gameOptionText}>📱 摇一摇</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.gameOption}
+                    onPress={() => onAddInteraction('game')}
+                  >
+                    <Text style={styles.gameOptionText}>🎮 小游戏</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </ScrollView>
 
           <View style={styles.actions}>
             <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
@@ -128,9 +162,56 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  scrollContent: {
+    maxHeight: '70%',
+  },
   content: {
     padding: 20,
     gap: 16,
+  },
+  recommendation: {
+    marginTop: 8,
+    padding: 16,
+    backgroundColor: '#FFF8F0',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFE5CC',
+  },
+  recommendHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  recommendTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FF9A76',
+  },
+  recommendDesc: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  gameOptions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  gameOption: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFD4B8',
+  },
+  gameOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
   },
   summaryItem: {
     flexDirection: 'row',

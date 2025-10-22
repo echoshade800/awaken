@@ -177,13 +177,11 @@ export default function AlarmCreate() {
     if (!draft.time) missing.push('time');
     if (!draft.period) missing.push('period');
     if (!draft.wakeMode) missing.push('wakeMode');
-    if (draft.interactionEnabled === undefined) missing.push('interaction');
 
     return missing;
   };
 
   const handleConfirm = async () => {
-    // 检查必要信息是否完整
     const missingInfo = checkMissingInfo(currentAlarmDraft);
 
     if (missingInfo.length > 0) {
@@ -192,7 +190,6 @@ export default function AlarmCreate() {
         time: '时间',
         period: '周期',
         wakeMode: '唤醒方式',
-        interaction: '互动任务',
       };
 
       const missingText = missingInfo.map((key) => missingLabels[key]).join('、');
@@ -205,6 +202,9 @@ export default function AlarmCreate() {
       const firstMissing = missingInfo[0];
       await askForMissingInfo(firstMissing);
     } else {
+      if (currentAlarmDraft.interactionEnabled === undefined) {
+        updateDraft({ interactionEnabled: false });
+      }
       setShowSummaryModal(true);
     }
   };
@@ -215,11 +215,22 @@ export default function AlarmCreate() {
       time: '你想什么时候叫你呢？',
       period: '要每天都叫你，还是只一次呢？',
       wakeMode: '想用什么方式叫你呢？',
-      interaction: '要不要加个小任务让起床更清醒？',
     };
 
     const message = prompts[field] || '请继续输入～';
     await continueConversation(message);
+  };
+
+  const handleAddInteraction = (interactionType) => {
+    updateDraft({
+      interactionEnabled: true,
+      interactionType: interactionType,
+    });
+    setShowSummaryModal(false);
+
+    setTimeout(() => {
+      setShowSummaryModal(true);
+    }, 100);
   };
 
   const handleFinalSave = async () => {
@@ -399,6 +410,7 @@ export default function AlarmCreate() {
         alarm={currentAlarmDraft}
         onConfirm={handleFinalSave}
         onCancel={() => setShowSummaryModal(false)}
+        onAddInteraction={handleAddInteraction}
       />
     </View>
   );
