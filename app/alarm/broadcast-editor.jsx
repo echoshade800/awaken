@@ -5,29 +5,55 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  FlatList,
   StyleSheet,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
 import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
+import { BROADCAST_TEMPLATES } from '../../lib/broadcastTemplates';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function BroadcastEditor() {
   const router = useRouter();
   const { currentAlarmDraft, updateDraft } = useStore();
 
+  const [currentTemplateIndex, setCurrentTemplateIndex] = useState(0);
   const [broadcastContent, setBroadcastContent] = useState(
-    currentAlarmDraft?.broadcastContent || ''
+    currentAlarmDraft?.broadcastContent || BROADCAST_TEMPLATES[0].content
   );
   const [selectedVoicePackage, setSelectedVoicePackage] = useState(
     currentAlarmDraft?.voicePackage || 'energetic-girl'
   );
+  const [isCustom, setIsCustom] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const flatListRef = useRef(null);
+
+  const handleTemplateScroll = (event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SCREEN_WIDTH);
+    if (index !== currentTemplateIndex && index >= 0 && index < BROADCAST_TEMPLATES.length) {
+      setCurrentTemplateIndex(index);
+      if (!isCustom) {
+        setBroadcastContent(BROADCAST_TEMPLATES[index].content);
+      }
+    }
+  };
+
+  const handleContentChange = (text) => {
+    setBroadcastContent(text);
+    setIsCustom(true);
+  };
 
   const insertModule = (module) => {
     setBroadcastContent(prev => prev + module.tag + ' ');
+    setIsCustom(true);
   };
 
   const handlePreviewSpeech = async () => {
@@ -52,7 +78,7 @@ export default function BroadcastEditor() {
     if (Platform.OS === 'web') {
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(content);
-        utterance.lang = 'zh-CN';
+        utterance.lang = 'en-US';
         utterance.onend = () => setIsPlaying(false);
         utterance.onerror = () => setIsPlaying(false);
         window.speechSynthesis.speak(utterance);
@@ -62,7 +88,7 @@ export default function BroadcastEditor() {
     } else {
       const Speech = require('expo-speech');
       Speech.speak(content, {
-        language: 'zh-CN',
+        language: 'en-US',
         onDone: () => setIsPlaying(false),
         onStopped: () => setIsPlaying(false),
         onError: () => setIsPlaying(false),
@@ -78,6 +104,8 @@ export default function BroadcastEditor() {
     router.back();
   };
 
+  const currentTemplate = BROADCAST_TEMPLATES[currentTemplateIndex];
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -86,40 +114,77 @@ export default function BroadcastEditor() {
         style={styles.backgroundGradient}
       />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1C1C1E" />
+          <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>自定义语音播报</Text>
+        <Text style={styles.headerTitle}>Voice Broadcast</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      {/* 固定的文本框 */}
-      <View style={styles.editorCard}>
-        <Text style={styles.sectionTitle}>播报内容</Text>
-        <View style={styles.inputWrapper}>
-          <TextInput
-            style={styles.input}
-            value={broadcastContent}
-            onChangeText={setBroadcastContent}
-            placeholder="点击下方模块添加播报内容..."
-            placeholderTextColor="#999"
-            multiline
-            textAlignVertical="top"
-          />
+      <View style={styles.templateContainer}>
+        <FlatList
+          ref={flatListRef}
+          horizontal
+          pagingEnabled
+          data={BROADCAST_TEMPLATES}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.templateSlide}>
+              <View style={styles.templateCard}>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.input}
+                    value={broadcastContent}
+                    onChangeText={handleContentChange}
+                    placeholder="Swipe left/right to see templates..."
+                    placeholderTextColor="#999"
+                    multiline
+                    textAlignVertical="top"
+                  />
+                </View>
+              </View>
+            </View>
+          )}
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleTemplateScroll}
+          decelerationRate="fast"
+          snapToInterval={SCREEN_WIDTH}
+          snapToAlignment="center"
+        />
+
+        <View style={styles.templateInfo}>
+          <Text style={styles.templateEmoji}>{currentTemplate.emoji}</Text>
+          <View style={styles.templateTextContainer}>
+            <Text style={styles.templateName}>
+              {isCustom ? '✏️ Custom' : currentTemplate.name}
+            </Text>
+            <Text style={styles.templateSubtitle}>
+              {isCustom ? 'Edited template' : currentTemplate.subtitle}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.pageIndicator}>
+          {BROADCAST_TEMPLATES.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                index === currentTemplateIndex && styles.dotActive,
+              ]}
+            />
+          ))}
         </View>
       </View>
 
-      {/* 可滑动区域 */}
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={true}
       >
-        {/* 横向滑动的模块选择 */}
         <View style={styles.modulesSection}>
-          <Text style={styles.sectionTitle}>选择播报模块</Text>
+          <Text style={styles.sectionTitle}>Insert Modules</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -135,7 +200,7 @@ export default function BroadcastEditor() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.moduleIconContainer}>
-                    <IconComponent size={24} color="#007AFF" strokeWidth={2} />
+                    <IconComponent size={24} color="#FF9A76" strokeWidth={2} />
                   </View>
                   <Text style={styles.moduleLabel}>{module.label}</Text>
                 </TouchableOpacity>
@@ -144,9 +209,8 @@ export default function BroadcastEditor() {
           </ScrollView>
         </View>
 
-        {/* 语音包选择 */}
         <View style={styles.voicePackageSection}>
-          <Text style={styles.sectionTitle}>选择语音包</Text>
+          <Text style={styles.sectionTitle}>Voice Package</Text>
           <View style={styles.voicePackageGrid}>
             {VOICE_PACKAGES.map((voicePackage) => {
               const isSelected = selectedVoicePackage === voicePackage.id;
@@ -183,7 +247,6 @@ export default function BroadcastEditor() {
         </View>
       </ScrollView>
 
-      {/* 底部按钮 */}
       <View style={styles.bottomActions}>
         {broadcastContent.trim().length > 0 && (
           <TouchableOpacity
@@ -196,7 +259,7 @@ export default function BroadcastEditor() {
           >
             <Volume2
               size={20}
-              color={isPlaying ? '#FFFFFF' : '#007AFF'}
+              color={isPlaying ? '#FFFFFF' : '#FF9A76'}
               strokeWidth={2}
             />
             <Text
@@ -205,7 +268,7 @@ export default function BroadcastEditor() {
                 isPlaying && styles.previewButtonTextPlaying,
               ]}
             >
-              {isPlaying ? '停止' : '预览'}
+              {isPlaying ? 'Stop' : 'Preview'}
             </Text>
           </TouchableOpacity>
         )}
@@ -215,7 +278,7 @@ export default function BroadcastEditor() {
           onPress={handleComplete}
           activeOpacity={0.8}
         >
-          <Text style={styles.completeButtonText}>确认返回</Text>
+          <Text style={styles.completeButtonText}>Confirm</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -237,34 +300,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: 60,
+    paddingBottom: 16,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    paddingTop: 48,
-    backgroundColor: 'transparent',
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    padding: 8,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1C1C1E',
+    color: '#FFFFFF',
   },
-  editorCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    marginHorizontal: 16,
-    marginTop: 8,
+  templateContainer: {
     marginBottom: 12,
+  },
+  templateSlide: {
+    width: SCREEN_WIDTH,
+    paddingHorizontal: 16,
+  },
+  templateCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -273,14 +329,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 12,
-  },
   inputWrapper: {
-    height: 120,
+    height: 160,
     backgroundColor: '#F9F9F9',
     borderRadius: 12,
     padding: 14,
@@ -294,11 +344,57 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     padding: 0,
   },
+  templateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 12,
+    gap: 12,
+  },
+  templateEmoji: {
+    fontSize: 32,
+  },
+  templateTextContainer: {
+    flex: 1,
+  },
+  templateName: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  templateSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+  pageIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  dotActive: {
+    backgroundColor: '#FFFFFF',
+    width: 24,
+  },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     paddingBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 12,
   },
   modulesSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -318,18 +414,18 @@ const styles = StyleSheet.create({
   },
   moduleCard: {
     width: 100,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: '#FFF5F0',
     borderRadius: 16,
     padding: 14,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E5E5EA',
+    borderColor: '#FFE5D9',
   },
   moduleIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E3F2FF',
+    backgroundColor: '#FFE5D9',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -363,8 +459,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   voiceCardSelected: {
-    backgroundColor: '#E3F2FF',
-    borderColor: '#007AFF',
+    backgroundColor: '#FFF5F0',
+    borderColor: '#FF9A76',
   },
   voiceCardLabel: {
     fontSize: 16,
@@ -373,14 +469,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   voiceCardLabelSelected: {
-    color: '#007AFF',
+    color: '#FF9A76',
   },
   voiceCardDescription: {
     fontSize: 13,
     color: '#666',
   },
   voiceCardDescriptionSelected: {
-    color: '#0051A8',
+    color: '#D17A5A',
   },
   bottomActions: {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
@@ -405,26 +501,26 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     gap: 8,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: '#FF9A76',
   },
   previewButtonPlaying: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: '#FF9A76',
+    borderColor: '#FF9A76',
   },
   previewButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#FF9A76',
   },
   previewButtonTextPlaying: {
     color: '#FFFFFF',
   },
   completeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF9A76',
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: '#FF9A76',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
