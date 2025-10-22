@@ -60,13 +60,7 @@ export default function SleepActionBar() {
   return (
     <>
       <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        <BlurView intensity={25} tint="dark" style={styles.blur}>
-          <LinearGradient
-            colors={['rgba(16, 16, 21, 0.9)', 'rgba(12, 13, 18, 0.9)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.gradient}
-          >
+        <BlurView intensity={40} tint="light" style={styles.blur}>
             <View style={styles.content}>
             <TouchableOpacity
               style={styles.action}
@@ -77,7 +71,7 @@ export default function SleepActionBar() {
               accessibilityLabel={`Alarm, next at ${formatAlarmTime(nextAlarm?.time) || 'none'}, button`}
               accessibilityRole="button"
             >
-              <Clock size={22} color="#FFFFFF" strokeWidth={2} />
+              <Clock size={20} color="#334155" strokeWidth={2} />
               <Text style={styles.actionLabel}>Alarm</Text>
               {nextAlarm && (
                 <View style={styles.pill}>
@@ -111,11 +105,10 @@ export default function SleepActionBar() {
               accessibilityLabel="Add sleep record, button"
               accessibilityRole="button"
             >
-              <Plus size={22} color="#FFFFFF" strokeWidth={2} />
+              <Plus size={20} color="#334155" strokeWidth={2} />
               <Text style={styles.actionLabel}>Add</Text>
             </TouchableOpacity>
             </View>
-          </LinearGradient>
         </BlurView>
       </Animated.View>
 
@@ -270,46 +263,43 @@ function ManualSleepModal({ visible, onClose }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: IS_SMALL_DEVICE ? 92 : 100,
+    bottom: IS_SMALL_DEVICE ? 84 : 92,
     left: 16,
     right: 16,
     zIndex: 100,
   },
   blur: {
-    borderRadius: 22,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: 'rgba(18, 18, 24, 0.5)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: '#000',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 10,
-  },
-  gradient: {
-    borderRadius: 22,
+    elevation: 8,
   },
   content: {
     flexDirection: 'row',
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 8,
     justifyContent: 'space-around',
-    minHeight: 64,
+    minHeight: 56,
     alignItems: 'center',
   },
   action: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 8,
   },
   actionLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.85)',
-    marginTop: 6,
+    color: 'rgba(51, 65, 85, 0.85)',
+    marginTop: 4,
     letterSpacing: 0.3,
   },
   pill: {
@@ -337,7 +327,7 @@ const styles = StyleSheet.create({
   zzzIcon: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#334155',
   },
   indicator: {
     position: 'absolute',

@@ -37,13 +37,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         },
       ]}
     >
-      <BlurView intensity={25} tint="dark" style={styles.tabBarContainer}>
-        <LinearGradient
-          colors={['rgba(16, 16, 21, 0.9)', 'rgba(12, 13, 18, 0.95)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.gradient}
-        >
+      <BlurView intensity={40} tint="light" style={styles.tabBarContainer}>
           <View style={styles.tabBar}>
           <TouchableOpacity
             style={styles.tabItem}
@@ -51,7 +45,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrapper, state.index === 0 && styles.iconWrapperActive]}>
-              <Sun size={24} color={state.index === 0 ? '#FCD34D' : 'rgba(255, 255, 255, 0.5)'} strokeWidth={state.index === 0 ? 2.5 : 2} />
+              <Sun size={22} color={state.index === 0 ? '#FCD34D' : 'rgba(100, 116, 139, 0.5)'} strokeWidth={state.index === 0 ? 2.5 : 2} />
             </View>
             <Text style={[styles.tabLabel, state.index === 0 && styles.tabLabelActive]}>Wake</Text>
           </TouchableOpacity>
@@ -62,7 +56,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrapper, state.index === 1 && styles.iconWrapperActive]}>
-              <Home size={24} color={state.index === 1 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)'} strokeWidth={state.index === 1 ? 2.5 : 2} />
+              <Home size={22} color={state.index === 1 ? '#1E293B' : 'rgba(100, 116, 139, 0.5)'} strokeWidth={state.index === 1 ? 2.5 : 2} />
             </View>
             <Text style={[styles.tabLabel, state.index === 1 && styles.tabLabelActive]}>Home</Text>
           </TouchableOpacity>
@@ -73,12 +67,11 @@ function CustomTabBar({ state, descriptors, navigation }) {
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrapper, state.index === 2 && styles.iconWrapperActive]}>
-              <Moon size={24} color={state.index === 2 ? '#93C5FD' : 'rgba(255, 255, 255, 0.5)'} strokeWidth={state.index === 2 ? 2.5 : 2} />
+              <Moon size={22} color={state.index === 2 ? '#93C5FD' : 'rgba(100, 116, 139, 0.5)'} strokeWidth={state.index === 2 ? 2.5 : 2} />
             </View>
             <Text style={[styles.tabLabel, state.index === 2 && styles.tabLabelActive]}>Sleep</Text>
           </TouchableOpacity>
           </View>
-        </LinearGradient>
       </BlurView>
     </Animated.View>
   );
@@ -109,39 +102,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabBarContainer: {
-    borderRadius: 28,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(18, 18, 24, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 14,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
     width: '100%',
-  },
-  gradient: {
-    borderRadius: 28,
   },
   tabBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     position: 'relative',
-    paddingVertical: 14,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    minHeight: 80,
+    minHeight: 64,
   },
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 12,
   },
   iconWrapper: {
-    marginBottom: 2,
+    marginBottom: 4,
   },
   iconWrapperActive: {
     shadowColor: '#FFFFFF',
@@ -151,16 +141,13 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.5)',
-    marginTop: 6,
+    color: 'rgba(100, 116, 139, 0.7)',
+    marginTop: 2,
     fontWeight: '500',
     letterSpacing: 0.3,
   },
   tabLabelActive: {
-    color: '#FFFFFF',
+    color: '#1E293B',
     fontWeight: '700',
-    textShadowColor: 'rgba(255, 255, 255, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
 });
