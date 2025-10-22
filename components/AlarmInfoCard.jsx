@@ -20,71 +20,97 @@ const VOICE_PACKAGE_LABELS = {
 export default function AlarmInfoCard({ alarm, onConfirm, showConfirmButton = false }) {
   if (!alarm) return null;
 
-  const periodLabel = PERIOD_LABELS[alarm.period] || alarm.period;
-  const voiceLabel = VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage;
-  const gameLabel = alarm.interactionType ? getGameLabel(alarm.interactionType) : null;
+  const hasTime = alarm.time && alarm.time !== '';
+  const hasPeriod = alarm.period && alarm.period !== '';
+  const hasWakeMode = alarm.wakeMode && alarm.wakeMode !== '';
+  const hasVoicePackage = alarm.voicePackage && alarm.voicePackage !== '';
+  const hasInteraction = alarm.interactionEnabled && alarm.interactionType;
+  const hasBroadcast = alarm.broadcastContent && alarm.broadcastContent.trim() !== '';
+
+  const hasAnyDetails = hasPeriod || hasWakeMode || hasInteraction || hasBroadcast;
+
+  if (!hasTime && !hasAnyDetails) {
+    return null;
+  }
+
+  const periodLabel = hasPeriod ? (PERIOD_LABELS[alarm.period] || alarm.period) : null;
+  const voiceLabel = hasVoicePackage ? (VOICE_PACKAGE_LABELS[alarm.voicePackage] || alarm.voicePackage) : null;
+  const gameLabel = hasInteraction ? getGameLabel(alarm.interactionType) : null;
 
   return (
     <View style={styles.card}>
-      <View style={styles.timeRow}>
-        <View style={styles.timeInfo}>
-          <Clock size={32} color="#1A2845" />
-          <Text style={styles.time}>{alarm.time || '--:--'}</Text>
-        </View>
-        {showConfirmButton && onConfirm && (
-          <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
-            <Check size={20} color="#FFFFFF" />
-            <Text style={styles.confirmButtonText}>确认</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.detailsGrid}>
-        <View style={styles.detailItem}>
-          <Calendar size={20} color="#1A2845" />
-          <Text style={styles.detailText}>{periodLabel}</Text>
-        </View>
-
-        {alarm.wakeMode === 'voice' ? (
-          <>
-            <View style={styles.detailItem}>
-              <Mic size={20} color="#1A2845" />
-              <Text style={styles.detailText}>Voice Broadcast</Text>
+      {hasTime && (
+        <>
+          <View style={styles.timeRow}>
+            <View style={styles.timeInfo}>
+              <Clock size={32} color="#1A2845" />
+              <Text style={styles.time}>{alarm.time}</Text>
             </View>
+            {showConfirmButton && onConfirm && (
+              <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
+                <Check size={20} color="#FFFFFF" />
+                <Text style={styles.confirmButtonText}>确认</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {hasAnyDetails && <View style={styles.divider} />}
+        </>
+      )}
+
+      {hasAnyDetails && (
+        <View style={styles.detailsGrid}>
+          {hasPeriod && (
             <View style={styles.detailItem}>
-              <Music size={20} color="#1A2845" />
-              <Text style={styles.detailText}>{voiceLabel}</Text>
+              <Calendar size={20} color="#1A2845" />
+              <Text style={styles.detailText}>{periodLabel}</Text>
             </View>
-          </>
-        ) : alarm.wakeMode === 'ringtone' ? (
-          <View style={styles.detailItem}>
-            <Music size={20} color="#666" />
-            <Text style={styles.detailText}>{alarm.ringtone || 'Default Ringtone'}</Text>
-          </View>
-        ) : alarm.wakeMode === 'vibration' ? (
-          <View style={styles.detailItem}>
-            <Music size={20} color="#666" />
-            <Text style={styles.detailText}>Vibration</Text>
-          </View>
-        ) : null}
+          )}
 
-        {alarm.interactionEnabled && gameLabel && (
-          <View style={styles.detailItem}>
-            <Gamepad2 size={20} color="#1A2845" />
-            <Text style={styles.detailText}>{gameLabel}</Text>
-          </View>
-        )}
+          {hasWakeMode && alarm.wakeMode === 'voice' && (
+            <>
+              <View style={styles.detailItem}>
+                <Mic size={20} color="#1A2845" />
+                <Text style={styles.detailText}>Voice Broadcast</Text>
+              </View>
+              {hasVoicePackage && (
+                <View style={styles.detailItem}>
+                  <Music size={20} color="#1A2845" />
+                  <Text style={styles.detailText}>{voiceLabel}</Text>
+                </View>
+              )}
+            </>
+          )}
 
-        {alarm.broadcastContent && (
-          <View style={[styles.detailItem, styles.broadcastPreview]}>
-            <Text style={styles.broadcastText} numberOfLines={2}>
-              Broadcast: {alarm.broadcastContent}
-            </Text>
-          </View>
-        )}
-      </View>
+          {hasWakeMode && alarm.wakeMode === 'ringtone' && (
+            <View style={styles.detailItem}>
+              <Music size={20} color="#666" />
+              <Text style={styles.detailText}>{alarm.ringtone || 'Default Ringtone'}</Text>
+            </View>
+          )}
+
+          {hasWakeMode && alarm.wakeMode === 'vibration' && (
+            <View style={styles.detailItem}>
+              <Music size={20} color="#666" />
+              <Text style={styles.detailText}>Vibration</Text>
+            </View>
+          )}
+
+          {hasInteraction && gameLabel && (
+            <View style={styles.detailItem}>
+              <Gamepad2 size={20} color="#1A2845" />
+              <Text style={styles.detailText}>{gameLabel}</Text>
+            </View>
+          )}
+
+          {hasBroadcast && (
+            <View style={[styles.detailItem, styles.broadcastPreview]}>
+              <Text style={styles.broadcastText} numberOfLines={2}>
+                Broadcast: {alarm.broadcastContent}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
