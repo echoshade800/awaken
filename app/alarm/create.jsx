@@ -102,17 +102,23 @@ export default function AlarmCreate() {
         content: label,
       });
 
-      // 如果选择"跳过"，则禁用互动
+      // 构建更新后的 draft
+      let updatedFields;
       if (value === 'none') {
-        updateDraft({ interactionEnabled: false, interactionType: null });
+        updatedFields = { interactionEnabled: false, interactionType: null };
       } else {
-        updateDraft({ interactionEnabled: true, interactionType: value });
+        updatedFields = { interactionEnabled: true, interactionType: value };
       }
+
+      // 立即更新 draft
+      updateDraft(updatedFields);
 
       setSuggestedOptions(null);
 
+      // 传递更新后的完整 draft 给 AI
       setTimeout(async () => {
-        await continueConversation(label);
+        const updatedDraft = { ...currentAlarmDraft, ...updatedFields };
+        await continueConversation(label, updatedDraft);
       }, 500);
       return;
     }
@@ -123,19 +129,22 @@ export default function AlarmCreate() {
       content: label,
     });
 
-    updateDraft({ [field]: value });
+    const updatedFields = { [field]: value };
+    updateDraft(updatedFields);
     setSuggestedOptions(null);
 
     setTimeout(async () => {
-      await continueConversation(label);
+      const updatedDraft = { ...currentAlarmDraft, ...updatedFields };
+      await continueConversation(label, updatedDraft);
     }, 500);
   };
 
-  const continueConversation = async (userMessage) => {
+  const continueConversation = async (userMessage, draftOverride = null) => {
     setIsAIProcessing(true);
 
     try {
-      const aiResult = await parseUserInputWithAI(userMessage, currentAlarmDraft);
+      const draftToUse = draftOverride || currentAlarmDraft;
+      const aiResult = await parseUserInputWithAI(userMessage, draftToUse);
 
       if (!aiResult.success) {
         addChatMessage({
