@@ -30,16 +30,18 @@ export default function StepPermissionScreen() {
     setIsChecking(true);
     try {
       const status = await checkStepPermission();
-      console.log('Permission status:', status);
+      console.log('[StepPermission] Permission status:', status);
+      console.log('[StepPermission] Platform:', Platform.OS);
+
       if (status === 'granted') {
-        setTimeout(() => {
-          router.push('/onboarding/initializing');
-        }, 500);
+        console.log('[StepPermission] Permission granted, navigating to initializing...');
+        router.replace('/onboarding/initializing');
       } else {
+        console.log('[StepPermission] Permission denied, showing buttons');
         setIsChecking(false);
       }
     } catch (error) {
-      console.error('Error checking permission:', error);
+      console.error('[StepPermission] Error checking permission:', error);
       setIsChecking(false);
     }
   };
@@ -64,11 +66,11 @@ export default function StepPermissionScreen() {
     setIsChecking(true);
     try {
       const status = await requestStepPermission();
-      console.log('Request permission result:', status);
+      console.log('[StepPermission] Request permission result:', status);
+
       if (status === 'granted') {
-        setTimeout(() => {
-          router.push('/onboarding/initializing');
-        }, 500);
+        console.log('[StepPermission] Permission granted after request, navigating...');
+        router.replace('/onboarding/initializing');
       } else {
         if (Platform.OS !== 'web') {
           await handleOpenSettings();
@@ -76,7 +78,7 @@ export default function StepPermissionScreen() {
         setIsChecking(false);
       }
     } catch (error) {
-      console.error('Error requesting permission:', error);
+      console.error('[StepPermission] Error requesting permission:', error);
       if (Platform.OS !== 'web') {
         await handleOpenSettings();
       }
