@@ -8,7 +8,7 @@ import {
   FlatList,
   StyleSheet,
   Platform,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
@@ -17,9 +17,8 @@ import useStore from '../../lib/store';
 import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
 import { BROADCAST_TEMPLATES } from '../../lib/broadcastTemplates';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 export default function BroadcastEditor() {
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const router = useRouter();
   const { currentAlarmDraft, updateDraft } = useStore();
 

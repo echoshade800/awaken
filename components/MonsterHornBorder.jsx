@@ -1,8 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop, Circle } from 'react-native-svg';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function MonsterHornBorder({ children, style }) {
   const width = 160;

@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions, Animated, PanResponder } from 'react-native';
 import Svg, { Ellipse, Circle, Defs, RadialGradient, Stop, LinearGradient } from 'react-native-svg';
 import { useRouter } from 'expo-router';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 export default function DreamBubble({
   keyword = null,
-  initialX = SCREEN_WIDTH - 130,
+  initialX = null,
   initialY = 150,
   onPress
 }) {
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
+  const defaultX = initialX ?? SCREEN_WIDTH - 130;
   const router = useRouter();
-  const [position, setPosition] = useState({ x: initialX, y: initialY });
-  const translateX = useRef(new Animated.Value(initialX)).current;
+  const [position, setPosition] = useState({ x: defaultX, y: initialY });
+  const translateX = useRef(new Animated.Value(defaultX)).current;
   const translateY = useRef(new Animated.Value(initialY)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
