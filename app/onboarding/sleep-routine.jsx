@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 50,
   },
   glassCard: {
     marginTop: 20,
@@ -336,6 +336,7 @@ const styles = StyleSheet.create({
   },
   tipContainer: {
     marginTop: 16,
+    marginBottom: 8,
     padding: 16,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   button: {
-    marginTop: 24,
+    marginTop: 16,
     borderRadius: 20,
     shadowColor: '#FFB88C',
     shadowOffset: { width: 0, height: 4 },
