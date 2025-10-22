@@ -3,6 +3,7 @@ import { BlurView } from 'expo-blur';
 import { Clock, Plus } from 'lucide-react-native';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '@/lib/store';
 
 export default function SleepActionBar() {
@@ -12,6 +13,26 @@ export default function SleepActionBar() {
   const toggleAutoTracking = useStore((state) => state.toggleAutoTracking);
   const [showModal, setShowModal] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        delay: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const nextAlarm = alarms
     .filter((a) => a.enabled)
@@ -28,7 +49,7 @@ export default function SleepActionBar() {
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.98,
+      toValue: 0.95,
       useNativeDriver: true,
     }).start();
   };
@@ -36,7 +57,7 @@ export default function SleepActionBar() {
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 3,
+      friction: 4,
       useNativeDriver: true,
     }).start();
   };
@@ -55,56 +76,86 @@ export default function SleepActionBar() {
 
   return (
     <>
-      <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        <BlurView intensity={20} tint="dark" style={styles.blur}>
-          <View style={styles.content}>
-            <TouchableOpacity
-              style={styles.action}
-              onPress={handleAlarmPress}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-              activeOpacity={0.8}
-              accessibilityLabel={`Alarm, next at ${formatAlarmTime(nextAlarm?.time) || 'none'}, button`}
-              accessibilityRole="button"
-            >
-              <Clock size={22} color="#FFFFFF" strokeWidth={2} />
-              <Text style={styles.actionLabel}>Alarm</Text>
-              {nextAlarm && (
-                <View style={styles.pill}>
-                  <Text style={styles.pillText}>Next: {formatAlarmTime(nextAlarm.time)}</Text>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }, { translateY: slideAnim }],
+          },
+        ]}
+      >
+        <BlurView intensity={80} tint="dark" style={styles.blur}>
+          <LinearGradient
+            colors={['rgba(24, 24, 28, 0.95)', 'rgba(16, 16, 20, 0.98)']}
+            style={styles.gradientOverlay}
+          >
+            <View style={styles.content}>
+              <TouchableOpacity
+                style={styles.action}
+                onPress={handleAlarmPress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                activeOpacity={0.7}
+                accessibilityLabel={`Alarm, next at ${formatAlarmTime(nextAlarm?.time) || 'none'}, button`}
+                accessibilityRole="button"
+              >
+                <View style={styles.actionIconContainer}>
+                  <Clock size={20} color="rgba(255, 255, 255, 0.9)" strokeWidth={2.5} />
                 </View>
-              )}
-            </TouchableOpacity>
+                <View style={styles.actionContent}>
+                  <Text style={styles.actionLabel}>Alarm</Text>
+                  {nextAlarm && (
+                    <View style={styles.pill}>
+                      <Text style={styles.pillText}>Next: {formatAlarmTime(nextAlarm.time)}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.action}
-              onPress={toggleAutoTracking}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-              activeOpacity={0.8}
-              accessibilityLabel={`Auto tracking, ${sleepAutoTracking ? 'on' : 'off'}, button`}
-              accessibilityRole="button"
-            >
-              <View style={styles.iconWithIndicator}>
-                <Text style={styles.zzzIcon}>zZ</Text>
-                <View style={[styles.indicator, sleepAutoTracking && styles.indicatorOn]} />
-              </View>
-              <Text style={styles.actionLabel}>Auto</Text>
-            </TouchableOpacity>
+              <View style={styles.divider} />
 
-            <TouchableOpacity
-              style={styles.action}
-              onPress={handleAddPress}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-              activeOpacity={0.8}
-              accessibilityLabel="Add sleep record, button"
-              accessibilityRole="button"
-            >
-              <Plus size={22} color="#FFFFFF" strokeWidth={2} />
-              <Text style={styles.actionLabel}>Add</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.action}
+                onPress={toggleAutoTracking}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                activeOpacity={0.7}
+                accessibilityLabel={`Auto tracking, ${sleepAutoTracking ? 'on' : 'off'}, button`}
+                accessibilityRole="button"
+              >
+                <View style={styles.actionIconContainer}>
+                  <Text style={styles.zzzIcon}>zZ</Text>
+                  <View style={[styles.indicator, sleepAutoTracking && styles.indicatorOn]} />
+                </View>
+                <View style={styles.actionContent}>
+                  <Text style={styles.actionLabel}>Auto</Text>
+                  <Text style={styles.actionStatus}>
+                    {sleepAutoTracking ? 'On' : 'Off'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.divider} />
+
+              <TouchableOpacity
+                style={styles.action}
+                onPress={handleAddPress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                activeOpacity={0.7}
+                accessibilityLabel="Add sleep record, button"
+                accessibilityRole="button"
+              >
+                <View style={styles.actionIconContainer}>
+                  <Plus size={20} color="rgba(255, 255, 255, 0.9)" strokeWidth={2.5} />
+                </View>
+                <View style={styles.actionContent}>
+                  <Text style={styles.actionLabel}>Add</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
         </BlurView>
       </Animated.View>
 
@@ -259,7 +310,7 @@ function ManualSleepModal({ visible, onClose }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 96,
     left: 16,
     right: 16,
     zIndex: 100,
@@ -267,74 +318,105 @@ const styles = StyleSheet.create({
   blur: {
     borderRadius: 22,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(18, 18, 22, 0.3)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  gradientOverlay: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   content: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    justifyContent: 'space-around',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 40,
   },
   action: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 10,
+  },
+  actionIconContainer: {
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
-    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    position: 'relative',
+  },
+  actionContent: {
+    flex: 1,
+    justifyContent: 'center',
   },
   actionLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 4,
+    letterSpacing: 0.2,
+  },
+  actionStatus: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: 1,
   },
   pill: {
-    backgroundColor: '#9D7AFF',
-    borderRadius: 12,
+    backgroundColor: '#A78BFA',
+    borderRadius: 10,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginTop: 4,
+    paddingVertical: 3,
+    marginTop: 2,
+    alignSelf: 'flex-start',
+    shadowColor: '#A78BFA',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   pillText: {
     fontSize: 10,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
-  iconWithIndicator: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
+  divider: {
+    width: 1,
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   zzzIcon: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   indicator: {
     position: 'absolute',
-    top: -2,
-    right: -8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    top: 2,
+    right: 2,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.3)',
   },
   indicatorOn: {
     backgroundColor: '#4ADE80',
-    borderColor: '#22C55E',
+    borderColor: 'rgba(0, 0, 0, 0.4)',
+    shadowColor: '#4ADE80',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
   },
 });
 
