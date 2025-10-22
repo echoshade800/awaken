@@ -1,16 +1,6 @@
 import { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Clock, Calendar, Cloud, Battery, CalendarDays, Palette, Gift } from 'lucide-react-native';
-
-const BROADCAST_MODULES = [
-  { id: 'time', label: 'Time', icon: Clock, tag: '{time}' },
-  { id: 'date', label: 'Date', icon: Calendar, tag: '{date}' },
-  { id: 'weather', label: 'Weather', icon: Cloud, tag: '{weather}' },
-  { id: 'battery', label: 'Battery', icon: Battery, tag: '{battery}' },
-  { id: 'schedule', label: 'Schedule', icon: CalendarDays, tag: '{schedule}' },
-  { id: 'lucky-color', label: 'Lucky Color', icon: Palette, tag: '{lucky}' },
-  { id: 'random', label: 'Random', icon: Gift, tag: '{random}' },
-];
+import { BROADCAST_MODULES } from '../lib/broadcastModules';
 
 export default function VoiceBroadcastEditor({ value = '', onChange }) {
   const [cursorPosition, setCursorPosition] = useState(0);
@@ -42,7 +32,10 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
   const renderModuleTag = (text) => {
     const parts = [];
     let lastIndex = 0;
-    const regex = /\{(time|date|weather|battery|schedule|lucky|random)\}/g;
+
+    // 动态生成所有模块 ID 的正则表达式
+    const tagIds = BROADCAST_MODULES.map(m => m.id).join('|');
+    const regex = new RegExp(`\\{(${tagIds})\\}`, 'g');
     let match;
 
     while ((match = regex.exec(text)) !== null) {
@@ -73,16 +66,8 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
   };
 
   const getIconForTag = (label) => {
-    const moduleMap = {
-      'time': Clock,
-      'date': Calendar,
-      'weather': Cloud,
-      'battery': Battery,
-      'schedule': CalendarDays,
-      'lucky': Palette,
-      'random': Gift,
-    };
-    return moduleMap[label] || Clock;
+    const module = BROADCAST_MODULES.find(m => m.id === label);
+    return module?.icon || BROADCAST_MODULES[0].icon;
   };
 
   return (

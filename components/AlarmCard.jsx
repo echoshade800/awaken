@@ -33,9 +33,7 @@ export default function AlarmCard({ alarm, onPress, onToggle }) {
             {alarm.wakeMode === 'voice' ? (
               <View style={styles.detailRow}>
                 <Music size={16} color="rgba(255, 154, 118, 0.8)" />
-                <Text style={styles.detailText}>
-                  Voice - {alarm.voicePackage === 'energetic-girl' ? 'Energetic Girl' : 'Calm Man'}
-                </Text>
+                <Text style={styles.detailText}>Voice Broadcast</Text>
               </View>
             ) : (
               <View style={styles.detailRow}>
@@ -51,8 +49,6 @@ export default function AlarmCard({ alarm, onPress, onToggle }) {
               </View>
             )}
           </View>
-
-          {alarm.label && <Text style={styles.label}>{alarm.label}</Text>}
         </View>
       </TouchableOpacity>
 
@@ -108,11 +104,6 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 13,
     color: 'rgba(74, 95, 143, 0.7)',
-    fontWeight: '400',
-  },
-  label: {
-    fontSize: 14,
-    color: '#FF9A76',
     fontWeight: '400',
   },
   switchContainer: {

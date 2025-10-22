@@ -9,7 +9,7 @@ export default function ChatBubble({ role, content }) {
       {isAI && (
         <View style={styles.avatarContainer}>
           <View style={[styles.avatar, styles.aiAvatar]}>
-            <Bot size={20} color="#007AFF" strokeWidth={2.5} />
+            <Bot size={20} color="#1A2845" strokeWidth={2.5} />
           </View>
         </View>
       )}
@@ -60,9 +60,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   aiAvatar: {
-    backgroundColor: '#F0F7FF',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1.5,
-    borderColor: '#E0EEFF',
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   userAvatar: {
     backgroundColor: '#007AFF',
@@ -77,12 +77,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   aiBubble: {
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
-    borderWidth: 0,
-    shadowColor: '#000',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: 'rgba(255, 255, 255, 0.3)',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
     elevation: 2,
   },
   userBubble: {
@@ -98,7 +99,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   aiText: {
-    color: '#1F2937',
+    color: '#1A2845',
+    fontWeight: '500',
   },
   userText: {
     color: '#FFF',
