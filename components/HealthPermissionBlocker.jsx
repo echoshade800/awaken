@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Linking } from 'react-native';
 import { Activity } from 'lucide-react-native';
 
-export default function HealthPermissionBlocker({ onOpenSettings, onExit }) {
+export default function HealthPermissionBlocker({ onOpenSettings, onExit, isOnboarding = false }) {
   const handleOpenSettings = () => {
     if (Platform.OS === 'ios') {
       Linking.openURL('app-settings:');
@@ -30,7 +30,7 @@ export default function HealthPermissionBlocker({ onOpenSettings, onExit }) {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryButton} onPress={onExit}>
-            <Text style={styles.secondaryButtonText}>Exit</Text>
+            <Text style={styles.secondaryButtonText}>{isOnboarding ? 'Continue' : 'Exit'}</Text>
           </TouchableOpacity>
         </View>
       </View>

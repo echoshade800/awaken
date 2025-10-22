@@ -1,13 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform, Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Activity } from 'lucide-react-native';
 import useStore from '@/lib/store';
 import StarBackground from '@/components/StarBackground';
+import HealthPermissionBlocker from '@/components/HealthPermissionBlocker';
 
 export default function HealthPermissionScreen() {
   const router = useRouter();
   const [isRequesting, setIsRequesting] = useState(false);
+  const [showBlocker, setShowBlocker] = useState(false);
   const requestHealthPermission = useStore((state) => state.requestHealthPermission);
   const syncHealthData = useStore((state) => state.syncHealthData);
 
@@ -43,35 +45,43 @@ export default function HealthPermissionScreen() {
         console.log('[Health Permission] Data synced, navigating to loading...');
         router.replace('/onboarding/loading');
       } else {
-        console.log('[Health Permission] Permission denied');
-        Alert.alert(
-          'Permission Required',
-          'Health access is needed to track your sleep. Please allow access in Settings.',
-          [
-            { text: 'Skip for Now', onPress: () => router.replace('/onboarding/loading') },
-            { text: 'Try Again', onPress: () => setIsRequesting(false) }
-          ]
-        );
+        console.log('[Health Permission] Permission denied - showing blocker');
         setIsRequesting(false);
+        setShowBlocker(true);
       }
     } catch (error) {
       console.error('[Health Permission] Error:', error);
-      Alert.alert(
-        'Error',
-        'Could not request health permission. Continue with limited features?',
-        [
-          { text: 'Continue', onPress: () => router.replace('/onboarding/loading') },
-          { text: 'Retry', onPress: () => setIsRequesting(false) }
-        ]
-      );
       setIsRequesting(false);
+      setShowBlocker(true);
     }
   };
 
-  const handleSkip = () => {
-    console.log('[Health Permission] Skip button pressed');
+  const handleOpenSettings = async () => {
+    console.log('[Health Permission] Opening settings...');
+    if (Platform.OS === 'ios') {
+      await Linking.openURL('app-settings:');
+    } else if (Platform.OS === 'android') {
+      await Linking.openSettings();
+    }
+    setShowBlocker(false);
+    setIsRequesting(false);
+  };
+
+  const handleContinue = () => {
+    console.log('[Health Permission] User chose to continue without permission');
     router.replace('/onboarding/loading');
   };
+
+
+  if (showBlocker) {
+    return (
+      <HealthPermissionBlocker
+        onOpenSettings={handleOpenSettings}
+        onExit={handleContinue}
+        isOnboarding={true}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -119,7 +129,7 @@ export default function HealthPermissionScreen() {
                 <Text style={styles.primaryButtonText}>Allow Health Access</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.secondaryButton} onPress={handleSkip}>
+              <TouchableOpacity style={styles.secondaryButton} onPress={handleContinue}>
                 <Text style={styles.secondaryButtonText}>Skip for Now</Text>
               </TouchableOpacity>
             </>
