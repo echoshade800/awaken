@@ -1,9 +1,13 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Platform, Animated, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, Plus } from 'lucide-react-native';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import useStore from '@/lib/store';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_SMALL_DEVICE = SCREEN_HEIGHT < 700;
 
 export default function SleepActionBar() {
   const router = useRouter();
@@ -56,8 +60,14 @@ export default function SleepActionBar() {
   return (
     <>
       <Animated.View style={[styles.container, { transform: [{ scale: scaleAnim }] }]}>
-        <BlurView intensity={20} tint="dark" style={styles.blur}>
-          <View style={styles.content}>
+        <BlurView intensity={25} tint="dark" style={styles.blur}>
+          <LinearGradient
+            colors={['rgba(16, 16, 21, 0.9)', 'rgba(12, 13, 18, 0.9)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.gradient}
+          >
+            <View style={styles.content}>
             <TouchableOpacity
               style={styles.action}
               onPress={handleAlarmPress}
@@ -104,7 +114,8 @@ export default function SleepActionBar() {
               <Plus size={22} color="#FFFFFF" strokeWidth={2} />
               <Text style={styles.actionLabel}>Add</Text>
             </TouchableOpacity>
-          </View>
+            </View>
+          </LinearGradient>
         </BlurView>
       </Animated.View>
 
@@ -259,7 +270,7 @@ function ManualSleepModal({ visible, onClose }) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 80,
+    bottom: IS_SMALL_DEVICE ? 92 : 100,
     left: 16,
     right: 16,
     zIndex: 100,
@@ -267,45 +278,56 @@ const styles = StyleSheet.create({
   blur: {
     borderRadius: 22,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(18, 18, 24, 0.5)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
-    elevation: 8,
+    elevation: 10,
+  },
+  gradient: {
+    borderRadius: 22,
   },
   content: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     justifyContent: 'space-around',
+    minHeight: 64,
+    alignItems: 'center',
   },
   action: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
-    paddingVertical: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   actionLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 4,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 6,
+    letterSpacing: 0.3,
   },
   pill: {
-    backgroundColor: '#9D7AFF',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginTop: 4,
+    backgroundColor: '#A78BFA',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 6,
+    shadowColor: '#A78BFA',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   pillText: {
     fontSize: 10,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   iconWithIndicator: {
     position: 'relative',
@@ -319,22 +341,22 @@ const styles = StyleSheet.create({
   },
   indicator: {
     position: 'absolute',
-    top: -2,
-    right: -8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderWidth: 1,
+    top: -3,
+    right: -10,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'rgba(156, 163, 175, 0.5)',
+    borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
   },
   indicatorOn: {
-    backgroundColor: '#4ADE80',
-    borderColor: '#22C55E',
+    backgroundColor: '#10B981',
+    borderColor: 'rgba(16, 185, 129, 0.5)',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
   },
 });
 
