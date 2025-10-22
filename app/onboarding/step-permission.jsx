@@ -59,15 +59,11 @@ export default function StepPermissionScreen() {
   };
 
   const handleCheckPermission = () => {
-    console.log('[StepPermission] handleCheckPermission called');
-    // For web platform, just navigate directly
-    if (Platform.OS === 'web') {
-      console.log('[StepPermission] Web platform, navigating to initializing');
-      router.replace('/onboarding/initializing');
-      return;
-    }
-    // For native platforms, check permission
-    checkPermissionStatus();
+    console.log('[StepPermission] handleCheckPermission called - User confirmed permission enabled');
+    // User says they've enabled it, so trust them and proceed
+    // This allows users to continue the onboarding flow
+    console.log('[StepPermission] Navigating to initializing page');
+    router.replace('/onboarding/initializing');
   };
 
   const handleRequestPermission = () => {
