@@ -335,8 +335,8 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   tipContainer: {
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: 12,
+    marginBottom: 20,
     padding: 16,
     backgroundColor: 'rgba(255, 184, 140, 0.1)',
     borderRadius: 12,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   button: {
-    marginTop: 16,
+    marginTop: 20,
     borderRadius: 20,
     shadowColor: '#FFB88C',
     shadowOffset: { width: 0, height: 4 },
