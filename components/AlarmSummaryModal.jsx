@@ -109,6 +109,7 @@ export default function AlarmSummaryModal({ visible, alarm, onConfirm, onCancel,
                 </View>
               </View>
             )}
+            </View>
           </ScrollView>
 
           <View style={styles.actions}>
