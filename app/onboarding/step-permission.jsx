@@ -194,7 +194,7 @@ export default function StepPermissionScreen() {
             <Text style={styles.instructionTitle}>How to enable:</Text>
             <Text style={styles.instructionText}>
               {Platform.OS === 'ios'
-                ? '1. Open the Health app\n2. Tap your profile icon (top right)\n3. Privacy → Apps → Awaken\n4. Enable "Steps" permission\n5. Return here and tap "I\'ve Enabled It"'
+                ? '1. Open Settings\n2. Scroll to Awaken\n3. Enable Motion & Fitness\n4. Return here and tap "I\'ve Enabled It"'
                 : '1. Open Settings\n2. Apps → Awaken\n3. Permissions → Physical Activity\n4. Allow access\n5. Return here and tap "I\'ve Enabled It"'}
             </Text>
           </View>

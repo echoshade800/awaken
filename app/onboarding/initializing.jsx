@@ -36,22 +36,30 @@ export default function InitializingScreen() {
     } catch (err) {
       console.error('Initialization error:', err);
 
-      let errorMessage = 'Unable to initialize sleep data.';
+      let errorMessage = 'We couldn\'t find enough step data yet.';
+      let canRetry = false;
 
       if (err.message.includes('permission')) {
-        errorMessage = 'Step counting permission not granted. Please enable Motion & Fitness permissions in your device settings.';
+        errorMessage = 'Step counting permission not granted. Tap below to go back and enable permissions.';
+        canRetry = true;
       } else if (err.message.includes('not available')) {
         errorMessage = 'Step counting is not available on this device. This app requires a device with step counting capability.';
+        canRetry = true;
       } else if (err.message.includes('No step data')) {
-        errorMessage = 'No step data found. Please use your device for a few days with step tracking enabled, then try again.';
-      } else if (err.message.includes('sleep patterns')) {
-        errorMessage = 'Unable to detect sleep patterns. Please ensure you have at least 3-5 days of step tracking data.';
+        errorMessage = 'We couldn\'t find enough step data yet. Carry your phone during the day, and we\'ll update automatically.';
+        canRetry = false;
+      } else if (err.message.includes('sleep patterns') || err.message.includes('sleep data')) {
+        errorMessage = 'We need a bit more data to detect your sleep patterns. Please use your device for a few more days with step tracking enabled.';
+        canRetry = false;
       }
 
       setError(errorMessage);
-      setTimeout(() => {
-        router.back();
-      }, 5000);
+
+      if (canRetry) {
+        setTimeout(() => {
+          router.back();
+        }, 4000);
+      }
     }
   };
 

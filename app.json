@@ -11,12 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSHealthShareUsageDescription": "Awaken reads your step count data from the Health app to analyze your sleep patterns and build your circadian rhythm. We only read step counts – no personal data or location is collected.",
-        "NSHealthUpdateUsageDescription": "Awaken does not write any data to the Health app."
-      },
-      "entitlements": {
-        "com.apple.developer.healthkit": true,
-        "com.apple.developer.healthkit.access": []
+        "NSMotionUsageDescription": "Awaken uses your step count data to analyze your sleep patterns and build your circadian rhythm. We only read step counts – no personal data or location is collected."
       }
     },
     "android": {
