@@ -38,13 +38,12 @@ export default function SleepScreen() {
         const hasPermission = await checkHealthKitPermission();
 
         if (hasPermission) {
-          // Try to sync HealthKit data first
+          // Try to sync HealthKit data
           console.log('[Sleep] Syncing HealthKit data on mount...');
           const syncResult = await syncHealthKitData();
           console.log('[Sleep] Sync result:', syncResult);
         } else {
-          // Fall back to demo data if no HealthKit access
-          await insertDemoSleepData();
+          console.log('[Sleep] No HealthKit permission - user will need to sync manually or add data');
         }
 
         // Load chart data
@@ -235,6 +234,9 @@ export default function SleepScreen() {
     );
   }
 
+  // Check if we have any data
+  const hasNoData = !allSessions || allSessions.length === 0;
+
   return (
     <LinearGradient colors={['#0E0E10', '#18181B']} style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -289,23 +291,46 @@ export default function SleepScreen() {
             </BlurView>
           </View>
 
-          <View style={styles.chartSection}>
-            {activeTab === 'times' ? (
-              <>
-                <SleepTimesChart data={processedTimesData} chartWidth={CHART_WIDTH} />
-                <Text style={styles.chartMessage}>{getTimesMessage()}</Text>
-              </>
-            ) : (
-              <>
-                <SleepDebtChart
-                  data={processedDebtData}
-                  sleepNeed={sleepNeed}
-                  chartWidth={CHART_WIDTH}
-                />
-                <Text style={styles.chartMessage}>{getDebtMessage()}</Text>
-              </>
-            )}
-          </View>
+          {hasNoData ? (
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyStateIcon}>😴</Text>
+              <Text style={styles.emptyStateTitle}>No Sleep Data Yet</Text>
+              <Text style={styles.emptyStateText}>
+                Sync your HealthKit data to see your sleep patterns, or manually add your sleep sessions below.
+              </Text>
+              <TouchableOpacity
+                style={styles.emptyStateButton}
+                onPress={handleSyncHealthKit}
+                disabled={isSyncing}
+              >
+                {isSyncing ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.emptyStateButtonText}>Sync HealthKit Now</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.chartSection}>
+                {activeTab === 'times' ? (
+                  <>
+                    <SleepTimesChart data={processedTimesData} chartWidth={CHART_WIDTH} />
+                    <Text style={styles.chartMessage}>{getTimesMessage()}</Text>
+                  </>
+                ) : (
+                  <>
+                    <SleepDebtChart
+                      data={processedDebtData}
+                      sleepNeed={sleepNeed}
+                      chartWidth={CHART_WIDTH}
+                    />
+                    <Text style={styles.chartMessage}>{getDebtMessage()}</Text>
+                  </>
+                )}
+              </View>
+            </>
+          )}
 
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
@@ -407,6 +432,44 @@ const styles = StyleSheet.create({
     color: '#48E0C2',
     marginTop: 8,
     textAlign: 'center',
+  },
+  emptyStateContainer: {
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  emptyStateButton: {
+    backgroundColor: '#9D7AFF',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 24,
+    minWidth: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   tabContainer: {
     paddingHorizontal: 20,
