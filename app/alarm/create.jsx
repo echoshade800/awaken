@@ -485,7 +485,7 @@ export default function AlarmCreate() {
           {renderSuggestedOptions()}
         </ScrollView>
 
-        <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom + 12, 16) }]}>
           <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
             <Mic size={24} color="#FF9A76" />
           </TouchableOpacity>
