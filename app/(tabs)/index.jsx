@@ -70,6 +70,11 @@ export default function HomeScreen() {
 
   const updateRhythmDataFromStorage = async () => {
     const sleepData = await getSleepData();
+    console.log('[Home] updateRhythmDataFromStorage - sleepData:', {
+      hasSleepData: !!sleepData,
+      hasCircadianDay: !!sleepData?.circadianDay,
+      circadianDayLength: sleepData?.circadianDay?.length,
+    });
 
     if (sleepData && sleepData.circadianDay && sleepData.circadianDay.length > 0) {
       console.log('[Home] Using calculated sleep data from storage');
@@ -95,7 +100,7 @@ export default function HomeScreen() {
         return p.time === currentTimeStr;
       }) || curve[0];
 
-      setRhythmData({
+      const newRhythmData = {
         energyScore: currentEnergy.energy,
         peak,
         valley,
@@ -106,22 +111,31 @@ export default function HomeScreen() {
           ? "💤 Sleep debt is building. Consider an earlier bedtime."
           : "✨ Energy's balanced. Keep it calm and consistent 🌙",
         debtInfo,
+      };
+      console.log('[Home] Setting new rhythm data:', {
+        energyScore: newRhythmData.energyScore,
+        curveLength: newRhythmData.curve?.length,
+        peakTime: newRhythmData.peak?.time,
       });
+      setRhythmData(newRhythmData);
     } else {
       updateRhythmData();
     }
   };
 
   const updateRhythmData = () => {
+    console.log('[Home] updateRhythmData called');
     const energyData = getEnergyRhythmData();
     console.log('[Home] Energy data from store:', {
       hasData: !!energyData,
       curveLength: energyData?.curve?.length,
       sleepDebt: sleepDebt,
+      energyData: energyData ? { energyScore: energyData.energyScore, peak: energyData.peak } : null,
     });
 
     if (energyData && energyData.curve && energyData.curve.length > 0) {
-      console.log('[Home] Using calculated energy data');
+      console.log('[Home] Using calculated energy data from store');
+      console.log('[Home] Setting rhythm data with', energyData.curve.length, 'curve points');
       setRhythmData(energyData);
     } else {
       console.log('[Home] Using mock data fallback');
@@ -131,14 +145,21 @@ export default function HomeScreen() {
         sleep: '23:00',
         chrono: chronotype,
       });
-      setRhythmData({
+      console.log('[Home] Generated mock data:', {
+        hasMockData: !!mockData,
+        mockCurveLength: mockData?.curve?.length,
+        mockEnergyScore: mockData?.energyScore,
+      });
+      const newRhythmData = {
         energyScore: mockData?.energyScore || 50,
         peak: mockData?.peak || { time: '13:00', energy: 80 },
         valley: mockData?.valley || { time: '03:00', energy: 20 },
         curve: mockData?.curve || [],
         monsterTip: "✨ Energy's balanced. Keep it calm and consistent 🌙",
         debtInfo: { label: 'Good', emoji: '😊', color: '#90EE90', severity: 'good' },
-      });
+      };
+      console.log('[Home] Setting mock rhythm data with', newRhythmData.curve?.length, 'curve points');
+      setRhythmData(newRhythmData);
     }
   };
 

@@ -9,10 +9,19 @@ const PADDING = { top: 40, right: 20, bottom: 30, left: 30 };
 export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
+  console.log('[SleepDebtChart] Render with data:', {
+    hasData: !!data,
+    dataLength: data?.length,
+    sleepNeed,
+    chartWidth,
+  });
+
   if (!data || data.length === 0) {
+    console.log('[SleepDebtChart] No data, showing placeholder');
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>No sleep debt data available</Text>
+        <Text style={styles.emptyText}>Loading sleep debt...</Text>
+        <Text style={styles.emptySubtext}>Track your sleep debt over time</Text>
       </View>
     );
   }
@@ -28,9 +37,11 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
   });
 
   if (validData.length === 0) {
+    console.log('[SleepDebtChart] No valid data after filtering');
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>Invalid sleep debt data</Text>
+        <Text style={styles.emptyText}>No valid sleep debt data</Text>
+        <Text style={styles.emptySubtext}>Check your sleep records</Text>
       </View>
     );
   }
@@ -39,9 +50,11 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
 
   const debtValues = validData.map(d => d.debt).filter(v => isFinite(v));
   if (debtValues.length === 0) {
+    console.log('[SleepDebtChart] No valid debt values');
     return (
       <View style={styles.container}>
         <Text style={styles.emptyText}>No valid debt values</Text>
+        <Text style={styles.emptySubtext}>Unable to calculate sleep debt</Text>
       </View>
     );
   }
@@ -94,10 +107,11 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
 
   // If pathData is invalid, return error message
   if (!pathData || pathData.includes('NaN') || pathData.includes('undefined')) {
-    console.warn('Invalid path data in SleepDebtChart');
+    console.warn('[SleepDebtChart] Invalid path data:', pathData?.substring(0, 100));
     return (
       <View style={styles.container}>
-        <Text style={styles.emptyText}>Invalid chart data</Text>
+        <Text style={styles.emptyText}>Error generating chart</Text>
+        <Text style={styles.emptySubtext}>Please refresh or check data</Text>
       </View>
     );
   }
@@ -209,11 +223,22 @@ const styles = StyleSheet.create({
     minHeight: CHART_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   emptyText: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
+    textAlign: 'center',
+    marginTop: 4,
   },
   tooltip: {
     position: 'absolute',

@@ -33,10 +33,18 @@ export default function SleepTimesChart({ data, chartWidth }) {
     }
   }, [data]);
 
+  console.log('[SleepTimesChart] Render with data:', {
+    hasData: !!data,
+    dataLength: data?.length,
+    chartWidth,
+  });
+
   if (!data || data.length === 0) {
+    console.log('[SleepTimesChart] No data, showing placeholder');
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No sleep times data available</Text>
+        <Text style={styles.emptyText}>Loading sleep times...</Text>
+        <Text style={styles.emptySubtext}>Your sleep data will appear here</Text>
       </View>
     );
   }
@@ -266,11 +274,22 @@ const styles = StyleSheet.create({
     minHeight: CHART_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   emptyText: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
+    textAlign: 'center',
+    marginTop: 4,
   },
   tooltip: {
     position: 'absolute',

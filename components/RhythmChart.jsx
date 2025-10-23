@@ -9,8 +9,21 @@ const CHART_HEIGHT = 260;
 const PADDING = { top: 40, right: 15, bottom: 20, left: 15 };
 
 export default function RhythmChart({ rhythmData }) {
+  console.log('[RhythmChart] Render with data:', {
+    hasData: !!rhythmData,
+    hasCurve: !!rhythmData?.curve,
+    curveLength: rhythmData?.curve?.length,
+  });
+
   if (!rhythmData || !rhythmData.curve || rhythmData.curve.length === 0) {
-    return null;
+    console.log('[RhythmChart] No data, showing placeholder');
+    return (
+      <View style={styles.containerWrapper}>
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>Loading rhythm data...</Text>
+        </View>
+      </View>
+    );
   }
 
   // Convert curve data to points format expected by chart
@@ -32,9 +45,16 @@ export default function RhythmChart({ rhythmData }) {
       energy: point.energy,
     }));
 
-  // If no valid points after filtering, return null
+  // If no valid points after filtering, show placeholder
   if (points.length === 0) {
-    return null;
+    console.log('[RhythmChart] No valid points after filtering');
+    return (
+      <View style={styles.containerWrapper}>
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>No valid energy data</Text>
+        </View>
+      </View>
+    );
   }
 
   const peak = rhythmData.peak ? {
@@ -87,10 +107,17 @@ export default function RhythmChart({ rhythmData }) {
 
   const pathData = lineGenerator(clampedPoints);
 
-  // If pathData is invalid or null, return null
+  // If pathData is invalid or null, show placeholder
   if (!pathData || pathData.includes('NaN') || pathData.includes('undefined')) {
-    console.warn('Invalid path data generated, skipping chart render');
-    return null;
+    console.warn('[RhythmChart] Invalid path data generated:', pathData?.substring(0, 100));
+    return (
+      <View style={styles.containerWrapper}>
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>Error generating chart</Text>
+          <Text style={styles.placeholderSubtext}>Please refresh or check data</Text>
+        </View>
+      </View>
+    );
   }
 
   const currentMinute = getCurrentMinute();
@@ -283,5 +310,26 @@ const styles = StyleSheet.create({
   },
   chart: {
     marginVertical: 4,
+  },
+  placeholderContainer: {
+    width: CHART_WIDTH,
+    height: CHART_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  placeholderText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+  },
+  placeholderSubtext: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.4)',
+    textAlign: 'center',
+    marginTop: 4,
   },
 });

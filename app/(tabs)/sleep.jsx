@@ -32,10 +32,12 @@ export default function SleepScreen() {
 
   useEffect(() => {
     const initializeData = async () => {
+      console.log('[Sleep] Initializing data...');
       setIsLoading(true);
       try {
         // Check if we have HealthKit permission
         const hasPermission = await checkHealthKitPermission();
+        console.log('[Sleep] HealthKit permission:', hasPermission);
 
         if (hasPermission) {
           // Try to sync HealthKit data first
@@ -51,6 +53,11 @@ export default function SleepScreen() {
         const timesData = getSleepSessionsForChart();
         const debtData = getSleepSessionsForDebtChart();
         const allSessionsData = getAllSleepSessions();
+        console.log('[Sleep] Chart data loaded:', {
+          timesDataLength: timesData?.length,
+          debtDataLength: debtData?.length,
+          allSessionsLength: allSessionsData?.length,
+        });
 
         if (timesData) setTimesChartData(timesData);
         if (debtData) setDebtChartData(debtData);
@@ -68,10 +75,16 @@ export default function SleepScreen() {
   }, []);
 
   useEffect(() => {
+    console.log('[Sleep] sleepSessions changed, updating charts');
     try {
       const timesData = getSleepSessionsForChart();
       const debtData = getSleepSessionsForDebtChart();
       const allSessionsData = getAllSleepSessions();
+      console.log('[Sleep] Updated chart data:', {
+        timesDataLength: timesData?.length,
+        debtDataLength: debtData?.length,
+        allSessionsLength: allSessionsData?.length,
+      });
 
       if (timesData) setTimesChartData(timesData);
       if (debtData) setDebtChartData(debtData);
@@ -83,6 +96,10 @@ export default function SleepScreen() {
 
 
   const processedTimesData = useMemo(() => {
+    console.log('[Sleep] Processing times data:', {
+      hasTimesChartData: !!timesChartData,
+      timesChartDataLength: timesChartData?.length,
+    });
     if (!timesChartData || timesChartData.length === 0) return [];
 
     return timesChartData.map((item) => {
@@ -105,6 +122,11 @@ export default function SleepScreen() {
   }, [timesChartData]);
 
   const processedDebtData = useMemo(() => {
+    console.log('[Sleep] Processing debt data:', {
+      hasDebtChartData: !!debtChartData,
+      debtChartDataLength: debtChartData?.length,
+      sleepNeed,
+    });
     if (!debtChartData || debtChartData.length === 0) return [];
 
     return debtChartData.map((item) => {
