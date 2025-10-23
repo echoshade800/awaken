@@ -10,7 +10,16 @@
     "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fanthus.bolt-expo-nativewind"
+      "bundleIdentifier": "com.fanthus.bolt-expo-nativewind",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "We need access to your sleep and activity data to provide personalized sleep insights and help you maintain a healthy sleep schedule.",
+        "NSHealthUpdateUsageDescription": "We need to update your health data to track your sleep patterns.",
+        "UIRequiredDeviceCapabilities": ["healthkit"]
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": []
+      }
     },
     "web": {
       "bundler": "metro",
