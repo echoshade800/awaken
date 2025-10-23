@@ -9,6 +9,7 @@ import {
   Platform,
   StyleSheet,
   ActivityIndicator,
+  InputAccessoryView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -437,6 +438,8 @@ export default function AlarmCreate() {
     );
   };
 
+  const inputAccessoryViewID = 'alarmInputAccessory';
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -444,71 +447,100 @@ export default function AlarmCreate() {
         locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
         style={styles.backgroundGradient}
       />
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 76 : 0}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
-            <ArrowLeft size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Alarm</Text>
-          <View style={{ width: 24 }} />
-        </View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Create Alarm</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
-        {currentAlarmDraft && (
-          <AlarmInfoCard
-            alarm={currentAlarmDraft}
-            onConfirm={handleConfirm}
-            showConfirmButton={isAlarmComplete(currentAlarmDraft)}
-          />
+      {currentAlarmDraft && (
+        <AlarmInfoCard
+          alarm={currentAlarmDraft}
+          onConfirm={handleConfirm}
+          showConfirmButton={isAlarmComplete(currentAlarmDraft)}
+        />
+      )}
+
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.chatArea}
+        contentContainerStyle={[
+          styles.chatContent,
+          { paddingBottom: 60 + insets.bottom + 8 }
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
+        inputAccessoryViewID={Platform.OS === 'ios' ? inputAccessoryViewID : undefined}
+      >
+        {chatHistory.map((message) => (
+          <ChatBubble key={message.id} role={message.role} content={message.content} />
+        ))}
+
+        {isAIProcessing && (
+          <View style={styles.aiLoadingContainer}>
+            <ActivityIndicator size="small" color="#FF9A76" />
+            <Text style={styles.aiLoadingText}>Monster is thinking...</Text>
+          </View>
         )}
 
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.chatArea}
-          contentContainerStyle={styles.chatContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {chatHistory.map((message) => (
-            <ChatBubble key={message.id} role={message.role} content={message.content} />
-          ))}
+        {renderSuggestedOptions()}
+      </ScrollView>
 
-          {isAIProcessing && (
-            <View style={styles.aiLoadingContainer}>
-              <ActivityIndicator size="small" color="#FF9A76" />
-              <Text style={styles.aiLoadingText}>Monster is thinking...</Text>
-            </View>
-          )}
-
-          {renderSuggestedOptions()}
-        </ScrollView>
-
-        <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
-            <Mic size={24} color="#FF9A76" />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Type a message..."
-            placeholderTextColor="#999"
-            value={inputText}
-            onChangeText={setInputText}
-            onSubmitEditing={handleTextInput}
-            returnKeyType="send"
-            multiline
-            maxLength={200}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-            onPress={handleTextInput}
-            disabled={!inputText.trim()}
-          >
-            <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+      {Platform.OS === 'ios' ? (
+        <InputAccessoryView nativeID={inputAccessoryViewID}>
+          <View style={[styles.inputContainer, { paddingBottom: insets.bottom }]}>
+            <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
+              <Mic size={24} color="#FF9A76" />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Type a message..."
+              placeholderTextColor="#999"
+              value={inputText}
+              onChangeText={setInputText}
+              onSubmitEditing={handleTextInput}
+              returnKeyType="send"
+              multiline
+              maxLength={200}
+            />
+            <TouchableOpacity
+              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+              onPress={handleTextInput}
+              disabled={!inputText.trim()}
+            >
+              <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      ) : (
+        <KeyboardAvoidingView behavior="padding">
+          <View style={[styles.inputContainer, { paddingBottom: insets.bottom }]}>
+            <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
+              <Mic size={24} color="#FF9A76" />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Type a message..."
+              placeholderTextColor="#999"
+              value={inputText}
+              onChangeText={setInputText}
+              onSubmitEditing={handleTextInput}
+              returnKeyType="send"
+              multiline
+              maxLength={200}
+            />
+            <TouchableOpacity
+              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+              onPress={handleTextInput}
+              disabled={!inputText.trim()}
+            >
+              <Send size={20} color={inputText.trim() ? '#FFFFFF' : '#CCC'} />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      )}
 
       <AlarmSummaryModal
         visible={showSummaryModal}
@@ -532,9 +564,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
   },
-  keyboardView: {
-    flex: 1,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -555,7 +584,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chatContent: {
-    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
   aiLoadingContainer: {
     flexDirection: 'row',
