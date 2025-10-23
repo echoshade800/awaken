@@ -49,6 +49,14 @@
     <string>Allow $(PRODUCT_NAME) to access your camera</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>We need access to your sleep and activity data to provide personalized sleep insights and help you maintain a healthy sleep schedule.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>We need to update your health data to track your sleep patterns.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>processing</string>
+    </array>
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>

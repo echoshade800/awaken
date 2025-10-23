@@ -14,12 +14,17 @@ const CHART_WIDTH = SCREEN_WIDTH;
 export default function SleepScreen() {
   const [activeTab, setActiveTab] = useState('times');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
   const sleepNeed = useStore((state) => state.sleepNeed);
   const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);
   const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
   const getAllSleepSessions = useStore((state) => state.getAllSleepSessions);
   const sleepSessions = useStore((state) => state.sleepSessions);
   const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
+  const syncHealthKitData = useStore((state) => state.syncHealthKitData);
+  const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
+  const checkHealthKitPermission = useStore((state) => state.checkHealthKitPermission);
 
   const [timesChartData, setTimesChartData] = useState([]);
   const [debtChartData, setDebtChartData] = useState([]);
@@ -29,7 +34,20 @@ export default function SleepScreen() {
     const initializeData = async () => {
       setIsLoading(true);
       try {
-        await insertDemoSleepData();
+        // Check if we have HealthKit permission
+        const hasPermission = await checkHealthKitPermission();
+
+        if (hasPermission) {
+          // Try to sync HealthKit data first
+          console.log('[Sleep] Syncing HealthKit data on mount...');
+          const syncResult = await syncHealthKitData();
+          console.log('[Sleep] Sync result:', syncResult);
+        } else {
+          // Fall back to demo data if no HealthKit access
+          await insertDemoSleepData();
+        }
+
+        // Load chart data
         const timesData = getSleepSessionsForChart();
         const debtData = getSleepSessionsForDebtChart();
         const allSessionsData = getAllSleepSessions();
@@ -151,6 +169,41 @@ export default function SleepScreen() {
     return '⚡ Great recovery balance!';
   };
 
+  const handleSyncHealthKit = async () => {
+    setIsSyncing(true);
+    setSyncMessage('');
+
+    try {
+      // Check if permission is already granted
+      const hasPermission = await checkHealthKitPermission();
+
+      if (!hasPermission) {
+        // Request permission
+        const granted = await requestHealthKitPermission();
+        if (!granted) {
+          setSyncMessage('HealthKit permission denied');
+          setIsSyncing(false);
+          return;
+        }
+      }
+
+      // Sync data
+      const result = await syncHealthKitData();
+
+      if (result.success) {
+        setSyncMessage(`Synced ${result.count} sleep sessions from HealthKit`);
+      } else {
+        setSyncMessage(result.message || 'Sync failed');
+      }
+    } catch (error) {
+      console.error('Error syncing HealthKit:', error);
+      setSyncMessage('Error syncing HealthKit data');
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncMessage(''), 3000);
+    }
+  };
+
   const dateRange = useMemo(() => {
     if (!timesChartData || timesChartData.length === 0) return '';
     try {
@@ -190,8 +243,27 @@ export default function SleepScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>My Progress</Text>
-            <Text style={styles.dateRange}>{dateRange}</Text>
+            <View style={styles.headerTop}>
+              <View>
+                <Text style={styles.title}>My Progress</Text>
+                <Text style={styles.dateRange}>{dateRange}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.syncButton}
+                onPress={handleSyncHealthKit}
+                disabled={isSyncing}
+                activeOpacity={0.7}
+              >
+                {isSyncing ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.syncButtonText}>🔄 Sync HealthKit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            {syncMessage ? (
+              <Text style={styles.syncMessage}>{syncMessage}</Text>
+            ) : null}
           </View>
 
           <View style={styles.tabContainer}>
@@ -300,6 +372,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   title: {
     fontSize: 22,
     fontWeight: '600',
@@ -310,6 +387,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '500',
+  },
+  syncButton: {
+    backgroundColor: '#9D7AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  syncButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  syncMessage: {
+    fontSize: 12,
+    color: '#48E0C2',
+    marginTop: 8,
+    textAlign: 'center',
   },
   tabContainer: {
     paddingHorizontal: 20,
