@@ -21,6 +21,7 @@ export default function SleepScreen() {
   const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
   const getAllSleepSessions = useStore((state) => state.getAllSleepSessions);
   const sleepSessions = useStore((state) => state.sleepSessions);
+  const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
   const syncHealthKitData = useStore((state) => state.syncHealthKitData);
   const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
   const checkHealthKitPermission = useStore((state) => state.checkHealthKitPermission);
@@ -43,6 +44,9 @@ export default function SleepScreen() {
           console.log('[Sleep] Syncing HealthKit data on mount...');
           const syncResult = await syncHealthKitData();
           console.log('[Sleep] Sync result:', syncResult);
+        } else {
+          // Fall back to demo data if no HealthKit access
+          await insertDemoSleepData();
         }
 
         // Load chart data

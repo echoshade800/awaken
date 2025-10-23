@@ -35,7 +35,7 @@ export default function EnergyHelpModal({ visible, onClose }) {
           </View>
 
           <Text style={styles.modalText}>
-            • <Text style={styles.modalBold}>Inputs we consider:</Text> sleep/wake times, phone-usage as light proxy, recent sleep debt, and stated preference.
+            • <Text style={styles.modalBold}>Inputs we consider</Text> (for the demo some are simulated): sleep/wake times, phone-usage as light proxy, recent sleep debt, and stated preference.
           </Text>
 
           <Text style={styles.modalText}>
