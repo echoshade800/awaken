@@ -196,7 +196,7 @@ export default function SleepScreen() {
   const getDataSourceInfo = () => {
     const hasDemoData = sleepSessions.some(s => s.source === 'demo');
     const hasHealthKitData = sleepSessions.some(s => s.source === 'healthkit');
-    const hasInferredData = sleepSessions.some(s => !s.source || s.source === 'inferred');
+    const hasInferredData = sleepSessions.some(s => s.source === 'healthkit-inferred');
 
     if (hasHealthKitData) {
       return {
@@ -206,7 +206,7 @@ export default function SleepScreen() {
       };
     }
 
-    if (hasInferredData && healthKitAuthorized) {
+    if (hasInferredData) {
       return {
         show: true,
         message: '🔍 Sleep inferred from step data',
@@ -225,8 +225,9 @@ export default function SleepScreen() {
     if (!healthKitAuthorized) {
       return {
         show: true,
-        message: '⚠️ Not enough step data to infer sleep patterns yet',
+        message: '⚠️ We couldn\'t find step data yet. Open Health and ensure Steps is enabled for Monster.',
         type: 'no-permission',
+        showButton: true,
       };
     }
 
@@ -234,6 +235,7 @@ export default function SleepScreen() {
       show: true,
       message: '⚠️ No sleep data available',
       type: 'no-data',
+      showButton: true,
     };
   };
 
@@ -333,12 +335,24 @@ export default function SleepScreen() {
               <Text style={styles.syncMessage}>{syncMessage}</Text>
             ) : null}
             {getDataSourceInfo().show && (
-              <View style={[
-                styles.dataSourceBanner,
-                getDataSourceInfo().type === 'demo' && styles.dataSourceBannerDemo,
-                getDataSourceInfo().type === 'no-permission' && styles.dataSourceBannerWarning,
-              ]}>
-                <Text style={styles.dataSourceText}>{getDataSourceInfo().message}</Text>
+              <View>
+                <View style={[
+                  styles.dataSourceBanner,
+                  getDataSourceInfo().type === 'demo' && styles.dataSourceBannerDemo,
+                  getDataSourceInfo().type === 'no-permission' && styles.dataSourceBannerWarning,
+                  getDataSourceInfo().type === 'no-data' && styles.dataSourceBannerWarning,
+                ]}>
+                  <Text style={styles.dataSourceText}>{getDataSourceInfo().message}</Text>
+                </View>
+                {getDataSourceInfo().showButton && (
+                  <TouchableOpacity
+                    style={styles.openHealthButton}
+                    onPress={handleSyncHealthKit}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.openHealthButtonText}>Open Health Permissions</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>
@@ -507,6 +521,19 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  openHealthButton: {
+    backgroundColor: '#9D7AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  openHealthButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   tabContainer: {
     paddingHorizontal: 20,

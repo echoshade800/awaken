@@ -3,12 +3,16 @@ import { View, Text, TouchableOpacity, StyleSheet, AppState, Platform, Linking }
 import { useRouter } from 'expo-router';
 import { Activity, Shield, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { checkStepPermission, requestStepPermission } from '../../lib/healthPermissions';
+import { bootstrapSleepFromHealthKit } from '../../lib/sleepInference';
+import useStore from '../../lib/store';
 
 export default function StepPermissionScreen() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
+
+  const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
+  const checkHealthKitPermission = useStore((state) => state.checkHealthKitPermission);
 
   useEffect(() => {
     console.log('[StepPermission] Component mounted, Platform:', Platform.OS);
@@ -26,18 +30,31 @@ export default function StepPermissionScreen() {
     setAppState(nextAppState);
   };
 
+  const bootstrapAndNavigate = async () => {
+    console.log('[StepPermission] Attempting to bootstrap sleep data from HealthKit...');
+    const result = await bootstrapSleepFromHealthKit();
+
+    if (result.success) {
+      console.log('[StepPermission] Successfully bootstrapped', result.sessions.length, 'sleep sessions');
+      router.replace('/onboarding/initializing');
+    } else {
+      console.warn('[StepPermission] Failed to bootstrap:', result.message);
+      router.replace('/onboarding/initializing');
+    }
+  };
+
   const checkPermissionStatus = async () => {
     setIsChecking(true);
     try {
-      const status = await checkStepPermission();
-      console.log('[StepPermission] Permission status:', status);
+      const granted = await checkHealthKitPermission();
+      console.log('[StepPermission] Permission status:', granted);
       console.log('[StepPermission] Platform:', Platform.OS);
 
-      if (status === 'granted') {
-        console.log('[StepPermission] Permission granted, navigating to initializing...');
-        router.replace('/onboarding/initializing');
+      if (granted) {
+        console.log('[StepPermission] Permission granted, bootstrapping...');
+        await bootstrapAndNavigate();
       } else {
-        console.log('[StepPermission] Permission denied, showing buttons');
+        console.log('[StepPermission] Permission not granted, showing buttons');
         setIsChecking(false);
       }
     } catch (error) {
@@ -58,39 +75,40 @@ export default function StepPermissionScreen() {
     }
   };
 
-  const handleCheckPermission = () => {
+  const handleCheckPermission = async () => {
     console.log('[StepPermission] handleCheckPermission called - User confirmed permission enabled');
-    // User says they've enabled it, so trust them and proceed
-    // This allows users to continue the onboarding flow
-    console.log('[StepPermission] Navigating to initializing page');
-    router.replace('/onboarding/initializing');
+    setIsChecking(true);
+    try {
+      await bootstrapAndNavigate();
+    } catch (error) {
+      console.error('[StepPermission] Error during check:', error);
+      setIsChecking(false);
+    }
   };
 
-  const handleRequestPermission = () => {
+  const handleRequestPermission = async () => {
     console.log('[StepPermission] handleRequestPermission called');
-    // For web platform, just navigate directly
     if (Platform.OS === 'web') {
       console.log('[StepPermission] Web platform, navigating to initializing');
       router.replace('/onboarding/initializing');
       return;
     }
-    // For native platforms, request permission
     setIsChecking(true);
-    requestStepPermission()
-      .then(status => {
-        console.log('[StepPermission] Request permission result:', status);
-        if (status === 'granted') {
-          router.replace('/onboarding/initializing');
-        } else {
-          handleOpenSettings();
-          setIsChecking(false);
-        }
-      })
-      .catch(error => {
-        console.error('[StepPermission] Error requesting permission:', error);
+    try {
+      const granted = await requestHealthKitPermission();
+      console.log('[StepPermission] Request permission result:', granted);
+
+      if (granted) {
+        await bootstrapAndNavigate();
+      } else {
         handleOpenSettings();
         setIsChecking(false);
-      });
+      }
+    } catch (error) {
+      console.error('[StepPermission] Error requesting permission:', error);
+      handleOpenSettings();
+      setIsChecking(false);
+    }
   };
 
   return (
@@ -108,10 +126,10 @@ export default function StepPermissionScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>Allow Health Access to Continue</Text>
+        <Text style={styles.title}>Enable Steps Access</Text>
 
         <Text style={styles.subtitle}>
-          We'll use your step data to infer sleep patterns and improve your rhythm insights.
+          We analyze your step patterns to estimate past sleep and personalize your rhythm.
         </Text>
 
         <View style={styles.securityCard}>
@@ -137,7 +155,7 @@ export default function StepPermissionScreen() {
         </View>
 
         <Text style={styles.helpText}>
-          Need help? Go to Settings → Privacy → Health → Awaken
+          Need help? Go to Settings → Privacy & Security → Health → Awaken
         </Text>
 
         <View style={styles.buttonContainer}>
@@ -153,18 +171,18 @@ export default function StepPermissionScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={styles.primaryButtonText}>
-                  Grant Permission
+                  Allow in Health
                 </Text>
                 <ChevronRight size={20} color="#FFF" />
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.secondaryButton}
-                onPress={handleCheckPermission}
+                onPress={() => router.replace('/onboarding/initializing')}
                 activeOpacity={0.8}
               >
                 <Text style={styles.secondaryButtonText}>
-                  I've Enabled It
+                  Not Now
                 </Text>
               </TouchableOpacity>
             </>

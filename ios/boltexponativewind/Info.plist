@@ -50,9 +50,9 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSHealthShareUsageDescription</key>
-    <string>We need access to your sleep and activity data to provide personalized sleep insights and help you maintain a healthy sleep schedule.</string>
+    <string>Allow Monster to read your Steps to infer sleep and circadian rhythm.</string>
     <key>NSHealthUpdateUsageDescription</key>
-    <string>We need to update your health data to track your sleep patterns.</string>
+    <string>Monster may write wellness insights.</string>
     <key>UIBackgroundModes</key>
     <array>
       <string>processing</string>
