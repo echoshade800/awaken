@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useMemo, useEffect } from 'react';
@@ -13,6 +13,7 @@ const CHART_WIDTH = SCREEN_WIDTH;
 
 export default function SleepScreen() {
   const [activeTab, setActiveTab] = useState('times');
+  const [isLoading, setIsLoading] = useState(true);
   const sleepNeed = useStore((state) => state.sleepNeed);
   const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);
   const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
@@ -26,62 +27,116 @@ export default function SleepScreen() {
 
   useEffect(() => {
     const initializeData = async () => {
-      await insertDemoSleepData();
-      setTimesChartData(getSleepSessionsForChart());
-      setDebtChartData(getSleepSessionsForDebtChart());
-      setAllSessions(getAllSleepSessions());
+      setIsLoading(true);
+      try {
+        await insertDemoSleepData();
+        const timesData = getSleepSessionsForChart();
+        const debtData = getSleepSessionsForDebtChart();
+        const allSessionsData = getAllSleepSessions();
+
+        if (timesData) setTimesChartData(timesData);
+        if (debtData) setDebtChartData(debtData);
+        if (allSessionsData) setAllSessions(allSessionsData);
+      } catch (error) {
+        console.error('Failed to initialize sleep data:', error);
+        setTimesChartData([]);
+        setDebtChartData([]);
+        setAllSessions([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     initializeData();
   }, []);
 
   useEffect(() => {
-    setTimesChartData(getSleepSessionsForChart());
-    setDebtChartData(getSleepSessionsForDebtChart());
-    setAllSessions(getAllSleepSessions());
+    try {
+      const timesData = getSleepSessionsForChart();
+      const debtData = getSleepSessionsForDebtChart();
+      const allSessionsData = getAllSleepSessions();
+
+      if (timesData) setTimesChartData(timesData);
+      if (debtData) setDebtChartData(debtData);
+      if (allSessionsData) setAllSessions(allSessionsData);
+    } catch (error) {
+      console.error('Failed to update sleep data:', error);
+    }
   }, [sleepSessions]);
 
 
-  const processedTimesData = timesChartData.map((item) => {
-    const date = new Date(item.date);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return {
-      ...item,
-      fullDate: `${item.dayLabel}, ${months[date.getMonth()]} ${date.getDate()}`,
-    };
-  });
+  const processedTimesData = useMemo(() => {
+    if (!timesChartData || timesChartData.length === 0) return [];
+
+    return timesChartData.map((item) => {
+      try {
+        const date = new Date(item.date);
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date in timesChartData:', item.date);
+          return { ...item, fullDate: item.dayLabel || 'Unknown' };
+        }
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return {
+          ...item,
+          fullDate: `${item.dayLabel}, ${months[date.getMonth()]} ${date.getDate()}`,
+        };
+      } catch (error) {
+        console.error('Error processing times data:', error);
+        return { ...item, fullDate: item.dayLabel || 'Unknown' };
+      }
+    });
+  }, [timesChartData]);
 
   const processedDebtData = useMemo(() => {
-    if (debtChartData.length === 0) return [];
+    if (!debtChartData || debtChartData.length === 0) return [];
 
     return debtChartData.map((item) => {
-      const date = new Date(item.date);
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      try {
+        const date = new Date(item.date);
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date in debtChartData:', item.date);
+          return null;
+        }
 
-      const slept = item.slept || 0;
-      const debt = sleepNeed - slept;
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-      return {
-        date: item.date,
-        dateLabel: `${date.getMonth() + 1}/${date.getDate()}`,
-        fullDate: `${dayNames[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`,
-        debt: debt,
-        slept: slept,
-        sleptDisplay: item.duration || '0h 0m',
-      };
-    });
+        const slept = typeof item.slept === 'number' ? item.slept : 0;
+        const debt = sleepNeed - slept;
+
+        if (!isFinite(debt)) {
+          console.warn('Invalid debt calculation:', { sleepNeed, slept, debt });
+          return null;
+        }
+
+        return {
+          date: item.date,
+          dateLabel: `${date.getMonth() + 1}/${date.getDate()}`,
+          fullDate: `${dayNames[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`,
+          debt: debt,
+          slept: slept,
+          sleptDisplay: item.duration || '0h 0m',
+        };
+      } catch (error) {
+        console.error('Error processing debt data:', error, item);
+        return null;
+      }
+    }).filter(item => item !== null);
   }, [debtChartData, sleepNeed]);
 
   const averageSleep = useMemo(() => {
-    const validData = processedDebtData.filter((item) => item.slept > 0);
+    if (!processedDebtData || processedDebtData.length === 0) return 0;
+    const validData = processedDebtData.filter((item) => item && typeof item.slept === 'number' && item.slept > 0);
     if (validData.length === 0) return 0;
     const total = validData.reduce((sum, item) => sum + item.slept, 0);
     return total / validData.length;
   }, [processedDebtData]);
 
   const averageDebt = useMemo(() => {
-    const total = processedDebtData.reduce((sum, item) => sum + item.debt, 0);
-    return total / processedDebtData.length;
+    if (!processedDebtData || processedDebtData.length === 0) return 0;
+    const validData = processedDebtData.filter((item) => item && typeof item.debt === 'number' && isFinite(item.debt));
+    if (validData.length === 0) return 0;
+    const total = validData.reduce((sum, item) => sum + item.debt, 0);
+    return total / validData.length;
   }, [processedDebtData]);
 
   const getTimesMessage = () => {
@@ -97,13 +152,35 @@ export default function SleepScreen() {
   };
 
   const dateRange = useMemo(() => {
-    if (timesChartData.length === 0) return '';
-    const firstDate = new Date(timesChartData[0].date);
-    const lastDate = new Date(timesChartData[timesChartData.length - 1].date);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (!timesChartData || timesChartData.length === 0) return '';
+    try {
+      const firstDate = new Date(timesChartData[0].date);
+      const lastDate = new Date(timesChartData[timesChartData.length - 1].date);
 
-    return `${months[firstDate.getMonth()]} ${firstDate.getDate()}–${lastDate.getDate()}`;
+      if (isNaN(firstDate.getTime()) || isNaN(lastDate.getTime())) {
+        return '';
+      }
+
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[firstDate.getMonth()]} ${firstDate.getDate()}–${lastDate.getDate()}`;
+    } catch (error) {
+      console.error('Error calculating date range:', error);
+      return '';
+    }
   }, [timesChartData]);
+
+  if (isLoading) {
+    return (
+      <LinearGradient colors={['#0E0E10', '#18181B']} style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#9D7AFF" />
+            <Text style={styles.loadingText}>Loading sleep data...</Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient colors={['#0E0E10', '#18181B']} style={styles.container}>
@@ -161,26 +238,35 @@ export default function SleepScreen() {
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
 
-            {allSessions.length === 0 ? (
+            {!allSessions || allSessions.length === 0 ? (
               <Text style={styles.emptyText}>No sleep records yet. Add your first sleep session below.</Text>
             ) : (
               allSessions.map((item, index) => {
-                const date = new Date(item.date);
-                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                try {
+                  const date = new Date(item.date);
+                  if (isNaN(date.getTime())) {
+                    console.warn('Invalid date in allSessions:', item.date);
+                    return null;
+                  }
 
-                const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
+                  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                  const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
 
-                return (
-                  <View key={`${item.date}-${index}`} style={styles.listItem}>
-                    <View style={styles.listItemLeft}>
-                      <Text style={styles.listItemLabel}>{label}</Text>
-                      <Text style={styles.listItemTime}>
-                        {item.sleepTime} – {item.wakeTime}
-                      </Text>
+                  return (
+                    <View key={`${item.date}-${index}`} style={styles.listItem}>
+                      <View style={styles.listItemLeft}>
+                        <Text style={styles.listItemLabel}>{label}</Text>
+                        <Text style={styles.listItemTime}>
+                          {item.sleepTime || '--:--'} – {item.wakeTime || '--:--'}
+                        </Text>
+                      </View>
+                      <Text style={styles.listItemDuration}>{item.duration || '0h 0m'}</Text>
                     </View>
-                    <Text style={styles.listItemDuration}>{item.duration}</Text>
-                  </View>
-                );
+                  );
+                } catch (error) {
+                  console.error('Error rendering session:', error, item);
+                  return null;
+                }
               })
             )}
           </View>
@@ -197,6 +283,16 @@ export default function SleepScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1, paddingTop: 20 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 16,
+  },
   scrollContent: {
     paddingBottom: 20,
   },

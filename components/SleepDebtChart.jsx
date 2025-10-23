@@ -9,7 +9,13 @@ const PADDING = { top: 40, right: 20, bottom: 30, left: 30 };
 export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>No sleep debt data available</Text>
+      </View>
+    );
+  }
 
   // Filter out invalid data points
   const validData = data.filter((d) => {
@@ -21,19 +27,40 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
     );
   });
 
-  if (validData.length === 0) return null;
+  if (validData.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>Invalid sleep debt data</Text>
+      </View>
+    );
+  }
 
   const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
-  const maxDebt = Math.max(...validData.map(d => Math.abs(d.debt)), 4);
-  const minDebt = Math.min(...validData.map(d => d.debt), -4);
+  const debtValues = validData.map(d => d.debt).filter(v => isFinite(v));
+  if (debtValues.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>No valid debt values</Text>
+      </View>
+    );
+  }
+
+  const maxDebt = Math.max(...debtValues.map(d => Math.abs(d)), 4);
+  const minDebt = Math.min(...debtValues, -4);
 
   const xScale = (index) => {
+    if (validData.length <= 1) {
+      return PADDING.left + (chartWidth - PADDING.left - PADDING.right) / 2;
+    }
     return PADDING.left + (index / (validData.length - 1)) * (chartWidth - PADDING.left - PADDING.right);
   };
 
   const yScale = (debt) => {
     const range = maxDebt - minDebt;
+    if (range === 0) {
+      return PADDING.top + chartArea / 2;
+    }
     const ratio = (debt - minDebt) / range;
     return PADDING.top + chartArea * (1 - ratio);
   };
@@ -53,12 +80,26 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
       );
     });
 
-  const pathData = lineGenerator(validData);
+  let pathData;
+  try {
+    pathData = lineGenerator(validData);
+  } catch (error) {
+    console.error('Error generating line path:', error);
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>Error generating chart</Text>
+      </View>
+    );
+  }
 
-  // If pathData is invalid, return null
+  // If pathData is invalid, return error message
   if (!pathData || pathData.includes('NaN') || pathData.includes('undefined')) {
     console.warn('Invalid path data in SleepDebtChart');
-    return null;
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>Invalid chart data</Text>
+      </View>
+    );
   }
 
   const yAxisLabels = [];
@@ -165,6 +206,14 @@ export default function SleepDebtChart({ data, sleepNeed, chartWidth }) {
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+    minHeight: CHART_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
   },
   tooltip: {
     position: 'absolute',

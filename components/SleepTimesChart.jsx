@@ -33,7 +33,13 @@ export default function SleepTimesChart({ data, chartWidth }) {
     }
   }, [data]);
 
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No sleep times data available</Text>
+      </View>
+    );
+  }
 
   const chartArea = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
@@ -255,6 +261,16 @@ export default function SleepTimesChart({ data, chartWidth }) {
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+  },
+  emptyContainer: {
+    minHeight: CHART_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
   },
   tooltip: {
     position: 'absolute',
