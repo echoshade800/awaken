@@ -160,11 +160,24 @@ function ManualSleepModal({ visible, onClose }) {
       return;
     }
 
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const [bedH, bedM] = bedtime.split(':').map(Number);
+    const [wakeH, wakeM] = waketime.split(':').map(Number);
+
+    const bedtimeDate = new Date(yesterday);
+    bedtimeDate.setHours(bedH, bedM, 0, 0);
+
+    const waketimeDate = new Date(today);
+    waketimeDate.setHours(wakeH, wakeM, 0, 0);
+
     const session = {
       id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      bedtimeISO: bedtime,
-      waketimeISO: waketime,
+      date: today.toISOString().split('T')[0],
+      bedtimeISO: bedtimeDate.toISOString(),
+      waketimeISO: waketimeDate.toISOString(),
       durationMin: duration.totalMinutes,
       source: 'manual',
     };
