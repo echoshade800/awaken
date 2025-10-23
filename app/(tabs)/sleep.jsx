@@ -225,17 +225,23 @@ export default function SleepScreen() {
     if (!healthKitAuthorized) {
       return {
         show: true,
-        message: '⚠️ We couldn\'t find step data yet. Open Health and ensure Steps is enabled for Monster.',
+        message: '⚠️ We couldn\'t find step data yet. Grant Steps permission in Health app to track your sleep.',
         type: 'no-permission',
         showButton: true,
       };
     }
 
+    if (sleepSessions.length === 0) {
+      return {
+        show: true,
+        message: '⚠️ We couldn\'t find step data for the last 14 days. Keep your iPhone with you to record steps, then sync again.',
+        type: 'no-data',
+        showButton: true,
+      };
+    }
+
     return {
-      show: true,
-      message: '⚠️ No sleep data available',
-      type: 'no-data',
-      showButton: true,
+      show: false,
     };
   };
 

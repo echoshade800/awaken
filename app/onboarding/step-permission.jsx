@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState, Platform, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Activity, Shield, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { bootstrapSleepFromHealthKit } from '../../lib/sleepInference';
 import useStore from '../../lib/store';
+import StorageUtils from '../../lib/StorageUtils';
 
 export default function StepPermissionScreen() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(false);
+  const [isDenied, setIsDenied] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
 
   const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
@@ -23,6 +26,14 @@ export default function StepPermissionScreen() {
     return () => subscription.remove();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (isDenied) {
+        checkPermissionStatus();
+      }
+    }, [isDenied])
+  );
+
   const handleAppStateChange = async (nextAppState) => {
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
       await checkPermissionStatus();
@@ -34,11 +45,19 @@ export default function StepPermissionScreen() {
     console.log('[StepPermission] Attempting to bootstrap sleep data from HealthKit...');
     const result = await bootstrapSleepFromHealthKit();
 
-    if (result.success) {
+    if (result.success && result.sessions.length > 0) {
       console.log('[StepPermission] Successfully bootstrapped', result.sessions.length, 'sleep sessions');
+
+      // Save sessions to storage and update store
+      await StorageUtils.saveSleepSessions(result.sessions);
+      const store = useStore.getState();
+      store.sleepSessions = result.sessions;
+
+      console.log('[StepPermission] Sessions saved to storage');
       router.replace('/onboarding/initializing');
     } else {
-      console.warn('[StepPermission] Failed to bootstrap:', result.message);
+      console.warn('[StepPermission] Failed to bootstrap or no sessions:', result.message);
+      // Continue anyway - user can sync later from Sleep page
       router.replace('/onboarding/initializing');
     }
   };
@@ -52,21 +71,32 @@ export default function StepPermissionScreen() {
 
       if (granted) {
         console.log('[StepPermission] Permission granted, bootstrapping...');
+        setIsDenied(false);
         await bootstrapAndNavigate();
       } else {
         console.log('[StepPermission] Permission not granted, showing buttons');
+        setIsDenied(false);
         setIsChecking(false);
       }
     } catch (error) {
       console.error('[StepPermission] Error checking permission:', error);
+      setIsDenied(false);
       setIsChecking(false);
+    }
+  };
+
+  const handleOpenHealthApp = async () => {
+    try {
+      await Linking.openURL('x-apple-health://');
+    } catch (error) {
+      console.error('Error opening Health app:', error);
     }
   };
 
   const handleOpenSettings = async () => {
     try {
       if (Platform.OS === 'ios') {
-        await Linking.openURL('app-settings:');
+        await Linking.openSettings();
       } else {
         await Linking.openSettings();
       }
@@ -94,6 +124,7 @@ export default function StepPermissionScreen() {
       return;
     }
     setIsChecking(true);
+    setIsDenied(false);
     try {
       const granted = await requestHealthKitPermission();
       console.log('[StepPermission] Request permission result:', granted);
@@ -101,12 +132,13 @@ export default function StepPermissionScreen() {
       if (granted) {
         await bootstrapAndNavigate();
       } else {
-        handleOpenSettings();
+        console.log('[StepPermission] Permission denied, showing denied state');
+        setIsDenied(true);
         setIsChecking(false);
       }
     } catch (error) {
       console.error('[StepPermission] Error requesting permission:', error);
-      handleOpenSettings();
+      setIsDenied(true);
       setIsChecking(false);
     }
   };
@@ -163,6 +195,42 @@ export default function StepPermissionScreen() {
             <View style={styles.checkingContainer}>
               <Text style={styles.checkingText}>Checking permissions...</Text>
             </View>
+          ) : isDenied ? (
+            <>
+              <View style={styles.deniedContainer}>
+                <Text style={styles.deniedText}>
+                  Permission was denied. Please enable Steps access in Health app or Settings.
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={handleOpenHealthApp}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.primaryButtonText}>
+                  Open Health App
+                </Text>
+                <ChevronRight size={20} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={handleOpenSettings}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.secondaryButtonText}>
+                  Open Settings
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={checkPermissionStatus}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.retryButtonText}>
+                  I've Enabled It
+                </Text>
+              </TouchableOpacity>
+            </>
           ) : (
             <>
               <TouchableOpacity
@@ -328,5 +396,33 @@ const styles = StyleSheet.create({
     color: '#8B9BAE',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  deniedContainer: {
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.3)',
+  },
+  deniedText: {
+    fontSize: 14,
+    color: '#4A5F8F',
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  retryButton: {
+    backgroundColor: 'rgba(157, 122, 255, 0.2)',
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(157, 122, 255, 0.4)',
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9D7AFF',
   },
 });
