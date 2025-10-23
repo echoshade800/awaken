@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState, Platform, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Activity, Shield, Settings } from 'lucide-react-native';
+import { Activity, Shield, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { checkStepPermission, requestStepPermission } from '../../lib/healthPermissions';
 
@@ -9,11 +9,9 @@ export default function StepPermissionScreen() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
-  const [permissionStatus, setPermissionStatus] = useState('unknown');
 
   useEffect(() => {
     console.log('[StepPermission] Component mounted, Platform:', Platform.OS);
-    checkInitialPermission();
   }, []);
 
   useEffect(() => {
@@ -21,45 +19,29 @@ export default function StepPermissionScreen() {
     return () => subscription.remove();
   }, []);
 
-  const checkInitialPermission = async () => {
-    try {
-      const status = await checkStepPermission();
-      console.log('[StepPermission] Initial permission status:', status);
-      setPermissionStatus(status);
-
-      if (status === 'granted') {
-        console.log('[StepPermission] Permission already granted, proceeding...');
-        router.replace('/onboarding/initializing');
-      }
-    } catch (error) {
-      console.error('[StepPermission] Error checking initial permission:', error);
-      setPermissionStatus('denied');
-    }
-  };
-
   const handleAppStateChange = async (nextAppState) => {
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
-      console.log('[StepPermission] App returned to foreground, rechecking permission...');
-      await recheckPermissionStatus();
+      await checkPermissionStatus();
     }
     setAppState(nextAppState);
   };
 
-  const recheckPermissionStatus = async () => {
+  const checkPermissionStatus = async () => {
     setIsChecking(true);
     try {
       const status = await checkStepPermission();
-      console.log('[StepPermission] Recheck permission status:', status);
-      setPermissionStatus(status);
+      console.log('[StepPermission] Permission status:', status);
+      console.log('[StepPermission] Platform:', Platform.OS);
 
       if (status === 'granted') {
-        console.log('[StepPermission] Permission now granted, navigating to initializing...');
+        console.log('[StepPermission] Permission granted, navigating to initializing...');
         router.replace('/onboarding/initializing');
       } else {
+        console.log('[StepPermission] Permission denied, showing buttons');
         setIsChecking(false);
       }
     } catch (error) {
-      console.error('[StepPermission] Error rechecking permission:', error);
+      console.error('[StepPermission] Error checking permission:', error);
       setIsChecking(false);
     }
   };
@@ -68,47 +50,47 @@ export default function StepPermissionScreen() {
     try {
       if (Platform.OS === 'ios') {
         await Linking.openURL('app-settings:');
-      } else if (Platform.OS === 'android') {
+      } else {
         await Linking.openSettings();
       }
     } catch (error) {
-      console.error('[StepPermission] Error opening settings:', error);
+      console.error('Error opening settings:', error);
     }
   };
 
-  const handleAllowAccess = async () => {
-    console.log('[StepPermission] handleAllowAccess called');
+  const handleCheckPermission = () => {
+    console.log('[StepPermission] handleCheckPermission called - User confirmed permission enabled');
+    // User says they've enabled it, so trust them and proceed
+    // This allows users to continue the onboarding flow
+    console.log('[StepPermission] Navigating to initializing page');
+    router.replace('/onboarding/initializing');
+  };
 
+  const handleRequestPermission = () => {
+    console.log('[StepPermission] handleRequestPermission called');
+    // For web platform, just navigate directly
     if (Platform.OS === 'web') {
-      console.log('[StepPermission] Web platform, proceeding to initializing');
+      console.log('[StepPermission] Web platform, navigating to initializing');
       router.replace('/onboarding/initializing');
       return;
     }
-
+    // For native platforms, request permission
     setIsChecking(true);
-
-    try {
-      const status = await requestStepPermission();
-      console.log('[StepPermission] Request permission result:', status);
-      setPermissionStatus(status);
-
-      if (status === 'granted') {
-        console.log('[StepPermission] Permission granted, proceeding to initializing');
-        router.replace('/onboarding/initializing');
-      } else {
-        console.log('[StepPermission] Permission denied, showing settings option');
+    requestStepPermission()
+      .then(status => {
+        console.log('[StepPermission] Request permission result:', status);
+        if (status === 'granted') {
+          router.replace('/onboarding/initializing');
+        } else {
+          handleOpenSettings();
+          setIsChecking(false);
+        }
+      })
+      .catch(error => {
+        console.error('[StepPermission] Error requesting permission:', error);
+        handleOpenSettings();
         setIsChecking(false);
-      }
-    } catch (error) {
-      console.error('[StepPermission] Error requesting permission:', error);
-      setPermissionStatus('denied');
-      setIsChecking(false);
-    }
-  };
-
-  const handleIveEnabledIt = async () => {
-    console.log('[StepPermission] User claims to have enabled permission, rechecking...');
-    await recheckPermissionStatus();
+      });
   };
 
   return (
@@ -122,20 +104,20 @@ export default function StepPermissionScreen() {
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <Activity size={48} color="#9D7AFF" strokeWidth={2} />
+            <Activity size={48} color="#FF9A76" strokeWidth={2} />
           </View>
         </View>
 
-        <Text style={styles.title}>Help Awaken understand your rhythm</Text>
+        <Text style={styles.title}>Allow Health Access to Continue</Text>
 
         <Text style={styles.subtitle}>
-          We use your step data to estimate your sleep and build your circadian rhythm.
+          We'll use your step data to infer sleep patterns and improve your rhythm insights.
         </Text>
 
         <View style={styles.securityCard}>
-          <Shield size={20} color="#6B7C99" />
+          <Shield size={20} color="#4A5F8F" />
           <Text style={styles.securityText}>
-            We only read step counts – no personal data or location is collected.
+            We only read step counts — no personal data or location is collected.
           </Text>
         </View>
 
@@ -150,13 +132,13 @@ export default function StepPermissionScreen() {
           </View>
           <View style={styles.featureItem}>
             <View style={styles.featureDot} />
-            <Text style={styles.featureText}>Build your unique circadian rhythm</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureDot} />
-            <Text style={styles.featureText}>Track sleep debt over time</Text>
+            <Text style={styles.featureText}>Track your circadian rhythm</Text>
           </View>
         </View>
+
+        <Text style={styles.helpText}>
+          Need help? Go to Settings → Privacy → Health → Awaken
+        </Text>
 
         <View style={styles.buttonContainer}>
           {isChecking ? (
@@ -167,51 +149,27 @@ export default function StepPermissionScreen() {
             <>
               <TouchableOpacity
                 style={styles.primaryButton}
-                onPress={handleAllowAccess}
+                onPress={handleRequestPermission}
                 activeOpacity={0.8}
               >
-                <LinearGradient
-                  colors={['#9D7AFF', '#B899FF', '#C9B3FF']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.primaryButtonGradient}
-                >
-                  <Text style={styles.primaryButtonText}>Allow Access</Text>
-                </LinearGradient>
+                <Text style={styles.primaryButtonText}>
+                  Grant Permission
+                </Text>
+                <ChevronRight size={20} color="#FFF" />
               </TouchableOpacity>
 
-              {permissionStatus === 'denied' && (
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={handleOpenSettings}
-                  activeOpacity={0.8}
-                >
-                  <Settings size={18} color="#6B7C99" />
-                  <Text style={styles.secondaryButtonText}>Open Settings</Text>
-                </TouchableOpacity>
-              )}
-
               <TouchableOpacity
-                style={styles.linkButton}
-                onPress={handleIveEnabledIt}
-                activeOpacity={0.7}
+                style={styles.secondaryButton}
+                onPress={handleCheckPermission}
+                activeOpacity={0.8}
               >
-                <Text style={styles.linkButtonText}>I've Enabled It</Text>
+                <Text style={styles.secondaryButtonText}>
+                  I've Enabled It
+                </Text>
               </TouchableOpacity>
             </>
           )}
         </View>
-
-        {Platform.OS === 'ios' && (
-          <Text style={styles.helpText}>
-            Need help? Go to Settings → Privacy & Security → Health → Awaken
-          </Text>
-        )}
-        {Platform.OS === 'android' && (
-          <Text style={styles.helpText}>
-            Need help? Go to Settings → Apps → Permissions → Physical activity
-          </Text>
-        )}
       </View>
     </View>
   );
@@ -245,23 +203,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#9D7AFF',
+    shadowColor: '#FF9A76',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
-    elevation: 8,
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#1A2845',
     textAlign: 'center',
     marginBottom: 16,
     lineHeight: 36,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#4A5F8F',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 24,
@@ -269,18 +226,18 @@ const styles = StyleSheet.create({
   securityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     padding: 16,
     borderRadius: 16,
     marginBottom: 32,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(157, 122, 255, 0.2)',
+    borderColor: 'rgba(74, 95, 143, 0.2)',
   },
   securityText: {
     flex: 1,
     fontSize: 14,
-    color: '#6B7C99',
+    color: '#4A5F8F',
     lineHeight: 20,
   },
   featureList: {
@@ -296,17 +253,17 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#9D7AFF',
+    backgroundColor: '#FF9A76',
   },
   featureText: {
     flex: 1,
     fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#4A5F8F',
     lineHeight: 22,
   },
   buttonContainer: {
     gap: 12,
-    marginBottom: 20,
+    marginTop: 20,
   },
   checkingContainer: {
     paddingVertical: 16,
@@ -314,58 +271,43 @@ const styles = StyleSheet.create({
   },
   checkingText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#4A5F8F',
     fontWeight: '500',
   },
   primaryButton: {
-    borderRadius: 20,
-    shadowColor: '#9D7AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  primaryButtonGradient: {
-    paddingVertical: 18,
-    paddingHorizontal: 32,
-    borderRadius: 20,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: '#FF9A76',
     paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    borderRadius: 20,
     gap: 8,
+    shadowColor: '#FF9A76',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  primaryButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(107, 124, 153, 0.3)',
+    borderColor: 'rgba(74, 95, 143, 0.3)',
   },
   secondaryButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7C99',
-  },
-  linkButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  linkButtonText: {
-    fontSize: 15,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.9)',
-    textDecorationLine: 'underline',
+    color: '#4A5F8F',
   },
   helpText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#8B9BAE',
     textAlign: 'center',
     lineHeight: 18,
   },
