@@ -10,6 +10,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Send, Mic } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +24,7 @@ import { parseUserInputWithAI, isAlarmComplete } from '../../lib/monsterAI';
 export default function AlarmCreate() {
   const router = useRouter();
   const { fromOnboarding } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const scrollViewRef = useRef(null);
   const [inputText, setInputText] = useState('');
   const [isAIProcessing, setIsAIProcessing] = useState(false);
@@ -445,7 +447,7 @@ export default function AlarmCreate() {
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 76 : 0}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={handleCancel} style={styles.backButton}>
@@ -483,7 +485,7 @@ export default function AlarmCreate() {
           {renderSuggestedOptions()}
         </ScrollView>
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
           <TouchableOpacity style={styles.voiceButton} onPress={handleVoiceInput}>
             <Mic size={24} color="#FF9A76" />
           </TouchableOpacity>
@@ -571,7 +573,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 32,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.1)',
