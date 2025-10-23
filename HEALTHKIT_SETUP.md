@@ -1,26 +1,6 @@
-# HealthKit 集成指南
+# HealthKit Integration Guide
 
-本应用已经完全集成 Apple HealthKit，可以真实获取 iPhone 的健康数据，包括睡眠和步数信息。
-
-## ✅ 已完成配置
-
-所有必要的 HealthKit 配置已经完成，包括：
-
-1. **Info.plist 配置** - 已添加 HealthKit 权限说明和设备要求
-2. **Entitlements 配置** - 已启用 HealthKit capability
-3. **Xcode 项目配置** - 已正确引用 entitlements 文件
-4. **代码实现** - 已集成 `react-native-health` SDK
-
-## 权限请求说明
-
-应用会请求以下 HealthKit 权限：
-- **读取**：睡眠分析、步数
-- **写入**：无（仅读取访问）
-
-用户授权后，应用将能够：
-- 读取最近 30 天的睡眠数据
-- 读取步数数据用于睡眠推断
-- 自动同步健康数据到应用
+This app now integrates with Apple HealthKit to fetch real sleep data for accurate sleep tracking and analysis.
 
 ## Features
 
@@ -59,92 +39,40 @@ Your health data is:
 - Never sent to external servers
 - Used only for calculating sleep metrics and insights
 
-## iOS 配置详情
+## iOS Setup
 
-### 已配置文件清单
+### Required Files Modified
+1. ✅ `Info.plist` - Added HealthKit usage descriptions
+2. ✅ `boltexponativewind.entitlements` - Enabled HealthKit capability
+3. ✅ `healthPermissions.js` - Integrated HealthKit SDK
+4. ✅ `store.js` - Added sync functions
 
-1. ✅ **`app.json`** - 添加了 HealthKit iOS 配置
-   ```json
-   {
-     "ios": {
-       "infoPlist": {
-         "NSHealthShareUsageDescription": "...",
-         "UIRequiredDeviceCapabilities": ["healthkit"]
-       },
-       "entitlements": {
-         "com.apple.developer.healthkit": true
-       }
-     }
-   }
-   ```
-
-2. ✅ **`ios/boltexponativewind/Info.plist`** - 添加了完整的权限说明
-   - NSHealthShareUsageDescription（中文说明）
-   - NSHealthUpdateUsageDescription（中文说明）
-   - UIRequiredDeviceCapabilities 包含 "healthkit"
-
-3. ✅ **`ios/boltexponativewind/boltexponativewind.entitlements`** - 启用 HealthKit capability
-   ```xml
-   <key>com.apple.developer.healthkit</key>
-   <true/>
-   ```
-
-4. ✅ **`ios/boltexponativewind.xcodeproj/project.pbxproj`** - 正确引用 entitlements 文件
-   - CODE_SIGN_ENTITLEMENTS 已配置在 Debug 和 Release 构建中
-
-5. ✅ **`lib/healthPermissions.js`** - 集成 `react-native-health` SDK
-6. ✅ **`lib/store.js`** - 添加同步函数
-
-### 在真机上构建和测试
-
+### Building for iOS
 ```bash
-# 1. 安装依赖（如需要）
+# 1. Install pods (if needed)
 cd ios && pod install && cd ..
 
-# 2. 构建 iOS bundle
+# 2. Build iOS bundle
 npm run build:ios
 
-# 3. 在 Xcode 中打开项目
+# 3. Open in Xcode
 open ios/boltexponativewind.xcworkspace
 
-# 4. 在真实 iOS 设备上运行（HealthKit 在模拟器中不可用）
-# 在 Xcode 中选择你的设备，然后点击 Run
+# 4. Run on device (HealthKit doesn't work in simulator)
 ```
 
-### 重要提示
+## Testing
 
-⚠️ **HealthKit 只能在真实 iOS 设备上工作**
-- 模拟器不支持 HealthKit
-- 必须使用真实的 iPhone 或 iPad 进行测试
-- 确保设备上的"健康"应用中有睡眠数据
+### On Physical iOS Device
+1. Make sure you have sleep data in the Health app
+2. Open the app
+3. Navigate to the Sleep tab
+4. Grant HealthKit permission when prompted
+5. Your real sleep data will be displayed
 
-## 测试指南
-
-### 在真实 iOS 设备上测试
-
-1. **确保健康数据存在**
-   - 打开 iPhone 的"健康"应用
-   - 确认有睡眠数据记录
-   - 建议至少有几天的睡眠记录
-
-2. **运行应用**
-   - 在 Xcode 中连接你的 iPhone
-   - 选择你的设备作为运行目标
-   - 点击 Run（或按 ⌘R）
-
-3. **授权 HealthKit 权限**
-   - 首次运行时，应用会请求 HealthKit 权限
-   - 点击"允许"授予读取权限
-   - 应用将自动同步你的睡眠数据
-
-4. **查看真实数据**
-   - 进入"睡眠"标签页
-   - 你将看到从 HealthKit 同步的真实睡眠数据
-   - 可以点击"🔄 同步 HealthKit"按钮手动刷新
-
-### 在模拟器或 Web 上
-- 应用会使用演示数据（HealthKit 不可用）
-- 所有功能正常工作，使用样本数据
+### On Simulator or Web
+- App will use demo data (HealthKit not available)
+- All features work normally with sample data
 
 ## Data Format
 
@@ -160,36 +88,20 @@ Sleep sessions are stored with this structure:
 }
 ```
 
-## 故障排除
+## Troubleshooting
 
-### "HealthKit 权限被拒绝"
-**解决方法：**
-- 打开 iPhone 的"设置"应用
-- 进入：隐私与安全性 > 健康 > [你的应用名称]
-- 启用"睡眠分析"权限
+### "HealthKit permission denied"
+- Go to iPhone Settings > Privacy > Health > [Your App]
+- Enable "Sleep Analysis" permission
 
-### "未找到数据"
-**可能原因：**
-- 健康应用中没有睡眠数据
-- 睡眠数据不在最近 30 天内
-- HealthKit 权限未授予
+### "No data found"
+- Make sure you have sleep data in the Health app
+- Check that your sleep was recorded in the last 30 days
+- Verify HealthKit permission is granted
 
-**解决方法：**
-- 确认"健康"应用中有睡眠记录
-- 检查权限设置
-- 尝试手动同步
-
-### "数据未更新"
-**解决方法：**
-- 点击"🔄 同步 HealthKit"按钮手动刷新
-- 应用启动时会自动同步
-- 检查网络连接和应用权限
-
-### "应用无法在模拟器中运行"
-**这是正常的！**
-- HealthKit 不支持 iOS 模拟器
-- 必须使用真实设备进行测试
-- 在真机上构建和运行应用
+### Data not updating
+- Tap the "🔄 Sync HealthKit" button to manually refresh
+- App syncs automatically on launch
 
 ## Implementation Details
 
