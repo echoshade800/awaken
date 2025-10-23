@@ -190,7 +190,20 @@ export default function SleepScreen() {
       const result = await syncHealthKitData();
 
       if (result.success) {
-        setSyncMessage(`Synced ${result.count} sleep sessions from HealthKit`);
+        if (result.breakdown) {
+          const { direct, inferred, total } = result.breakdown;
+          if (direct > 0 && inferred > 0) {
+            setSyncMessage(`Synced ${total} sessions (${direct} direct, ${inferred} inferred)`);
+          } else if (direct > 0) {
+            setSyncMessage(`Synced ${direct} sleep sessions from HealthKit`);
+          } else if (inferred > 0) {
+            setSyncMessage(`Inferred ${inferred} sessions from step data`);
+          } else {
+            setSyncMessage('No new sleep data found');
+          }
+        } else {
+          setSyncMessage(`Synced ${result.count} sleep sessions`);
+        }
       } else {
         setSyncMessage(result.message || 'Sync failed');
       }
@@ -349,10 +362,24 @@ export default function SleepScreen() {
                   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                   const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
 
+                  // Determine source icon
+                  let sourceIcon = '📱'; // manual
+                  let sourceLabel = 'Manual';
+                  if (item.source === 'healthkit') {
+                    sourceIcon = '❤️';
+                    sourceLabel = 'HealthKit';
+                  } else if (item.source === 'inferred') {
+                    sourceIcon = '🚶';
+                    sourceLabel = 'Step Data';
+                  }
+
                   return (
                     <View key={`${item.date}-${index}`} style={styles.listItem}>
                       <View style={styles.listItemLeft}>
-                        <Text style={styles.listItemLabel}>{label}</Text>
+                        <View style={styles.listItemHeader}>
+                          <Text style={styles.listItemLabel}>{label}</Text>
+                          <Text style={styles.listItemSource}>{sourceIcon} {sourceLabel}</Text>
+                        </View>
                         <Text style={styles.listItemTime}>
                           {item.sleepTime || '--:--'} – {item.wakeTime || '--:--'}
                         </Text>
@@ -530,11 +557,21 @@ const styles = StyleSheet.create({
   listItemLeft: {
     flex: 1,
   },
+  listItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   listItemLabel: {
     fontSize: 13,
     color: '#FFFFFF',
     fontWeight: '500',
-    marginBottom: 4,
+  },
+  listItemSource: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontWeight: '500',
   },
   listItemTime: {
     fontSize: 13,
