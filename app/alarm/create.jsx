@@ -553,7 +553,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chatContent: {
-    paddingHorizontal: 20,
     paddingBottom: 20,
   },
   aiLoadingContainer: {

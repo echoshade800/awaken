@@ -35,7 +35,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginVertical: 6,
-    paddingHorizontal: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
     alignItems: 'flex-end',
   },
   aiContainer: {
@@ -68,8 +69,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
   },
   bubbleWrapper: {
-    maxWidth: '75%',
-    marginHorizontal: 8,
+    maxWidth: '78%',
+    marginLeft: 8,
+    marginRight: 8,
   },
   bubble: {
     paddingHorizontal: 12,
