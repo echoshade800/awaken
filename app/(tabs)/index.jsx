@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   topSpacer: {
-    height: 20,
+    height: 40,
   },
   contentPadded: {
     paddingHorizontal: 20,
