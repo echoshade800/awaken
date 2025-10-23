@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     gap: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     marginVertical: 8,
     alignItems: 'flex-start',
   },

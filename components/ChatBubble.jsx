@@ -9,7 +9,7 @@ export default function ChatBubble({ role, content }) {
       {isAI && (
         <View style={styles.avatarContainer}>
           <View style={[styles.avatar, styles.aiAvatar]}>
-            <Bot size={20} color="#1A2845" strokeWidth={2.5} />
+            <Bot size={18} color="#1A2845" strokeWidth={2.5} />
           </View>
         </View>
       )}
@@ -23,7 +23,7 @@ export default function ChatBubble({ role, content }) {
       {!isAI && (
         <View style={styles.avatarContainer}>
           <View style={[styles.avatar, styles.userAvatar]}>
-            <User size={20} color="#FFF" strokeWidth={2.5} />
+            <User size={18} color="#FFF" strokeWidth={2.5} />
           </View>
         </View>
       )}
@@ -34,8 +34,8 @@ export default function ChatBubble({ role, content }) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginVertical: 6,
-    paddingHorizontal: 16,
+    marginVertical: 5,
+    paddingHorizontal: 0,
     alignItems: 'flex-end',
   },
   aiContainer: {
@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -63,17 +63,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.35)',
+    marginLeft: 16,
   },
   userAvatar: {
     backgroundColor: '#007AFF',
+    marginRight: 16,
   },
   bubbleWrapper: {
-    maxWidth: '75%',
+    maxWidth: '78%',
     marginHorizontal: 8,
   },
   bubble: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     borderRadius: 16,
   },
   aiBubble: {
