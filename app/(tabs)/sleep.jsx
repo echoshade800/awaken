@@ -26,41 +26,22 @@ export default function SleepScreen() {
 
   useEffect(() => {
     const initializeData = async () => {
-      try {
-        await insertDemoSleepData();
-        const timesData = getSleepSessionsForChart();
-        const debtData = getSleepSessionsForDebtChart();
-        const allData = getAllSleepSessions();
-
-        setTimesChartData(timesData || []);
-        setDebtChartData(debtData || []);
-        setAllSessions(allData || []);
-      } catch (error) {
-        console.error('Error initializing sleep data:', error);
-        setTimesChartData([]);
-        setDebtChartData([]);
-        setAllSessions([]);
-      }
+      await insertDemoSleepData();
+      setTimesChartData(getSleepSessionsForChart());
+      setDebtChartData(getSleepSessionsForDebtChart());
+      setAllSessions(getAllSleepSessions());
     };
     initializeData();
   }, []);
 
   useEffect(() => {
-    try {
-      const timesData = getSleepSessionsForChart();
-      const debtData = getSleepSessionsForDebtChart();
-      const allData = getAllSleepSessions();
-
-      setTimesChartData(timesData || []);
-      setDebtChartData(debtData || []);
-      setAllSessions(allData || []);
-    } catch (error) {
-      console.error('Error updating sleep data:', error);
-    }
+    setTimesChartData(getSleepSessionsForChart());
+    setDebtChartData(getSleepSessionsForDebtChart());
+    setAllSessions(getAllSleepSessions());
   }, [sleepSessions]);
 
 
-  const processedTimesData = (timesChartData || []).map((item) => {
+  const processedTimesData = timesChartData.map((item) => {
     const date = new Date(item.date);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return {
@@ -70,7 +51,7 @@ export default function SleepScreen() {
   });
 
   const processedDebtData = useMemo(() => {
-    if (!debtChartData || debtChartData.length === 0) return [];
+    if (debtChartData.length === 0) return [];
 
     return debtChartData.map((item) => {
       const date = new Date(item.date);
@@ -92,7 +73,6 @@ export default function SleepScreen() {
   }, [debtChartData, sleepNeed]);
 
   const averageSleep = useMemo(() => {
-    if (!processedDebtData || processedDebtData.length === 0) return 0;
     const validData = processedDebtData.filter((item) => item.slept > 0);
     if (validData.length === 0) return 0;
     const total = validData.reduce((sum, item) => sum + item.slept, 0);
@@ -100,7 +80,6 @@ export default function SleepScreen() {
   }, [processedDebtData]);
 
   const averageDebt = useMemo(() => {
-    if (!processedDebtData || processedDebtData.length === 0) return 0;
     const total = processedDebtData.reduce((sum, item) => sum + item.debt, 0);
     return total / processedDebtData.length;
   }, [processedDebtData]);
@@ -118,7 +97,7 @@ export default function SleepScreen() {
   };
 
   const dateRange = useMemo(() => {
-    if (!timesChartData || timesChartData.length === 0) return '';
+    if (timesChartData.length === 0) return '';
     const firstDate = new Date(timesChartData[0].date);
     const lastDate = new Date(timesChartData[timesChartData.length - 1].date);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -182,7 +161,7 @@ export default function SleepScreen() {
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
 
-            {!allSessions || allSessions.length === 0 ? (
+            {allSessions.length === 0 ? (
               <Text style={styles.emptyText}>No sleep records yet. Add your first sleep session below.</Text>
             ) : (
               allSessions.map((item, index) => {
