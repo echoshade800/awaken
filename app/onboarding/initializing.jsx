@@ -12,6 +12,7 @@ export default function InitializingScreen() {
   const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState(null);
+  const [isStalled, setIsStalled] = useState(false);
 
   const steps = [
     { icon: Activity, label: 'Analyzing step data', duration: 2000 },
@@ -39,8 +40,38 @@ export default function InitializingScreen() {
         const hasPermission = await checkStepPermission();
 
         if (hasPermission === 'granted') {
-          console.log('[Initializing] HealthKit access granted, fetching real step data...');
-          await initializeSleepData();
+          console.log('[Initializing] HealthKit access granted, initializing sleep data...');
+
+          try {
+            const sleepData = await initializeSleepData();
+
+            if (!sleepData || !sleepData.sleepSeries || sleepData.sleepSeries.length === 0) {
+              console.log('[Initializing] No sleep data detected, showing message');
+              setIsStalled(true);
+              setError('We couldn\'t find enough step data yet. Carry your phone during the day, and we\'ll update automatically.');
+
+              setTimeout(() => {
+                router.replace('/(tabs)');
+              }, 5000);
+              return;
+            }
+
+            console.log('[Initializing] Sleep data initialized successfully:', sleepData.sleepSeries.length, 'sessions');
+          } catch (inferError) {
+            console.error('[Initializing] Error initializing sleep data:', inferError);
+
+            if (inferError.message && inferError.message.includes('No step data')) {
+              setIsStalled(true);
+              setError('We couldn\'t find enough step data yet. Carry your phone during the day, and we\'ll update automatically.');
+
+              setTimeout(() => {
+                router.replace('/(tabs)');
+              }, 5000);
+              return;
+            }
+
+            throw inferError;
+          }
         } else {
           console.log('[Initializing] HealthKit access not granted, using demo data...');
           await insertDemoSleepData();
@@ -52,11 +83,12 @@ export default function InitializingScreen() {
 
         return;
       } catch (err) {
-        console.error('Initialization error:', err);
+        console.error('[Initializing] Initialization error:', err);
         retryCount++;
 
         if (retryCount >= maxRetries) {
-          setError('Unable to initialize. Falling back to demo data.');
+          console.log('[Initializing] Max retries reached, falling back to demo data');
+          setError('Unable to fetch step data. Loading demo data for now.');
 
           try {
             await insertDemoSleepData();
@@ -64,7 +96,8 @@ export default function InitializingScreen() {
               router.replace('/(tabs)');
             }, 2000);
           } catch (demoError) {
-            console.error('Failed to load demo data:', demoError);
+            console.error('[Initializing] Failed to load demo data:', demoError);
+            setError('Unable to initialize. Please restart the app.');
             setTimeout(() => {
               router.back();
             }, 3000);
@@ -90,15 +123,22 @@ export default function InitializingScreen() {
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <CurrentIcon size={48} color="#FF9A76" strokeWidth={2} />
+            <CurrentIcon size={48} color="#9D7AFF" strokeWidth={2} />
           </View>
         </View>
 
-        <Text style={styles.title}>Setting Up Your Profile</Text>
+        <Text style={styles.title}>
+          {isStalled ? 'Almost there!' : 'Setting Up Your Profile'}
+        </Text>
 
         {error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
+            {isStalled && (
+              <Text style={styles.errorSubtext}>
+                Don't worry – we'll keep trying in the background!
+              </Text>
+            )}
           </View>
         ) : (
           <>
@@ -120,7 +160,7 @@ export default function InitializingScreen() {
                       ) : (
                         <StepIcon
                           size={20}
-                          color={isActive ? '#FF9A76' : '#8B9BAE'}
+                          color={isActive ? '#9D7AFF' : '#8B9BAE'}
                           strokeWidth={2}
                         />
                       )}
@@ -138,7 +178,7 @@ export default function InitializingScreen() {
             </View>
 
             <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#FF9A76" />
+              <ActivityIndicator size="large" color="#9D7AFF" />
               <Text style={styles.loadingText}>
                 {currentStep < steps.length ? steps[currentStep].label : 'Finalizing...'}
               </Text>
@@ -178,15 +218,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF9A76',
+    shadowColor: '#9D7AFF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
+    elevation: 8,
   },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#1A2845',
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 48,
   },
@@ -211,15 +252,15 @@ const styles = StyleSheet.create({
   },
   stepIconActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderColor: '#FF9A76',
-    shadowColor: '#FF9A76',
+    borderColor: '#9D7AFF',
+    shadowColor: '#9D7AFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   stepIconCompleted: {
-    backgroundColor: '#FF9A76',
-    borderColor: '#FF9A76',
+    backgroundColor: '#9D7AFF',
+    borderColor: '#9D7AFF',
   },
   checkmark: {
     width: 12,
@@ -233,14 +274,14 @@ const styles = StyleSheet.create({
   stepLabel: {
     flex: 1,
     fontSize: 16,
-    color: '#8B9BAE',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   stepLabelActive: {
-    color: '#4A5F8F',
-    fontWeight: '500',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   stepLabelCompleted: {
-    color: '#4A5F8F',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   loaderContainer: {
     alignItems: 'center',
@@ -249,20 +290,27 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 15,
-    color: '#4A5F8F',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   errorContainer: {
-    backgroundColor: 'rgba(255, 77, 77, 0.1)',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 184, 140, 0.2)',
+    padding: 20,
+    borderRadius: 16,
     marginTop: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 77, 77, 0.3)',
+    borderColor: 'rgba(255, 184, 140, 0.4)',
   },
   errorText: {
-    fontSize: 15,
-    color: '#FF4D4D',
+    fontSize: 16,
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
