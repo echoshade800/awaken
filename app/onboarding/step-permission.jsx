@@ -111,7 +111,7 @@ export default function StepPermissionScreen() {
         <Text style={styles.title}>Allow Health Access to Continue</Text>
 
         <Text style={styles.subtitle}>
-          Awaken needs step data to understand your sleep and circadian rhythm.
+          We'll use your step data to infer sleep patterns and improve your rhythm insights.
         </Text>
 
         <View style={styles.securityCard}>

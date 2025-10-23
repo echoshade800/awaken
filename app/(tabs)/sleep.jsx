@@ -21,6 +21,8 @@ export default function SleepScreen() {
   const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
   const getAllSleepSessions = useStore((state) => state.getAllSleepSessions);
   const sleepSessions = useStore((state) => state.sleepSessions);
+  const healthKitAuthorized = useStore((state) => state.healthKitAuthorized);
+  const lastHealthKitSync = useStore((state) => state.lastHealthKitSync);
   const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
   const syncHealthKitData = useStore((state) => state.syncHealthKitData);
   const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
@@ -191,6 +193,50 @@ export default function SleepScreen() {
     return '⚡ Great recovery balance!';
   };
 
+  const getDataSourceInfo = () => {
+    const hasDemoData = sleepSessions.some(s => s.source === 'demo');
+    const hasHealthKitData = sleepSessions.some(s => s.source === 'healthkit');
+    const hasInferredData = sleepSessions.some(s => !s.source || s.source === 'inferred');
+
+    if (hasHealthKitData) {
+      return {
+        show: true,
+        message: '📊 Data from HealthKit',
+        type: 'healthkit',
+      };
+    }
+
+    if (hasInferredData && healthKitAuthorized) {
+      return {
+        show: true,
+        message: '🔍 Sleep inferred from step data',
+        type: 'inferred',
+      };
+    }
+
+    if (hasDemoData) {
+      return {
+        show: true,
+        message: '📝 Demo data (sync HealthKit for real insights)',
+        type: 'demo',
+      };
+    }
+
+    if (!healthKitAuthorized) {
+      return {
+        show: true,
+        message: '⚠️ Not enough step data to infer sleep patterns yet',
+        type: 'no-permission',
+      };
+    }
+
+    return {
+      show: true,
+      message: '⚠️ No sleep data available',
+      type: 'no-data',
+    };
+  };
+
   const handleSyncHealthKit = async () => {
     setIsSyncing(true);
     setSyncMessage('');
@@ -286,6 +332,15 @@ export default function SleepScreen() {
             {syncMessage ? (
               <Text style={styles.syncMessage}>{syncMessage}</Text>
             ) : null}
+            {getDataSourceInfo().show && (
+              <View style={[
+                styles.dataSourceBanner,
+                getDataSourceInfo().type === 'demo' && styles.dataSourceBannerDemo,
+                getDataSourceInfo().type === 'no-permission' && styles.dataSourceBannerWarning,
+              ]}>
+                <Text style={styles.dataSourceText}>{getDataSourceInfo().message}</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.tabContainer}>
@@ -429,6 +484,29 @@ const styles = StyleSheet.create({
     color: '#48E0C2',
     marginTop: 8,
     textAlign: 'center',
+  },
+  dataSourceBanner: {
+    backgroundColor: 'rgba(157, 122, 255, 0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(157, 122, 255, 0.3)',
+  },
+  dataSourceBannerDemo: {
+    backgroundColor: 'rgba(255, 184, 140, 0.2)',
+    borderColor: 'rgba(255, 184, 140, 0.3)',
+  },
+  dataSourceBannerWarning: {
+    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+    borderColor: 'rgba(255, 193, 7, 0.3)',
+  },
+  dataSourceText: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   tabContainer: {
     paddingHorizontal: 20,

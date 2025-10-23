@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Brain, Activity, Moon, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { initializeSleepData } from '../../lib/sleepInference';
+import { checkStepPermission } from '../../lib/healthPermissions';
 import useStore from '../../lib/store';
 
 export default function InitializingScreen() {
@@ -34,8 +35,16 @@ export default function InitializingScreen() {
           await new Promise(resolve => setTimeout(resolve, steps[i].duration));
         }
 
-        await initializeSleepData();
-        await insertDemoSleepData();
+        console.log('[Initializing] Checking HealthKit permission...');
+        const hasPermission = await checkStepPermission();
+
+        if (hasPermission === 'granted') {
+          console.log('[Initializing] HealthKit access granted, fetching real step data...');
+          await initializeSleepData();
+        } else {
+          console.log('[Initializing] HealthKit access not granted, using demo data...');
+          await insertDemoSleepData();
+        }
 
         setTimeout(() => {
           router.replace('/(tabs)');
@@ -47,10 +56,19 @@ export default function InitializingScreen() {
         retryCount++;
 
         if (retryCount >= maxRetries) {
-          setError('Unable to initialize. Please check your health permissions and try again.');
-          setTimeout(() => {
-            router.back();
-          }, 3000);
+          setError('Unable to initialize. Falling back to demo data.');
+
+          try {
+            await insertDemoSleepData();
+            setTimeout(() => {
+              router.replace('/(tabs)');
+            }, 2000);
+          } catch (demoError) {
+            console.error('Failed to load demo data:', demoError);
+            setTimeout(() => {
+              router.back();
+            }, 3000);
+          }
           return;
         }
 
