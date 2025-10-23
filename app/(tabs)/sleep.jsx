@@ -38,12 +38,13 @@ export default function SleepScreen() {
         const hasPermission = await checkHealthKitPermission();
 
         if (hasPermission) {
-          // Try to sync HealthKit data
+          // Try to sync HealthKit data first
           console.log('[Sleep] Syncing HealthKit data on mount...');
           const syncResult = await syncHealthKitData();
           console.log('[Sleep] Sync result:', syncResult);
         } else {
-          console.log('[Sleep] No HealthKit permission - user will need to sync manually or add data');
+          // Fall back to demo data if no HealthKit access
+          await insertDemoSleepData();
         }
 
         // Load chart data
@@ -190,20 +191,7 @@ export default function SleepScreen() {
       const result = await syncHealthKitData();
 
       if (result.success) {
-        if (result.breakdown) {
-          const { direct, inferred, total } = result.breakdown;
-          if (direct > 0 && inferred > 0) {
-            setSyncMessage(`Synced ${total} sessions (${direct} direct, ${inferred} inferred)`);
-          } else if (direct > 0) {
-            setSyncMessage(`Synced ${direct} sleep sessions from HealthKit`);
-          } else if (inferred > 0) {
-            setSyncMessage(`Inferred ${inferred} sessions from step data`);
-          } else {
-            setSyncMessage('No new sleep data found');
-          }
-        } else {
-          setSyncMessage(`Synced ${result.count} sleep sessions`);
-        }
+        setSyncMessage(`Synced ${result.count} sleep sessions from HealthKit`);
       } else {
         setSyncMessage(result.message || 'Sync failed');
       }
@@ -246,9 +234,6 @@ export default function SleepScreen() {
       </LinearGradient>
     );
   }
-
-  // Check if we have any data
-  const hasNoData = !allSessions || allSessions.length === 0;
 
   return (
     <LinearGradient colors={['#0E0E10', '#18181B']} style={styles.container}>
@@ -304,46 +289,23 @@ export default function SleepScreen() {
             </BlurView>
           </View>
 
-          {hasNoData ? (
-            <View style={styles.emptyStateContainer}>
-              <Text style={styles.emptyStateIcon}>😴</Text>
-              <Text style={styles.emptyStateTitle}>No Sleep Data Yet</Text>
-              <Text style={styles.emptyStateText}>
-                Sync your HealthKit data to see your sleep patterns, or manually add your sleep sessions below.
-              </Text>
-              <TouchableOpacity
-                style={styles.emptyStateButton}
-                onPress={handleSyncHealthKit}
-                disabled={isSyncing}
-              >
-                {isSyncing ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.emptyStateButtonText}>Sync HealthKit Now</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <>
-              <View style={styles.chartSection}>
-                {activeTab === 'times' ? (
-                  <>
-                    <SleepTimesChart data={processedTimesData} chartWidth={CHART_WIDTH} />
-                    <Text style={styles.chartMessage}>{getTimesMessage()}</Text>
-                  </>
-                ) : (
-                  <>
-                    <SleepDebtChart
-                      data={processedDebtData}
-                      sleepNeed={sleepNeed}
-                      chartWidth={CHART_WIDTH}
-                    />
-                    <Text style={styles.chartMessage}>{getDebtMessage()}</Text>
-                  </>
-                )}
-              </View>
-            </>
-          )}
+          <View style={styles.chartSection}>
+            {activeTab === 'times' ? (
+              <>
+                <SleepTimesChart data={processedTimesData} chartWidth={CHART_WIDTH} />
+                <Text style={styles.chartMessage}>{getTimesMessage()}</Text>
+              </>
+            ) : (
+              <>
+                <SleepDebtChart
+                  data={processedDebtData}
+                  sleepNeed={sleepNeed}
+                  chartWidth={CHART_WIDTH}
+                />
+                <Text style={styles.chartMessage}>{getDebtMessage()}</Text>
+              </>
+            )}
+          </View>
 
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
@@ -362,24 +324,10 @@ export default function SleepScreen() {
                   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                   const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
 
-                  // Determine source icon
-                  let sourceIcon = '📱'; // manual
-                  let sourceLabel = 'Manual';
-                  if (item.source === 'healthkit') {
-                    sourceIcon = '❤️';
-                    sourceLabel = 'HealthKit';
-                  } else if (item.source === 'inferred') {
-                    sourceIcon = '🚶';
-                    sourceLabel = 'Step Data';
-                  }
-
                   return (
                     <View key={`${item.date}-${index}`} style={styles.listItem}>
                       <View style={styles.listItemLeft}>
-                        <View style={styles.listItemHeader}>
-                          <Text style={styles.listItemLabel}>{label}</Text>
-                          <Text style={styles.listItemSource}>{sourceIcon} {sourceLabel}</Text>
-                        </View>
+                        <Text style={styles.listItemLabel}>{label}</Text>
                         <Text style={styles.listItemTime}>
                           {item.sleepTime || '--:--'} – {item.wakeTime || '--:--'}
                         </Text>
@@ -460,44 +408,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  emptyStateContainer: {
-    paddingHorizontal: 40,
-    paddingVertical: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyStateIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  emptyStateButton: {
-    backgroundColor: '#9D7AFF',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 24,
-    minWidth: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyStateButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
   tabContainer: {
     paddingHorizontal: 20,
     marginBottom: 24,
@@ -557,21 +467,11 @@ const styles = StyleSheet.create({
   listItemLeft: {
     flex: 1,
   },
-  listItemHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
   listItemLabel: {
     fontSize: 13,
     color: '#FFFFFF',
     fontWeight: '500',
-  },
-  listItemSource: {
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontWeight: '500',
+    marginBottom: 4,
   },
   listItemTime: {
     fontSize: 13,
