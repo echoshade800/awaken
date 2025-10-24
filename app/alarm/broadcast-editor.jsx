@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   richTextContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'flex-end',
+    alignItems: 'baseline',
   },
   displayText: {
     fontSize: 16,
@@ -346,6 +346,7 @@ const styles = StyleSheet.create({
   inlineModulePill: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'baseline',
     paddingHorizontal: 12,
     paddingVertical: 3,
     borderRadius: 14,
