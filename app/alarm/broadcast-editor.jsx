@@ -11,7 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Volume2 } from 'lucide-react-native';
+import { ArrowLeft, Volume2, User, MessageSquare, UserCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useStore from '../../lib/store';
 import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
@@ -35,6 +35,8 @@ export default function BroadcastEditor() {
 
   const flatListRef = useRef(null);
 
+  const [customModules, setCustomModules] = useState([]);
+
   const handleTemplateScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / SCREEN_WIDTH);
@@ -54,6 +56,9 @@ export default function BroadcastEditor() {
   const insertModule = (module) => {
     setBroadcastContent(prev => prev + module.tag + ' ');
     setIsCustom(true);
+    if (!customModules.find(m => m.id === module.id)) {
+      setCustomModules(prev => [...prev, module]);
+    }
   };
 
   const handlePreviewSpeech = async () => {
@@ -122,75 +127,72 @@ export default function BroadcastEditor() {
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.templateContainer}>
-        <FlatList
-          ref={flatListRef}
+      <View style={styles.contentCard}>
+        <TextInput
+          style={styles.mainInput}
+          value={broadcastContent}
+          onChangeText={handleContentChange}
+          placeholder="Boot complete. It's {time} {weekday} {date}. Outside is {weather}, temperature around {high-temp}°."
+          placeholderTextColor="#999"
+          multiline
+          textAlignVertical="top"
+        />
+      </View>
+
+      <View style={styles.voicePackageSection}>
+        <ScrollView
           horizontal
-          pagingEnabled
-          data={BROADCAST_TEMPLATES}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.templateSlide}>
-              <View style={styles.templateCard}>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    value={broadcastContent}
-                    onChangeText={handleContentChange}
-                    placeholder="Swipe left/right to see templates..."
-                    placeholderTextColor="#999"
-                    multiline
-                    textAlignVertical="top"
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.voicePackageScroll}
+        >
+          {VOICE_PACKAGES.map((voicePackage) => {
+            const isSelected = selectedVoicePackage === voicePackage.id;
+            const IconComponent = voicePackage.id === 'energetic-girl' ? MessageSquare :
+                                 voicePackage.id === 'calm-man' ? User :
+                                 voicePackage.id === 'gentle-lady' ? MessageSquare : UserCircle;
+            return (
+              <TouchableOpacity
+                key={voicePackage.id}
+                style={[
+                  styles.voiceCard,
+                  isSelected && styles.voiceCardSelected,
+                ]}
+                onPress={() => setSelectedVoicePackage(voicePackage.id)}
+                activeOpacity={0.7}
+              >
+                <View style={[
+                  styles.voiceIconContainer,
+                  isSelected && styles.voiceIconContainerSelected
+                ]}>
+                  <IconComponent
+                    size={24}
+                    color={isSelected ? "#FFFFFF" : "#666"}
+                    strokeWidth={2}
                   />
                 </View>
-              </View>
-            </View>
-          )}
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={handleTemplateScroll}
-          decelerationRate="fast"
-          snapToInterval={SCREEN_WIDTH}
-          snapToAlignment="center"
-        />
-
-        <View style={styles.templateInfo}>
-          <Text style={styles.templateEmoji}>{currentTemplate.emoji}</Text>
-          <View style={styles.templateTextContainer}>
-            <Text style={styles.templateName}>
-              {isCustom ? '✏️ Custom' : currentTemplate.name}
-            </Text>
-            <Text style={styles.templateSubtitle}>
-              {isCustom ? 'Edited template' : currentTemplate.subtitle}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.pageIndicator}>
-          {BROADCAST_TEMPLATES.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === currentTemplateIndex && styles.dotActive,
-              ]}
-            />
-          ))}
-        </View>
+                <Text
+                  style={[
+                    styles.voiceCardLabel,
+                    isSelected && styles.voiceCardLabelSelected,
+                  ]}
+                >
+                  {voicePackage.label.split(' ')[1]}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.modulesSection}>
           <Text style={styles.sectionTitle}>Insert Modules</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.modulesHorizontalScroll}
-          >
-            {BROADCAST_MODULES.map((module) => {
+          <View style={styles.modulesGrid}>
+            {BROADCAST_MODULES.slice(0, 8).map((module) => {
               const IconComponent = module.icon;
               return (
                 <TouchableOpacity
@@ -200,49 +202,35 @@ export default function BroadcastEditor() {
                   activeOpacity={0.7}
                 >
                   <View style={styles.moduleIconContainer}>
-                    <IconComponent size={24} color="#FF9A76" strokeWidth={2} />
+                    <IconComponent size={20} color="#FF9A76" strokeWidth={2} />
                   </View>
                   <Text style={styles.moduleLabel}>{module.label}</Text>
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
-        <View style={styles.voicePackageSection}>
-          <Text style={styles.sectionTitle}>Voice Package</Text>
-          <View style={styles.voicePackageGrid}>
-            {VOICE_PACKAGES.map((voicePackage) => {
-              const isSelected = selectedVoicePackage === voicePackage.id;
-              return (
-                <TouchableOpacity
-                  key={voicePackage.id}
-                  style={[
-                    styles.voiceCard,
-                    isSelected && styles.voiceCardSelected,
-                  ]}
-                  onPress={() => setSelectedVoicePackage(voicePackage.id)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.voiceCardLabel,
-                      isSelected && styles.voiceCardLabelSelected,
-                    ]}
-                  >
-                    {voicePackage.label}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.voiceCardDescription,
-                      isSelected && styles.voiceCardDescriptionSelected,
-                    ]}
-                  >
-                    {voicePackage.description}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+        <View style={styles.customAreaSection}>
+          <Text style={styles.sectionTitle}>Custom Voice area</Text>
+          <View style={styles.customAreaContent}>
+            {customModules.length > 0 ? (
+              <View style={styles.customModulesWrapper}>
+                {customModules.map((module) => {
+                  const IconComponent = module.icon;
+                  return (
+                    <View key={module.id} style={styles.customModuleTag}>
+                      <View style={styles.customModuleIcon}>
+                        <IconComponent size={16} color="#666" strokeWidth={2} />
+                      </View>
+                      <Text style={styles.customModuleText}>{module.label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.customAreaPlaceholder}>+ Drag modules here</Text>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -312,15 +300,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  templateContainer: {
-    marginBottom: 12,
-  },
-  templateSlide: {
-    width: SCREEN_WIDTH,
-    paddingHorizontal: 16,
-  },
-  templateCard: {
+  contentCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    marginHorizontal: 16,
+    marginBottom: 16,
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -328,61 +311,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 3,
+    minHeight: 140,
   },
-  inputWrapper: {
-    height: 160,
-    backgroundColor: '#F9F9F9',
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  input: {
-    flex: 1,
+  mainInput: {
     fontSize: 15,
     color: '#1C1C1E',
     lineHeight: 22,
-    padding: 0,
-  },
-  templateInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingTop: 12,
-    gap: 12,
-  },
-  templateEmoji: {
-    fontSize: 32,
-  },
-  templateTextContainer: {
-    flex: 1,
-  },
-  templateName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  templateSubtitle: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 2,
-  },
-  pageIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-    gap: 8,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  dotActive: {
-    backgroundColor: '#FFFFFF',
-    width: 24,
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
   scrollContainer: {
     flex: 1,
@@ -397,86 +333,115 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modulesSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3,
+    marginBottom: 16,
   },
-  modulesHorizontalScroll: {
-    paddingRight: 20,
+  modulesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   moduleCard: {
-    width: 100,
+    width: '48%',
     backgroundColor: '#FFF5F0',
     borderRadius: 16,
-    padding: 14,
+    padding: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
+    gap: 10,
+    borderWidth: 1,
     borderColor: '#FFE5D9',
   },
   moduleIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#FFE5D9',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
   moduleLabel: {
     fontSize: 13,
     color: '#1C1C1E',
     fontWeight: '500',
-    textAlign: 'center',
+    flex: 1,
   },
   voicePackageSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 3,
+    marginBottom: 16,
   },
-  voicePackageGrid: {
+  voicePackageScroll: {
+    paddingHorizontal: 16,
     gap: 12,
   },
   voiceCard: {
-    backgroundColor: '#F5F5F7',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    alignItems: 'center',
+    gap: 8,
   },
-  voiceCardSelected: {
-    backgroundColor: '#FFF5F0',
-    borderColor: '#FF9A76',
+  voiceIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  voiceIconContainerSelected: {
+    backgroundColor: '#5AC8FA',
   },
   voiceCardLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 4,
-  },
-  voiceCardLabelSelected: {
-    color: '#FF9A76',
-  },
-  voiceCardDescription: {
     fontSize: 13,
+    fontWeight: '500',
     color: '#666',
   },
-  voiceCardDescriptionSelected: {
-    color: '#D17A5A',
+  voiceCardLabelSelected: {
+    color: '#1C1C1E',
+    fontWeight: '600',
+  },
+  customAreaSection: {
+    marginBottom: 16,
+  },
+  customAreaContent: {
+    backgroundColor: '#F9F9F9',
+    borderRadius: 16,
+    padding: 16,
+    minHeight: 100,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderStyle: 'dashed',
+  },
+  customModulesWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  customModuleTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  customModuleIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customModuleText: {
+    fontSize: 13,
+    color: '#1C1C1E',
+    fontWeight: '500',
+  },
+  customAreaPlaceholder: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    paddingVertical: 32,
   },
   bottomActions: {
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
