@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
 import useStore from '../../lib/store';
-import { BROADCAST_MODULES, VOICE_PACKAGES } from '../../lib/broadcastModules';
+import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
 import { BROADCAST_TEMPLATES } from '../../lib/broadcastTemplates';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,47 +31,6 @@ export default function BroadcastEditor() {
     currentAlarmDraft?.broadcastTemplate || BROADCAST_TEMPLATES[0].id
   );
 
-  const parseContentToElements = (text, modules) => {
-    const elements = [];
-    let lastIndex = 0;
-    const regex = /\{([^}]+)\}/g;
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-      if (match.index > lastIndex) {
-        elements.push({
-          type: 'text',
-          content: text.substring(lastIndex, match.index),
-        });
-      }
-
-      const moduleId = match[1];
-      const module = BROADCAST_MODULES.find((m) => m.tag === `{${moduleId}}`);
-
-      if (module) {
-        elements.push({
-          type: 'module',
-          module: module,
-        });
-      } else {
-        elements.push({
-          type: 'text',
-          content: match[0],
-        });
-      }
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < text.length) {
-      elements.push({
-        type: 'text',
-        content: text.substring(lastIndex),
-      });
-    }
-
-    return elements;
-  };
 
   const toggleModule = (module) => {
     const exists = selectedModules.find((m) => m.id === module.id);
@@ -96,8 +55,7 @@ export default function BroadcastEditor() {
   };
 
   const currentTemplate = BROADCAST_TEMPLATES.find(t => t.id === selectedTemplate) || BROADCAST_TEMPLATES[0];
-  const displayText = currentTemplate.content;
-  const elements = parseContentToElements(displayText, selectedModules);
+  const displayText = replaceTags(currentTemplate.content);
 
   return (
     <View style={styles.container}>
@@ -121,43 +79,9 @@ export default function BroadcastEditor() {
               style={styles.displayScrollView}
               showsVerticalScrollIndicator={false}
             >
-              <View style={styles.richTextContainer}>
-                {elements.map((element, index) => {
-                  if (element.type === 'text') {
-                    return (
-                      <Text key={index} style={styles.displayText}>
-                        {element.content}
-                      </Text>
-                    );
-                  } else {
-                    const IconComponent = element.module.icon;
-                    const isBlue = ['time', 'date'].includes(element.module.id);
-                    return (
-                      <View
-                        key={index}
-                        style={[
-                          styles.inlineModulePill,
-                          isBlue ? styles.inlineModulePillBlue : styles.inlineModulePillOrange,
-                        ]}
-                      >
-                        <IconComponent
-                          size={16}
-                          color={isBlue ? '#5B8DD6' : '#E67E5D'}
-                          strokeWidth={2}
-                        />
-                        <Text
-                          style={[
-                            styles.inlineModuleText,
-                            isBlue ? styles.inlineModuleTextBlue : styles.inlineModuleTextOrange,
-                          ]}
-                        >
-                          {element.module.label}
-                        </Text>
-                      </View>
-                    );
-                  }
-                })}
-              </View>
+              <Text style={styles.displayText}>
+                {displayText}
+              </Text>
             </ScrollView>
           </View>
         </View>
@@ -383,45 +307,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
-  richTextContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'baseline',
-  },
   displayText: {
     fontSize: 16,
     color: '#1C1C1E',
     lineHeight: 28,
-    marginRight: 4,
-  },
-  inlineModulePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'baseline',
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 14,
-    marginHorizontal: 2,
-    marginVertical: 2,
-    marginBottom: 2,
-    gap: 6,
-  },
-  inlineModulePillBlue: {
-    backgroundColor: '#E3EDFA',
-  },
-  inlineModulePillOrange: {
-    backgroundColor: '#FFE8DC',
-  },
-  inlineModuleText: {
-    fontSize: 15,
-    fontWeight: '500',
-    lineHeight: 20,
-  },
-  inlineModuleTextBlue: {
-    color: '#5B8DD6',
-  },
-  inlineModuleTextOrange: {
-    color: '#E67E5D',
   },
   templateSection: {
     marginBottom: 24,
