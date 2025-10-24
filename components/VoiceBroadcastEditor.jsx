@@ -103,10 +103,8 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
                     </Text>
                   );
                 } else {
-                  const IconComponent = getIconForTag(part.label);
                   return (
                     <View key={index} style={styles.previewTag}>
-                      <IconComponent size={14} color="#007AFF" />
                       <Text style={styles.previewTagText}>{part.label}</Text>
                     </View>
                   );
@@ -196,16 +194,17 @@ const styles = StyleSheet.create({
   previewTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#FF9A76',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    gap: 4,
+    borderWidth: 1.5,
+    borderColor: '#E67E5D',
   },
   previewTagText: {
     fontSize: 13,
-    color: '#007AFF',
-    fontWeight: '500',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   modulesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
