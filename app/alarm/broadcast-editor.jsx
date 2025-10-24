@@ -51,6 +51,71 @@ export default function BroadcastEditor() {
   const handleContentChange = (text) => {
     setBroadcastContent(text);
     setIsCustom(true);
+    updateCustomModules(text);
+  };
+
+  const updateCustomModules = (text) => {
+    const foundModules = [];
+    BROADCAST_MODULES.forEach(module => {
+      if (text.includes(module.tag)) {
+        foundModules.push(module);
+      }
+    });
+    setCustomModules(foundModules);
+  };
+
+  const renderContentWithModules = () => {
+    const parts = [];
+    let remainingText = broadcastContent;
+    let key = 0;
+
+    const regex = /\{[^}]+\}/g;
+    let match;
+    let lastIndex = 0;
+
+    while ((match = regex.exec(broadcastContent)) !== null) {
+      if (match.index > lastIndex) {
+        const textBefore = broadcastContent.substring(lastIndex, match.index);
+        parts.push(
+          <Text key={`text-${key++}`} style={styles.displayText}>
+            {textBefore}
+          </Text>
+        );
+      }
+
+      const tag = match[0];
+      const module = BROADCAST_MODULES.find(m => m.tag === tag);
+
+      if (module) {
+        const IconComponent = module.icon;
+        parts.push(
+          <View key={`module-${key++}`} style={styles.moduleChip}>
+            <View style={styles.moduleChipIcon}>
+              <IconComponent size={14} color="#FF9A76" strokeWidth={2} />
+            </View>
+            <Text style={styles.moduleChipText}>{module.label}</Text>
+          </View>
+        );
+      } else {
+        parts.push(
+          <Text key={`tag-${key++}`} style={styles.displayText}>
+            {tag}
+          </Text>
+        );
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < broadcastContent.length) {
+      parts.push(
+        <Text key={`text-${key++}`} style={styles.displayText}>
+          {broadcastContent.substring(lastIndex)}
+        </Text>
+      );
+    }
+
+    return parts;
   };
 
   const insertModule = (module) => {
@@ -128,15 +193,26 @@ export default function BroadcastEditor() {
       </View>
 
       <View style={styles.contentCard}>
-        <TextInput
-          style={styles.mainInput}
-          value={broadcastContent}
-          onChangeText={handleContentChange}
-          placeholder="Boot complete. It's {time} {weekday} {date}. Outside is {weather}, temperature around {high-temp}°."
-          placeholderTextColor="#999"
-          multiline
-          textAlignVertical="top"
-        />
+        <View style={styles.inputContainer}>
+          {broadcastContent.length > 0 ? (
+            <View style={styles.displayLayer}>
+              {renderContentWithModules()}
+            </View>
+          ) : null}
+          <TextInput
+            style={[
+              styles.mainInput,
+              broadcastContent.length > 0 && styles.mainInputTransparent
+            ]}
+            value={broadcastContent}
+            onChangeText={handleContentChange}
+            placeholder="Type text or insert modules below..."
+            placeholderTextColor="#999"
+            multiline
+            textAlignVertical="top"
+            selectionColor="#FF9A76"
+          />
+        </View>
       </View>
 
       <View style={styles.voicePackageSection}>
@@ -313,12 +389,65 @@ const styles = StyleSheet.create({
     elevation: 3,
     minHeight: 140,
   },
+  inputContainer: {
+    position: 'relative',
+    minHeight: 100,
+  },
   mainInput: {
     fontSize: 15,
     color: '#1C1C1E',
     lineHeight: 22,
     minHeight: 100,
     textAlignVertical: 'top',
+    zIndex: 2,
+  },
+  mainInputTransparent: {
+    color: 'transparent',
+    caretColor: '#FF9A76',
+  },
+  displayLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+    paddingTop: 0,
+    paddingRight: 4,
+    pointerEvents: 'none',
+    zIndex: 1,
+  },
+  displayText: {
+    fontSize: 15,
+    color: '#1C1C1E',
+    lineHeight: 22,
+  },
+  moduleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F0',
+    borderWidth: 1,
+    borderColor: '#FFE5D9',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginHorizontal: 2,
+    gap: 4,
+  },
+  moduleChipIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFE5D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moduleChipText: {
+    fontSize: 13,
+    color: '#FF9A76',
+    fontWeight: '500',
   },
   scrollContainer: {
     flex: 1,
