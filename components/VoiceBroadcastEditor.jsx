@@ -198,10 +198,10 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
         </ScrollView>
 
         <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Preview:</Text>
+          <Text style={styles.previewLabel}>Content:</Text>
           <View style={styles.previewBox}>
             <Text style={styles.previewText}>
-              {value ? replaceTags(value) : 'Your broadcast preview will appear here...'}
+              {value || 'Your broadcast content will appear here...'}
             </Text>
           </View>
         </View>
