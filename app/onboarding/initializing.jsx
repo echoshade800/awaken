@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Brain, Activity, Moon, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { initializeSleepData } from '../../lib/sleepInference';
-import { checkStepPermission } from '../../lib/healthPermissions';
+import { checkStepsAuthorized } from '../../lib/modules/health/healthkit';
 import useStore from '../../lib/store';
 import StorageUtils from '../../lib/StorageUtils';
 
@@ -37,9 +37,9 @@ export default function InitializingScreen() {
         }
 
         console.log('[Initializing] Checking HealthKit permission...');
-        const hasPermission = await checkStepPermission();
+        const hasPermission = await checkStepsAuthorized();
 
-        if (hasPermission === 'granted') {
+        if (hasPermission) {
           console.log('[Initializing] HealthKit access granted, fetching real step data...');
           const result = await initializeSleepData();
 

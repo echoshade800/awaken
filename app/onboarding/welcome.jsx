@@ -1,12 +1,24 @@
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, NativeModules, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Activity, TestTube } from 'lucide-react-native';
+
+// HealthKit integration using the specified import method
+import BrokenHealthKit, { HealthKitPermissions } from "react-native-health";
+const AppleHealthKit = NativeModules.AppleHealthKit;
+
+// Only set Constants if AppleHealthKit is available
+if (AppleHealthKit && BrokenHealthKit.Constants) {
+  AppleHealthKit.Constants = BrokenHealthKit.Constants;
+}
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const floatAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -41,6 +53,139 @@ export default function WelcomeScreen() {
     });
   };
 
+  const handleTestSteps = async () => {
+    console.log('[Welcome] Testing HealthKit step data fetch...');
+    setIsTesting(true);
+    setTestResult(null);
+
+    if (Platform.OS !== 'ios') {
+      Alert.alert(
+        'Platform Not Supported',
+        'HealthKit is only available on iOS devices.',
+        [{ text: 'OK' }]
+      );
+      setIsTesting(false);
+      return;
+    }
+
+    if (!AppleHealthKit) {
+      Alert.alert(
+        'HealthKit Not Available',
+        'HealthKit library is not properly installed or linked.',
+        [{ text: 'OK' }]
+      );
+      setIsTesting(false);
+      return;
+    }
+
+    try {
+      // First check if HealthKit is available on this device
+      AppleHealthKit.isAvailable((err, available) => {
+        if (err || !available) {
+          console.error('[Welcome] HealthKit not available:', err);
+          Alert.alert(
+            'HealthKit Not Available',
+            'HealthKit is not available on this device.',
+            [{ text: 'OK' }]
+          );
+          setIsTesting(false);
+          return;
+        }
+
+        console.log('[Welcome] HealthKit is available, requesting permission...');
+
+        // Request permissions
+        const permissions = {
+          permissions: {
+            read: [
+              AppleHealthKit.Constants.Permissions.Steps,
+              AppleHealthKit.Constants.Permissions.StepCount,
+            ],
+            write: [],
+          },
+        };
+
+        AppleHealthKit.initHealthKit(permissions, (initErr) => {
+          if (initErr) {
+            console.error('[Welcome] Permission request failed:', initErr);
+            Alert.alert(
+              'Permission Request Failed',
+              `Could not request HealthKit permission: ${initErr.message || 'Unknown error'}`,
+              [{ text: 'OK' }]
+            );
+            setIsTesting(false);
+            return;
+          }
+
+          console.log('[Welcome] Permission granted, fetching step data...');
+
+          // Get step data for the last 7 days
+          const endDate = new Date();
+          const startDate = new Date();
+          startDate.setDate(endDate.getDate() - 6); // Last 7 days
+
+          const options = {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+            period: 60 * 24, // Daily aggregation
+            ascending: true,
+          };
+
+          AppleHealthKit.getDailyStepCountSamples(options, (stepErr, results) => {
+            setIsTesting(false);
+
+            if (stepErr) {
+              console.error('[Welcome] Error fetching step data:', stepErr);
+              Alert.alert(
+                'Data Fetch Error',
+                `Could not fetch step data: ${stepErr.message || 'Unknown error'}`,
+                [{ text: 'OK' }]
+              );
+              return;
+            }
+
+            console.log('[Welcome] Step data fetched successfully:', results);
+
+            if (!results || results.length === 0) {
+              setTestResult({
+                success: false,
+                message: 'No step data found for the last 7 days.',
+                data: []
+              });
+              return;
+            }
+
+            const totalSteps = results.reduce((sum, day) => sum + (day.value || 0), 0);
+            const avgSteps = Math.round(totalSteps / results.length);
+
+            setTestResult({
+              success: true,
+              message: `Found ${results.length} days of step data`,
+              data: results,
+              totalSteps,
+              avgSteps
+            });
+
+            // Show success alert with summary
+            Alert.alert(
+              'HealthKit Test Successful! 🎉',
+              `✅ Found ${results.length} days of step data\n📊 Total steps: ${totalSteps.toLocaleString()}\n📈 Daily average: ${avgSteps.toLocaleString()} steps`,
+              [{ text: 'Great!' }]
+            );
+          });
+        });
+      });
+    } catch (error) {
+      console.error('[Welcome] Unexpected error during HealthKit test:', error);
+      Alert.alert(
+        'Unexpected Error',
+        `An unexpected error occurred: ${error.message || 'Unknown error'}`,
+        [{ text: 'OK' }]
+      );
+      setIsTesting(false);
+    }
+  };
+
   const translateY = floatAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -15],
@@ -62,6 +207,60 @@ export default function WelcomeScreen() {
             so every morning feels full of energy ⚡
           </Text>
         </View>
+
+        {/* Test HealthKit Button */}
+        {Platform.OS === 'ios' && (
+          <TouchableOpacity
+            style={[styles.button, styles.testButton]}
+            onPress={handleTestSteps}
+            activeOpacity={0.8}
+            disabled={isTesting}
+          >
+            <LinearGradient
+              colors={['#9D7AFF', '#B794FF', '#D6B8FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.buttonGradient}
+            >
+              <View style={styles.testButtonContent}>
+                {isTesting ? (
+                  <Activity size={20} color="#FFFFFF" />
+                ) : (
+                  <TestTube size={20} color="#FFFFFF" />
+                )}
+                <Text style={styles.testButtonText}>
+                  {isTesting ? 'Testing HealthKit...' : 'Test HealthKit Steps'}
+                </Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        {/* Show test result */}
+        {testResult && (
+          <View style={[
+            styles.resultCard,
+            testResult.success ? styles.resultSuccess : styles.resultError
+          ]}>
+            <Text style={styles.resultTitle}>
+              {testResult.success ? '✅ Test Result' : '❌ Test Result'}
+            </Text>
+            <Text style={styles.resultMessage}>{testResult.message}</Text>
+            {testResult.success && testResult.data && (
+              <View style={styles.resultStats}>
+                <Text style={styles.resultStat}>
+                  📊 Total: {testResult.totalSteps?.toLocaleString()} steps
+                </Text>
+                <Text style={styles.resultStat}>
+                  📈 Average: {testResult.avgSteps?.toLocaleString()} steps/day
+                </Text>
+                <Text style={styles.resultStat}>
+                  📅 Days: {testResult.data.length}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         <TouchableOpacity
           style={styles.button}
@@ -145,5 +344,58 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#4A5F8F',
+  },
+  testButton: {
+    marginBottom: 16,
+  },
+  testButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  testButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  resultCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resultSuccess: {
+    borderColor: 'rgba(72, 224, 194, 0.3)',
+    backgroundColor: 'rgba(72, 224, 194, 0.05)',
+  },
+  resultError: {
+    borderColor: 'rgba(255, 77, 79, 0.3)',
+    backgroundColor: 'rgba(255, 77, 79, 0.05)',
+  },
+  resultTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4A5F8F',
+    marginBottom: 8,
+  },
+  resultMessage: {
+    fontSize: 14,
+    color: '#6B7C99',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  resultStats: {
+    gap: 4,
+  },
+  resultStat: {
+    fontSize: 13,
+    color: '#4A5F8F',
+    fontWeight: '500',
   },
 });
