@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { initializeSleepData } from '../../lib/sleepInference';
 import { checkStepPermission } from '../../lib/healthPermissions';
 import useStore from '../../lib/store';
+import StorageUtils from '../../lib/StorageUtils';
 
 export default function InitializingScreen() {
   const router = useRouter();
@@ -40,7 +41,18 @@ export default function InitializingScreen() {
 
         if (hasPermission === 'granted') {
           console.log('[Initializing] HealthKit access granted, fetching real step data...');
-          await initializeSleepData();
+          const result = await initializeSleepData();
+
+          // Load the saved sessions into store
+          const sessions = await StorageUtils.getSleepSessions();
+          if (sessions && sessions.length > 0) {
+            console.log('[Initializing] Loaded', sessions.length, 'sleep sessions into store');
+            const store = useStore.getState();
+            store.sleepSessions = sessions;
+          } else {
+            console.log('[Initializing] No sleep sessions found, will use demo data');
+            await insertDemoSleepData();
+          }
         } else {
           console.log('[Initializing] HealthKit access not granted, using demo data...');
           await insertDemoSleepData();

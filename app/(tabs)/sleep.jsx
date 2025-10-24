@@ -35,8 +35,26 @@ export default function SleepScreen() {
   useEffect(() => {
     const initializeData = async () => {
       console.log('[Sleep] Initializing data...');
+      console.log('[Sleep] Current sessions:', sleepSessions?.length || 0);
       setIsLoading(true);
       try {
+        // Check if we already have real data
+        const hasRealData = sleepSessions && sleepSessions.length > 0 &&
+          sleepSessions.some(s => s.source !== 'demo');
+
+        if (hasRealData) {
+          console.log('[Sleep] Already have real data, skipping sync');
+          // Just load the existing data into charts
+          const timesData = getSleepSessionsForChart();
+          const debtData = getSleepSessionsForDebtChart();
+          const allSessionsData = getAllSleepSessions();
+          if (timesData) setTimesChartData(timesData);
+          if (debtData) setDebtChartData(debtData);
+          if (allSessionsData) setAllSessions(allSessionsData);
+          setIsLoading(false);
+          return;
+        }
+
         // Check if we have HealthKit permission
         const hasPermission = await checkHealthKitPermission();
         console.log('[Sleep] HealthKit permission:', hasPermission);
@@ -47,7 +65,8 @@ export default function SleepScreen() {
           const syncResult = await syncHealthKitData();
           console.log('[Sleep] Sync result:', syncResult);
         } else {
-          // Fall back to demo data if no HealthKit access
+          // Fall back to demo data only if no HealthKit access AND no existing data
+          console.log('[Sleep] No HealthKit permission and no existing data, using demo');
           await insertDemoSleepData();
         }
 
