@@ -27,6 +27,9 @@ export default function BroadcastEditor() {
   const [selectedVoicePackage, setSelectedVoicePackage] = useState(
     currentAlarmDraft?.voicePackage || VOICE_PACKAGES[0].id
   );
+  const [selectedTemplate, setSelectedTemplate] = useState(
+    currentAlarmDraft?.broadcastTemplate || BROADCAST_TEMPLATES[0].id
+  );
 
   const parseContentToElements = (text, modules) => {
     const elements = [];
@@ -87,11 +90,13 @@ export default function BroadcastEditor() {
     updateDraft({
       selectedModules,
       voicePackage: selectedVoicePackage,
+      broadcastTemplate: selectedTemplate,
     });
     router.back();
   };
 
-  const displayText = BROADCAST_TEMPLATES[0].content;
+  const currentTemplate = BROADCAST_TEMPLATES.find(t => t.id === selectedTemplate) || BROADCAST_TEMPLATES[0];
+  const displayText = currentTemplate.content;
   const elements = parseContentToElements(displayText, selectedModules);
 
   return (
@@ -162,6 +167,52 @@ export default function BroadcastEditor() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.templateSection}>
+            <Text style={styles.sectionTitle}>Broadcast Template</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.templateScroll}
+            >
+              {BROADCAST_TEMPLATES.map((template) => {
+                const isSelected = selectedTemplate === template.id;
+                return (
+                  <TouchableOpacity
+                    key={template.id}
+                    style={[
+                      styles.templateCard,
+                      isSelected && styles.templateCardSelected,
+                    ]}
+                    onPress={() => setSelectedTemplate(template.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.templateAvatar}>
+                      <Text style={styles.templateEmoji}>{template.emoji}</Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.templateName,
+                        isSelected && styles.templateNameSelected,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {template.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.templateSubtitle,
+                        isSelected && styles.templateSubtitleSelected,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {template.subtitle}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
           <View style={styles.voiceStyleSection}>
             <Text style={styles.sectionTitle}>Voice Style</Text>
             <ScrollView
@@ -372,6 +423,9 @@ const styles = StyleSheet.create({
   inlineModuleTextOrange: {
     color: '#E67E5D',
   },
+  templateSection: {
+    marginBottom: 24,
+  },
   voiceStyleSection: {
     marginBottom: 24,
   },
@@ -380,6 +434,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 16,
+  },
+  templateScroll: {
+    gap: 12,
+    paddingHorizontal: 4,
+  },
+  templateCard: {
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    width: 110,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  templateCardSelected: {
+    backgroundColor: '#E67E5D',
+    borderColor: '#FFFFFF',
+  },
+  templateAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  templateEmoji: {
+    fontSize: 28,
+  },
+  templateName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  templateNameSelected: {
+    color: '#FFFFFF',
+  },
+  templateSubtitle: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.75)',
+    textAlign: 'center',
+  },
+  templateSubtitleSelected: {
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   voiceStyleScroll: {
     gap: 12,
