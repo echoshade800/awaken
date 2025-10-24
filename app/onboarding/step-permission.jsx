@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { bootstrapSleepFromHealthKit } from '../../lib/sleepInference';
 import useStore from '../../lib/store';
 import StorageUtils from '../../lib/StorageUtils';
+import { checkStepsAuthorized } from '../../lib/modules/health/healthkit';
 
 export default function StepPermissionScreen() {
   const router = useRouter();
@@ -17,8 +18,36 @@ export default function StepPermissionScreen() {
   const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
   const checkHealthKitPermission = useStore((state) => state.checkHealthKitPermission);
 
+  // 组件 mount 时自动检查权限，如果已授权则自动跳过
+  // 注意：授权是“系统按 Bundle ID”，awaken 与壳 app 共用同一权限
+  // 因此只需读取系统状态并跳过 UI 卡点
   useEffect(() => {
     console.log('[StepPermission] Component mounted, Platform:', Platform.OS);
+
+    const checkAndAutoSkip = async () => {
+      if (Platform.OS !== 'ios') {
+        console.log('[StepPermission] Non-iOS platform, skipping check');
+        return;
+      }
+
+      try {
+        console.log('[StepPermission] Auto-checking HealthKit authorization...');
+        const isAuthorized = await checkStepsAuthorized();
+        console.log('[StepPermission] Authorization status:', isAuthorized);
+
+        if (isAuthorized) {
+          console.log('[StepPermission] Already authorized - auto-skipping this step');
+          // 已授权，自动跳过该步骤
+          await bootstrapAndNavigate();
+        } else {
+          console.log('[StepPermission] Not authorized - showing permission UI');
+        }
+      } catch (error) {
+        console.error('[StepPermission] Error during auto-check:', error);
+      }
+    };
+
+    checkAndAutoSkip();
   }, []);
 
   useEffect(() => {

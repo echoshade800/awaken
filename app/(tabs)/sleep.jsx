@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, useMemo, useEffect } from 'react';
@@ -7,6 +7,7 @@ import SleepTimesChart from '../../components/SleepTimesChart';
 import SleepDebtChart from '../../components/SleepDebtChart';
 import SleepActionBar from '../../components/SleepActionBar';
 import useStore from '../../lib/store';
+import { useHealthSteps } from '../../hooks/useHealthSteps';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;
@@ -16,6 +17,9 @@ export default function SleepScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+
+  // 使用新的 useHealthSteps hook 获取真实 HealthKit 步数
+  const healthSteps = useHealthSteps(14);
   const sleepNeed = useStore((state) => state.sleepNeed);
   const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);
   const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
@@ -36,15 +40,17 @@ export default function SleepScreen() {
     const initializeData = async () => {
       console.log('[Sleep] Initializing data...');
       console.log('[Sleep] Current sessions:', sleepSessions?.length || 0);
+      console.log('[Sleep] HealthSteps state:', healthSteps.state);
+      console.log('[Sleep] HealthSteps data points:', healthSteps.steps?.length || 0);
       setIsLoading(true);
       try {
-        // Check if we already have real data
+        // 优先使用真实 HealthKit 数据（如果已授权且有数据）
         const hasRealData = sleepSessions && sleepSessions.length > 0 &&
           sleepSessions.some(s => s.source !== 'demo');
 
         if (hasRealData) {
-          console.log('[Sleep] Already have real data, skipping sync');
-          // Just load the existing data into charts
+          console.log('[Sleep] Already have real sleep data, loading charts');
+          // 直接加载现有数据到图表
           const timesData = getSleepSessionsForChart();
           const debtData = getSleepSessionsForDebtChart();
           const allSessionsData = getAllSleepSessions();
@@ -55,22 +61,23 @@ export default function SleepScreen() {
           return;
         }
 
-        // Check if we have HealthKit permission
-        const hasPermission = await checkHealthKitPermission();
-        console.log('[Sleep] HealthKit permission:', hasPermission);
-
-        if (hasPermission) {
-          // Try to sync HealthKit data first
-          console.log('[Sleep] Syncing HealthKit data on mount...');
+        // 检查 useHealthSteps 的状态
+        if (healthSteps.state === 'ready' && healthSteps.steps.length > 0) {
+          console.log('[Sleep] Real HealthKit steps available, syncing...');
+          // 有真实步数数据，同步睡眠会话
           const syncResult = await syncHealthKitData();
           console.log('[Sleep] Sync result:', syncResult);
-        } else {
-          // Fall back to demo data only if no HealthKit access AND no existing data
-          console.log('[Sleep] No HealthKit permission and no existing data, using demo');
-          await insertDemoSleepData();
+        } else if (healthSteps.state === 'denied') {
+          console.log('[Sleep] HealthKit permission denied - no demo fallback');
+          // 权限被拒绝：不使用 demo 数据，显示提示信息
+        } else if (healthSteps.state === 'empty') {
+          console.log('[Sleep] HealthKit authorized but no steps data');
+          // 已授权但无步数数据
+        } else if (healthSteps.state === 'error') {
+          console.error('[Sleep] HealthKit error:', healthSteps.error);
         }
 
-        // Load chart data
+        // 加载图表数据（可能为空）
         const timesData = getSleepSessionsForChart();
         const debtData = getSleepSessionsForDebtChart();
         const allSessionsData = getAllSleepSessions();
@@ -84,7 +91,7 @@ export default function SleepScreen() {
         if (debtData) setDebtChartData(debtData);
         if (allSessionsData) setAllSessions(allSessionsData);
       } catch (error) {
-        console.error('Failed to initialize sleep data:', error);
+        console.error('[Sleep] Failed to initialize sleep data:', error);
         setTimesChartData([]);
         setDebtChartData([]);
         setAllSessions([]);
@@ -93,7 +100,7 @@ export default function SleepScreen() {
       }
     };
     initializeData();
-  }, []);
+  }, [healthSteps.state, healthSteps.steps]);
 
   useEffect(() => {
     console.log('[Sleep] sleepSessions changed, updating charts');
@@ -213,14 +220,53 @@ export default function SleepScreen() {
   };
 
   const getDataSourceInfo = () => {
-    const hasDemoData = sleepSessions.some(s => s.source === 'demo');
+    // 优先使用 useHealthSteps 状态
+    if (Platform.OS === 'ios') {
+      if (healthSteps.state === 'denied') {
+        return {
+          show: true,
+          message: '⚠️ 请在 设置→隐私与安全性→健康→应用 中为本应用打开“步数”读取权限',
+          type: 'no-permission',
+          showButton: true,
+        };
+      }
+
+      if (healthSteps.state === 'empty') {
+        return {
+          show: true,
+          message: '⚠️ 最近没有步数数据。请随身携带 iPhone 记录步数，然后再次同步。',
+          type: 'no-data',
+          showButton: true,
+        };
+      }
+
+      if (healthSteps.state === 'error') {
+        return {
+          show: true,
+          message: `⚠️ 加载 HealthKit 数据失败: ${healthSteps.error || '未知错误'}`,
+          type: 'error',
+          showButton: true,
+        };
+      }
+    }
+
+    // Android 平台提示
+    if (Platform.OS === 'android') {
+      return {
+        show: true,
+        message: '📱 HealthKit 功能仅支持 iOS 设备',
+        type: 'platform-unsupported',
+      };
+    }
+
+    // 检查现有睡眠会话数据
     const hasHealthKitData = sleepSessions.some(s => s.source === 'healthkit');
     const hasInferredData = sleepSessions.some(s => s.source === 'healthkit-inferred');
 
     if (hasHealthKitData) {
       return {
         show: true,
-        message: '📊 Data from HealthKit',
+        message: '📊 来自 HealthKit 的真实数据',
         type: 'healthkit',
       };
     }
@@ -228,32 +274,15 @@ export default function SleepScreen() {
     if (hasInferredData) {
       return {
         show: true,
-        message: '🔍 Sleep inferred from step data',
+        message: '🔍 从步数推断的睡眠数据',
         type: 'inferred',
       };
     }
 
-    if (hasDemoData) {
+    if (sleepSessions.length === 0 && healthSteps.isAuthorized) {
       return {
         show: true,
-        message: '📝 Demo data (sync HealthKit for real insights)',
-        type: 'demo',
-      };
-    }
-
-    if (!healthKitAuthorized) {
-      return {
-        show: true,
-        message: '⚠️ We couldn\'t find step data yet. Grant Steps permission in Health app to track your sleep.',
-        type: 'no-permission',
-        showButton: true,
-      };
-    }
-
-    if (sleepSessions.length === 0) {
-      return {
-        show: true,
-        message: '⚠️ We couldn\'t find step data for the last 14 days. Keep your iPhone with you to record steps, then sync again.',
+        message: '⚠️ 暂无睡眠数据。点击同步以获取最新数据。',
         type: 'no-data',
         showButton: true,
       };
@@ -269,30 +298,26 @@ export default function SleepScreen() {
     setSyncMessage('');
 
     try {
-      // Check if permission is already granted
-      const hasPermission = await checkHealthKitPermission();
+      console.log('[Sleep] Manual sync triggered');
 
-      if (!hasPermission) {
-        // Request permission
-        const granted = await requestHealthKitPermission();
-        if (!granted) {
-          setSyncMessage('HealthKit permission denied');
-          setIsSyncing(false);
-          return;
+      // 先刷新 HealthKit 步数数据
+      await healthSteps.refresh();
+
+      // 再同步睡眠会话
+      if (healthSteps.isAuthorized) {
+        const result = await syncHealthKitData();
+
+        if (result.success) {
+          setSyncMessage(`已同步 ${result.count || 0} 条睡眠记录`);
+        } else {
+          setSyncMessage(result.message || '同步失败');
         }
-      }
-
-      // Sync data
-      const result = await syncHealthKitData();
-
-      if (result.success) {
-        setSyncMessage(`Synced ${result.count} sleep sessions from HealthKit`);
       } else {
-        setSyncMessage(result.message || 'Sync failed');
+        setSyncMessage('请先授予 HealthKit 步数读取权限');
       }
     } catch (error) {
-      console.error('Error syncing HealthKit:', error);
-      setSyncMessage('Error syncing HealthKit data');
+      console.error('[Sleep] Error syncing HealthKit:', error);
+      setSyncMessage('同步 HealthKit 数据失败');
     } finally {
       setIsSyncing(false);
       setTimeout(() => setSyncMessage(''), 3000);
