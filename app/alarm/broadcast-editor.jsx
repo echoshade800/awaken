@@ -11,14 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Mic } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import useStore from '../../lib/store';
 import { BROADCAST_MODULES, VOICE_PACKAGES } from '../../lib/broadcastModules';
 import { BROADCAST_TEMPLATES } from '../../lib/broadcastTemplates';
-import StarBackground from '../../components/StarBackground';
-import UnifiedPanelBorder from '../../components/UnifiedPanelBorder';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const MODULE_CARD_WIDTH = (SCREEN_WIDTH - 60) / 2;
 
 export default function BroadcastEditor() {
   const router = useRouter();
@@ -64,108 +63,82 @@ export default function BroadcastEditor() {
     router.back();
   };
 
-  const renderModuleTag = (text) => {
-    const parts = [];
-    let lastIndex = 0;
-
-    const tagIds = BROADCAST_MODULES.map(m => m.id).join('|');
-    const regex = new RegExp(`\\{(${tagIds})\\}`, 'g');
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({
-          type: 'text',
-          content: text.substring(lastIndex, match.index),
-        });
+  const getUsedModules = () => {
+    const usedModuleIds = [];
+    BROADCAST_MODULES.forEach(module => {
+      if (broadcastContent.includes(module.tag)) {
+        usedModuleIds.push(module);
       }
-
-      parts.push({
-        type: 'tag',
-        content: match[0],
-        label: match[1],
-      });
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < text.length) {
-      parts.push({
-        type: 'text',
-        content: text.substring(lastIndex),
-      });
-    }
-
-    return parts;
+    });
+    return usedModuleIds;
   };
 
-  const getIconForTag = (label) => {
-    const module = BROADCAST_MODULES.find(m => m.id === label);
-    return module?.icon || BROADCAST_MODULES[0].icon;
+  const renderModuleRow = (modules, startIndex) => {
+    return modules.slice(startIndex, startIndex + 2).map((module) => {
+      const IconComponent = module.icon;
+      return (
+        <TouchableOpacity
+          key={module.id}
+          style={styles.moduleCard}
+          onPress={() => insertModule(module)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.moduleIconContainer}>
+            <IconComponent size={20} color="#FF9A76" strokeWidth={2} />
+          </View>
+          <Text style={styles.moduleLabel} numberOfLines={1}>
+            {module.label}
+          </Text>
+        </TouchableOpacity>
+      );
+    });
   };
+
+  const renderModulesGrid = () => {
+    const rows = [];
+    for (let i = 0; i < BROADCAST_MODULES.length; i += 2) {
+      rows.push(
+        <View key={`row-${i}`} style={styles.moduleRow}>
+          {renderModuleRow(BROADCAST_MODULES, i)}
+        </View>
+      );
+    }
+    return rows;
+  };
+
+  const usedModules = getUsedModules();
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#E8F4FD', '#D6EEFF', '#A8D8F0', '#6BA8D0', '#4A6B8A', '#2B4164', '#1A2845', '#0D1525']}
+        colors={['#E8F0FB', '#F5F3ED', '#FFF4E6']}
         style={styles.backgroundGradient}
       />
-      <StarBackground />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="rgba(255, 255, 255, 0.9)" strokeWidth={2} />
+            <ArrowLeft size={24} color="#1C1C1E" strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Voice Broadcast</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.fixedTop}>
-          <UnifiedPanelBorder style={styles.inputCard}>
+          <View style={styles.inputCard}>
             <TextInput
               ref={inputRef}
               style={styles.mainInput}
               value={broadcastContent}
               onChangeText={handleContentChange}
               onSelectionChange={handleSelectionChange}
-              placeholder="Boot complete. It's {time} {weekday} {date}..."
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
+              placeholder="Boot complete. It's {time} {weekday} {date}. Outside is {weather}, temperature around {high-temp}°."
+              placeholderTextColor="#999"
               multiline
               textAlignVertical="top"
             />
-          </UnifiedPanelBorder>
+          </View>
 
-          {broadcastContent.length > 0 && (
-            <ScrollView
-              style={styles.previewContainer}
-              contentContainerStyle={styles.previewContent}
-              horizontal={false}
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.previewWrapper}>
-                {renderModuleTag(broadcastContent).map((part, index) => {
-                  if (part.type === 'text') {
-                    return (
-                      <Text key={index} style={styles.previewText}>
-                        {part.content}
-                      </Text>
-                    );
-                  } else {
-                    const IconComponent = getIconForTag(part.label);
-                    return (
-                      <View key={index} style={styles.previewTag}>
-                        <IconComponent size={12} color="rgba(200, 230, 255, 0.9)" strokeWidth={2} />
-                        <Text style={styles.previewTagText}>{part.label}</Text>
-                      </View>
-                    );
-                  }
-                })}
-              </View>
-            </ScrollView>
-          )}
-
-          <Text style={styles.sectionLabel}>Voice Role</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -176,25 +149,26 @@ export default function BroadcastEditor() {
               return (
                 <TouchableOpacity
                   key={pkg.id}
-                  style={styles.voiceRoleCard}
+                  style={[
+                    styles.voiceRoleCard,
+                    isSelected && styles.voiceRoleCardSelected
+                  ]}
                   onPress={() => setSelectedVoicePackage(pkg.id)}
                   activeOpacity={0.7}
                 >
-                  <UnifiedPanelBorder style={[
-                    styles.voiceRoleIconContainer,
-                    isSelected && styles.voiceRoleSelected
-                  ]}>
-                    <Mic
-                      size={24}
-                      color={isSelected ? "rgba(200, 230, 255, 1)" : "rgba(255, 255, 255, 0.5)"}
-                      strokeWidth={2}
-                    />
-                  </UnifiedPanelBorder>
+                  <View style={styles.voiceRoleIcon}>
+                    <Text style={styles.voiceRoleEmoji}>
+                      {pkg.id === 'energetic-girl' ? '🎀' :
+                       pkg.id === 'calm-man' ? '🎩' :
+                       pkg.id === 'gentle-lady' ? '🌸' : '🎯'}
+                    </Text>
+                  </View>
                   <Text
                     style={[
                       styles.voiceRoleLabel,
                       isSelected && styles.voiceRoleLabelSelected,
                     ]}
+                    numberOfLines={1}
                   >
                     {pkg.label}
                   </Text>
@@ -209,7 +183,19 @@ export default function BroadcastEditor() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.sectionLabel}>Voice Package</Text>
+          <Text style={styles.sectionTitle}>Insert Modules</Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.modulesScrollContent}
+          >
+            <View style={styles.modulesContainer}>
+              {renderModulesGrid()}
+            </View>
+          </ScrollView>
+
+          <Text style={styles.sectionTitle}>Voice Package</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -224,47 +210,34 @@ export default function BroadcastEditor() {
                   onPress={() => setSelectedVoicePackage(pkg.id)}
                   activeOpacity={0.7}
                 >
-                  <UnifiedPanelBorder style={[
+                  <View style={[
                     styles.voicePackageContainer,
                     isSelected && styles.voicePackageSelected
                   ]}>
                     <Text style={styles.voicePackageTitle}>{pkg.label}</Text>
                     <Text style={styles.voicePackageDesc}>{pkg.description}</Text>
-                  </UnifiedPanelBorder>
+                  </View>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
 
-          <Text style={styles.sectionLabel}>Insert Modules</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.modulesScrollContent}
-          >
-            <View style={styles.modulesGrid}>
-              {BROADCAST_MODULES.map((module) => {
-                const IconComponent = module.icon;
-                return (
-                  <TouchableOpacity
-                    key={module.id}
-                    style={styles.moduleCard}
-                    onPress={() => insertModule(module)}
-                    activeOpacity={0.7}
-                  >
-                    <UnifiedPanelBorder style={styles.moduleContainer}>
-                      <View style={styles.moduleIconWrapper}>
-                        <IconComponent size={18} color="rgba(200, 230, 255, 0.9)" strokeWidth={2} />
-                      </View>
-                      <Text style={styles.moduleLabel} numberOfLines={2}>
-                        {module.label}
-                      </Text>
-                    </UnifiedPanelBorder>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
+          {usedModules.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Selected Modules</Text>
+              <View style={styles.selectedModulesContainer}>
+                {usedModules.map((module) => {
+                  const IconComponent = module.icon;
+                  return (
+                    <View key={module.id} style={styles.selectedModuleTag}>
+                      <IconComponent size={14} color="#FF9A76" strokeWidth={2} />
+                      <Text style={styles.selectedModuleText}>{module.label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
@@ -310,94 +283,74 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.95)',
-    letterSpacing: 0.5,
+    color: '#1C1C1E',
+    letterSpacing: 0.3,
   },
   fixedTop: {
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 16,
   },
   inputCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
     minHeight: 120,
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 12,
   },
   mainInput: {
-    flex: 1,
     fontSize: 15,
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: '#1C1C1E',
     lineHeight: 22,
-    minHeight: 88,
-  },
-  previewContainer: {
-    maxHeight: 60,
-    marginBottom: 12,
-  },
-  previewContent: {
-    flexGrow: 1,
-  },
-  previewWrapper: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 6,
-  },
-  previewText: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.6)',
-    lineHeight: 20,
-  },
-  previewTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(200, 230, 255, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(200, 230, 255, 0.2)',
-  },
-  previewTagText: {
-    fontSize: 11,
-    color: 'rgba(200, 230, 255, 0.9)',
-    fontWeight: '500',
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'rgba(200, 230, 255, 0.95)',
-    letterSpacing: 0.8,
-    marginBottom: 12,
+    minHeight: 80,
   },
   voiceRoleScroll: {
     paddingHorizontal: 4,
-    gap: 16,
-    marginBottom: 12,
+    gap: 12,
   },
   voiceRoleCard: {
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minWidth: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  voiceRoleIconContainer: {
-    width: 56,
-    height: 56,
-    justifyContent: 'center',
+  voiceRoleCardSelected: {
+    borderColor: '#FF9A76',
+    backgroundColor: '#FFF5F0',
+  },
+  voiceRoleIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F8F8F8',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  voiceRoleSelected: {
-    backgroundColor: 'rgba(200, 230, 255, 0.2)',
-    borderColor: 'rgba(200, 230, 255, 0.4)',
+  voiceRoleEmoji: {
+    fontSize: 24,
   },
   voiceRoleLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#666',
+    textAlign: 'center',
   },
   voiceRoleLabelSelected: {
-    color: 'rgba(200, 230, 255, 0.95)',
+    color: '#FF9A76',
     fontWeight: '600',
   },
   scrollableContent: {
@@ -406,6 +359,53 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  modulesScrollContent: {
+    paddingRight: 20,
+  },
+  modulesContainer: {
+    gap: 12,
+  },
+  moduleRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  moduleCard: {
+    width: MODULE_CARD_WIDTH,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#FFE5D9',
+  },
+  moduleIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFF5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moduleLabel: {
+    fontSize: 14,
+    color: '#1C1C1E',
+    fontWeight: '500',
+    flex: 1,
   },
   voicePackageScroll: {
     paddingHorizontal: 4,
@@ -416,63 +416,64 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.7,
   },
   voicePackageContainer: {
-    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     minHeight: 80,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   voicePackageSelected: {
-    backgroundColor: 'rgba(200, 230, 255, 0.2)',
-    borderColor: 'rgba(200, 230, 255, 0.4)',
+    borderColor: '#FF9A76',
+    backgroundColor: '#FFF5F0',
   },
   voicePackageTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: '#1C1C1E',
     marginBottom: 6,
   },
   voicePackageDesc: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.6)',
-    lineHeight: 18,
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
   },
-  modulesScrollContent: {
-    paddingRight: 16,
-  },
-  modulesGrid: {
+  selectedModulesContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    width: SCREEN_WIDTH * 2.2,
-    gap: 10,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    minHeight: 80,
+    alignItems: 'flex-start',
+    alignContent: 'flex-start',
   },
-  moduleCard: {
-    width: (SCREEN_WIDTH - 60) / 2,
-  },
-  moduleContainer: {
-    width: '100%',
-    minHeight: 70,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+  selectedModuleTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-  },
-  moduleIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(200, 230, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#FFF5F0',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(200, 230, 255, 0.2)',
+    borderColor: '#FFE5D9',
   },
-  moduleLabel: {
+  selectedModuleText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#1C1C1E',
     fontWeight: '500',
-    flex: 1,
-    lineHeight: 18,
   },
   bottomSpacer: {
     height: 40,
@@ -481,22 +482,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: 20,
-    backgroundColor: 'rgba(13, 21, 37, 0.8)',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: '#E5E5EA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 4,
   },
   completeButton: {
-    backgroundColor: 'rgba(200, 230, 255, 0.25)',
+    backgroundColor: '#FF9A76',
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(200, 230, 255, 0.3)',
+    shadowColor: '#FF9A76',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   completeButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.95)',
-    letterSpacing: 0.5,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
 });
