@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   richTextContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   displayText: {
     fontSize: 16,
@@ -347,10 +347,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 3,
+    borderRadius: 14,
     marginHorizontal: 2,
     marginVertical: 2,
+    marginBottom: 2,
     gap: 6,
   },
   inlineModulePillBlue: {
@@ -362,6 +363,7 @@ const styles = StyleSheet.create({
   inlineModuleText: {
     fontSize: 15,
     fontWeight: '500',
+    lineHeight: 20,
   },
   inlineModuleTextBlue: {
     color: '#5B8DD6',
