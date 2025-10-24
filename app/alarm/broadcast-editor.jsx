@@ -7,6 +7,9 @@ import {
   ScrollView,
   StyleSheet,
   Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -41,6 +44,8 @@ export default function BroadcastEditor() {
   };
 
   const insertModule = (module) => {
+    Keyboard.dismiss();
+
     const beforeCursor = broadcastContent.substring(0, cursorPosition);
     const afterCursor = broadcastContent.substring(cursorPosition);
     const newText = beforeCursor + module.tag + ' ' + afterCursor;
@@ -49,10 +54,6 @@ export default function BroadcastEditor() {
 
     const newCursorPos = cursorPosition + module.tag.length + 1;
     setCursorPosition(newCursorPos);
-
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
   };
 
   const handleComplete = () => {
@@ -109,7 +110,11 @@ export default function BroadcastEditor() {
   const usedModules = getUsedModules();
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
       <LinearGradient
         colors={['#E8F0FB', '#F5F3ED', '#FFF4E6']}
         style={styles.backgroundGradient}
@@ -252,7 +257,7 @@ export default function BroadcastEditor() {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -300,13 +305,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
-    minHeight: 120,
+    height: 120,
   },
   mainInput: {
     fontSize: 15,
     color: '#1C1C1E',
     lineHeight: 22,
-    minHeight: 80,
+    height: 80,
   },
   voiceRoleScroll: {
     paddingHorizontal: 4,
