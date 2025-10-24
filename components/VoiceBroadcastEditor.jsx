@@ -197,48 +197,29 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
           </View>
         </ScrollView>
 
-        {value.length > 0 && (
-          <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>Preview:</Text>
-            <ScrollView
-              style={styles.previewScroll}
-              contentContainerStyle={styles.previewContent}
-            >
-              <View style={styles.previewWrapper}>
-                {elements.map((element, index) => {
-                  if (element.type === 'text' && element.content) {
-                    return (
-                      <Text key={index} style={styles.previewText}>
-                        {element.content}
-                      </Text>
-                    );
-                  } else if (element.type === 'tag') {
-                    return (
-                      <View key={index} style={styles.previewTag}>
-                        <Text style={styles.previewTagText}>{element.label}</Text>
-                      </View>
-                    );
-                  }
-                  return null;
-                })}
-              </View>
-            </ScrollView>
-          </View>
-        )}
+        <View style={styles.previewContainer}>
+          <Text style={styles.previewLabel}>Direct Edit:</Text>
+          <TextInput
+            style={styles.directEditInput}
+            value={value}
+            onChangeText={onChange}
+            placeholder="Or type/edit directly here..."
+            placeholderTextColor="#999"
+            multiline
+          />
+        </View>
       </View>
 
       <View style={styles.modulesCard}>
         <Text style={styles.modulesTitle}>Insert Modules</Text>
         <View style={styles.modulesGrid}>
           {BROADCAST_MODULES.map((module) => {
-            const IconComponent = module.icon;
             return (
               <TouchableOpacity
                 key={module.id}
                 style={styles.moduleButton}
                 onPress={() => insertModule(module)}
               >
-                <IconComponent size={20} color="#007AFF" strokeWidth={2} />
                 <Text style={styles.moduleLabel}>{module.label}</Text>
               </TouchableOpacity>
             );
@@ -328,7 +309,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
-    maxHeight: 100,
   },
   previewLabel: {
     fontSize: 13,
@@ -336,37 +316,17 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 8,
   },
-  previewScroll: {
-    maxHeight: 60,
-  },
-  previewContent: {
-    flexGrow: 1,
-  },
-  previewWrapper: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 6,
-  },
-  previewText: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 24,
-  },
-  previewTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF9A76',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  directEditInput: {
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
     borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E67E5D',
-  },
-  previewTagText: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    fontWeight: '700',
+    padding: 12,
+    backgroundColor: '#FAFAFA',
+    fontSize: 15,
+    color: '#1C1C1E',
+    lineHeight: 22,
+    minHeight: 80,
+    maxHeight: 120,
   },
   modulesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
