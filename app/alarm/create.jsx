@@ -367,7 +367,7 @@ export default function AlarmCreate() {
         // Navigate to next step after 1.5s delay
         setTimeout(() => {
           if (fromOnboarding === 'true') {
-            router.replace('/onboarding/step-permission');
+            router.replace('/onboarding/initializing');
           } else {
             router.back();
           }
@@ -385,7 +385,7 @@ export default function AlarmCreate() {
 
         setTimeout(() => {
           if (fromOnboarding === 'true') {
-            router.replace('/onboarding/step-permission');
+            router.replace('/onboarding/initializing');
           } else {
             router.back();
           }
