@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { X } from 'lucide-react-native';
-import { BROADCAST_MODULES } from '../lib/broadcastModules';
+import { BROADCAST_MODULES, replaceTags } from '../lib/broadcastModules';
 
 export default function VoiceBroadcastEditor({ value = '', onChange }) {
   const [focusedIndex, setFocusedIndex] = useState(null);
@@ -198,15 +198,12 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
         </ScrollView>
 
         <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Direct Edit:</Text>
-          <TextInput
-            style={styles.directEditInput}
-            value={value}
-            onChangeText={onChange}
-            placeholder="Or type/edit directly here..."
-            placeholderTextColor="#999"
-            multiline
-          />
+          <Text style={styles.previewLabel}>Preview:</Text>
+          <View style={styles.previewBox}>
+            <Text style={styles.previewText}>
+              {value ? replaceTags(value) : 'Your broadcast preview will appear here...'}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -316,17 +313,19 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 8,
   },
-  directEditInput: {
+  previewBox: {
     borderWidth: 1,
     borderColor: '#E5E5EA',
     borderRadius: 12,
     padding: 12,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#F9F9F9',
+    minHeight: 80,
+    maxHeight: 120,
+  },
+  previewText: {
     fontSize: 15,
     color: '#1C1C1E',
     lineHeight: 22,
-    minHeight: 80,
-    maxHeight: 120,
   },
   modulesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
