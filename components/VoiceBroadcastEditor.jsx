@@ -196,15 +196,6 @@ export default function VoiceBroadcastEditor({ value = '', onChange }) {
             })}
           </View>
         </ScrollView>
-
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Content:</Text>
-          <View style={styles.previewBox}>
-            <Text style={styles.previewText}>
-              {value || 'Your broadcast content will appear here...'}
-            </Text>
-          </View>
-        </View>
       </View>
 
       <View style={styles.modulesCard}>
@@ -300,32 +291,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  previewContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
-  },
-  previewLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#999',
-    marginBottom: 8,
-  },
-  previewBox: {
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: '#F9F9F9',
-    minHeight: 80,
-    maxHeight: 120,
-  },
-  previewText: {
-    fontSize: 15,
-    color: '#1C1C1E',
-    lineHeight: 22,
   },
   modulesCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
