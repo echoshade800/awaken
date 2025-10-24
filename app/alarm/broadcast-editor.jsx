@@ -110,51 +110,58 @@ export default function BroadcastEditor() {
           <View style={{ width: 24 }} />
         </View>
 
+        <View style={styles.fixedDisplaySection}>
+          <View style={styles.displayCard}>
+            <ScrollView
+              style={styles.displayScrollView}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.richTextContainer}>
+                {elements.map((element, index) => {
+                  if (element.type === 'text') {
+                    return (
+                      <Text key={index} style={styles.displayText}>
+                        {element.content}
+                      </Text>
+                    );
+                  } else {
+                    const IconComponent = element.module.icon;
+                    const isBlue = ['time', 'date'].includes(element.module.id);
+                    return (
+                      <View
+                        key={index}
+                        style={[
+                          styles.inlineModulePill,
+                          isBlue ? styles.inlineModulePillBlue : styles.inlineModulePillOrange,
+                        ]}
+                      >
+                        <IconComponent
+                          size={16}
+                          color={isBlue ? '#5B8DD6' : '#E67E5D'}
+                          strokeWidth={2}
+                        />
+                        <Text
+                          style={[
+                            styles.inlineModuleText,
+                            isBlue ? styles.inlineModuleTextBlue : styles.inlineModuleTextOrange,
+                          ]}
+                        >
+                          {element.module.label}
+                        </Text>
+                      </View>
+                    );
+                  }
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+
         <ScrollView
           style={styles.scrollableContent}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.displayCard}>
-            <View style={styles.richTextContainer}>
-              {elements.map((element, index) => {
-                if (element.type === 'text') {
-                  return (
-                    <Text key={index} style={styles.displayText}>
-                      {element.content}
-                    </Text>
-                  );
-                } else {
-                  const IconComponent = element.module.icon;
-                  const isBlue = ['time', 'date'].includes(element.module.id);
-                  return (
-                    <View
-                      key={index}
-                      style={[
-                        styles.inlineModulePill,
-                        isBlue ? styles.inlineModulePillBlue : styles.inlineModulePillOrange,
-                      ]}
-                    >
-                      <IconComponent
-                        size={16}
-                        color={isBlue ? '#5B8DD6' : '#E67E5D'}
-                        strokeWidth={2}
-                      />
-                      <Text
-                        style={[
-                          styles.inlineModuleText,
-                          isBlue ? styles.inlineModuleTextBlue : styles.inlineModuleTextOrange,
-                        ]}
-                      >
-                        {element.module.label}
-                      </Text>
-                    </View>
-                  );
-                }
-              })}
-            </View>
-          </View>
-
           <View style={styles.voiceStyleSection}>
             <Text style={styles.sectionTitle}>Voice Style</Text>
             <ScrollView
@@ -222,38 +229,32 @@ export default function BroadcastEditor() {
             </View>
           </View>
 
-          <View style={styles.customAreaSection}>
-            <Text style={styles.sectionTitle}>Custom Voice Area</Text>
-            <View style={styles.customAreaContainer}>
-              {selectedModules.length > 0 ? (
-                <View style={styles.selectedModulesWrap}>
-                  {selectedModules.map((module) => {
-                    const IconComponent = module.icon;
-                    const isBlue = ['time', 'date'].includes(module.id);
-                    return (
-                      <View
-                        key={module.id}
-                        style={[
-                          styles.selectedModulePill,
-                          isBlue
-                            ? styles.selectedModulePillBlue
-                            : styles.selectedModulePillOrange,
-                        ]}
-                      >
-                        <IconComponent
-                          size={16}
-                          color={isBlue ? '#5B8DD6' : '#E67E5D'}
-                          strokeWidth={2}
-                        />
-                        <Text style={styles.selectedModulePillText}>
-                          {module.label}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              ) : null}
-              <Text style={styles.dragHint}>+ Drag modules here</Text>
+          <View style={styles.voicePackageSection}>
+            <Text style={styles.sectionTitle}>Voice Package</Text>
+            <View style={styles.voicePackageButtons}>
+              {VOICE_PACKAGES.slice(0, 3).map((pkg) => {
+                const isSelected = selectedVoicePackage === pkg.id;
+                return (
+                  <TouchableOpacity
+                    key={pkg.id}
+                    style={[
+                      styles.voicePackageButton,
+                      isSelected && styles.voicePackageButtonSelected,
+                    ]}
+                    onPress={() => setSelectedVoicePackage(pkg.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.voicePackageButtonText,
+                        isSelected && styles.voicePackageButtonTextSelected,
+                      ]}
+                    >
+                      {pkg.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </ScrollView>
@@ -310,19 +311,26 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
+  fixedDisplaySection: {
+    height: '45%',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  displayCard: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 24,
+    padding: 20,
+    flex: 1,
+  },
+  displayScrollView: {
+    flex: 1,
+  },
   scrollableContent: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
-  },
-  displayCard: {
-    backgroundColor: '#F5F5F7',
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 20,
-    minHeight: 120,
   },
   richTextContainer: {
     flexDirection: 'row',
@@ -437,45 +445,33 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
     fontWeight: '500',
   },
-  customAreaSection: {
+  voicePackageSection: {
     marginBottom: 24,
   },
-  customAreaContainer: {
-    backgroundColor: '#F5F5F7',
-    borderRadius: 20,
-    padding: 16,
-    minHeight: 100,
-  },
-  selectedModulesWrap: {
+  voicePackageButtons: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
+    gap: 12,
   },
-  selectedModulePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  voicePackageButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 16,
     borderRadius: 16,
-    gap: 6,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  selectedModulePillBlue: {
-    backgroundColor: '#E3EDFA',
-  },
-  selectedModulePillOrange: {
+  voicePackageButtonSelected: {
     backgroundColor: '#FFE8DC',
+    borderColor: '#E67E5D',
   },
-  selectedModulePillText: {
-    fontSize: 14,
-    color: '#1C1C1E',
-    fontWeight: '500',
+  voicePackageButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
-  dragHint: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 8,
+  voicePackageButtonTextSelected: {
+    color: '#E67E5D',
   },
   bottomActions: {
     flexDirection: 'row',
