@@ -196,16 +196,20 @@ export async function fetchDailySteps14d(): Promise<StepPoint[]> {
 
           console.log('[HealthKit] Permissions granted, fetching step data...');
 
-          // Step 3: time range (last 14 days)
-          const end = new Date();
-          const start = new Date();
-          start.setDate(end.getDate() - 13);
+          // Step 3: time range (last 14 days) - using LOCAL timezone boundaries
+          const now = new Date();
+          const endDate = new Date(now);
+          const startDate = new Date(now);
+          startDate.setDate(now.getDate() - 13);
+          // ✅ 确保是本地时间 00:00
+          startDate.setHours(0, 0, 0, 0);
+          // ✅ 确保是本地时间 23:59:59
+          endDate.setHours(23, 59, 59, 999);
 
           const options = {
-            startDate: start.toISOString(),
-            endDate: end.toISOString(),
-            period: 60 * 24, // daily buckets
-            ascending: true,
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+            period: 1440, // daily (60 * 24 minutes)
           };
 
           console.log('[HealthKit] Fetching daily steps from', options.startDate, 'to', options.endDate);
@@ -234,6 +238,12 @@ export async function fetchDailySteps14d(): Promise<StepPoint[]> {
 
             console.log('[HealthKit] fetchDailySteps14d mapped[0..5]:', mapped.slice(0, 5));
             console.log('[HealthKit] fetchDailySteps14d total days:', mapped.length);
+
+            // Debug table for easy comparison with Health app
+            console.table(mapped.map(i => ({
+              date: new Date(i.date).toLocaleDateString(),
+              steps: i.value
+            })));
 
             resolve(mapped);
           });
