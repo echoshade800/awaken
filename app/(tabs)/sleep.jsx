@@ -432,6 +432,26 @@ export default function SleepScreen() {
             )}
           </View>
 
+          {/* Last Night Summary Card */}
+          {latestSession ? (
+            <View style={styles.lastNightCard}>
+              <Text style={styles.lastNightTitle}>Last Night</Text>
+              <Text style={styles.lastNightMain}>{formatDuration(latestSession.durationMin)}</Text>
+              <Text style={styles.lastNightDetail}>
+                Slept from {formatTimeHM(latestSession.bedtimeISO)} to {formatTimeHM(latestSession.waketimeISO)}
+              </Text>
+              <Text style={styles.lastNightSource}>
+                Source: {latestSession.source}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.lastNightCard}>
+              <Text style={styles.lastNightDetail}>
+                No recent sleep data. Sync HealthKit to get started.
+              </Text>
+            </View>
+          )}
+
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
 
@@ -636,6 +656,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.5)',
     textAlign: 'center',
+  },
+  lastNightCard: {
+    backgroundColor: 'rgba(157, 122, 255, 0.15)',
+    borderColor: 'rgba(157, 122, 255, 0.4)',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  lastNightTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  lastNightMain: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  lastNightDetail: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  lastNightSource: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 11,
+    fontStyle: 'italic',
   },
   listSection: {
     paddingHorizontal: 20,
