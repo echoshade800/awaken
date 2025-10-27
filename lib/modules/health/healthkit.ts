@@ -139,3 +139,93 @@ export async function getRecentSteps(days = 14): Promise<StepPoint[]> {
     );
   });
 }
+
+/**
+ * Fetch daily step counts for the last 14 days
+ * Alias for getRecentSteps with consistent naming for sleepInference
+ * @returns {Promise<Array>} Array of daily step data: [{ date, value }, ...]
+ */
+export async function fetchDailySteps14d(): Promise<StepPoint[]> {
+  console.log('[HealthKit] fetchDailySteps14d(): start');
+
+  if (Platform.OS !== 'ios') {
+    console.log('[HealthKit] Non-iOS platform, returning empty array');
+    return [];
+  }
+
+  if (!AppleHealthKit) {
+    console.log('[HealthKit] AppleHealthKit bridge not available');
+    return [];
+  }
+
+  return new Promise((resolve) => {
+    // Step 1: check if HealthKit is available
+    if (typeof AppleHealthKit.isAvailable === 'function') {
+      AppleHealthKit.isAvailable((err: any, available: boolean) => {
+        if (err || !available) {
+          console.error('[HealthKit] HealthKit not available:', err);
+          resolve([]);
+          return;
+        }
+
+        console.log('[HealthKit] HealthKit is available, initializing permissions...');
+
+        // Step 2: request/read permissions
+        AppleHealthKit.initHealthKit(permissions, (initErr: any) => {
+          if (initErr) {
+            console.error('[HealthKit] Permission initialization failed:', initErr);
+            resolve([]);
+            return;
+          }
+
+          console.log('[HealthKit] Permissions granted, fetching step data...');
+
+          // Step 3: time range (last 14 days)
+          const end = new Date();
+          const start = new Date();
+          start.setDate(end.getDate() - 13);
+
+          const options = {
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
+            period: 60 * 24, // daily buckets
+            ascending: true,
+          };
+
+          console.log('[HealthKit] Fetching daily steps from', options.startDate, 'to', options.endDate);
+
+          // Step 4: fetch step data
+          AppleHealthKit.getDailyStepCountSamples(options, (stepErr: any, results: any[]) => {
+            if (stepErr) {
+              console.error('[HealthKit] getDailyStepCountSamples error:', stepErr);
+              resolve([]);
+              return;
+            }
+
+            console.log('[HealthKit] Raw step samples fetched:', results?.length || 0, 'days');
+
+            if (!results || results.length === 0) {
+              console.warn('[HealthKit] HK_STEPS_EMPTY - No step data available');
+              resolve([]);
+              return;
+            }
+
+            // normalize shape
+            const mapped: StepPoint[] = results.map((item: any) => ({
+              date: item.startDate,
+              value: Number(item.value || 0),
+            }));
+
+            console.log('[HealthKit] fetchDailySteps14d mapped[0..5]:', mapped.slice(0, 5));
+            console.log('[HealthKit] fetchDailySteps14d total days:', mapped.length);
+
+            resolve(mapped);
+          });
+        });
+      });
+    } else {
+      console.error('[HealthKit] AppleHealthKit.isAvailable is not a function');
+      resolve([]);
+    }
+  });
+}
