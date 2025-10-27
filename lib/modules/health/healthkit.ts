@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import AppleHealthKit from './healthkitBridge';
+import AppleHealthKit, { getPermissionsConstants } from './healthkitBridge';
 
 export type StepPoint = { date: string; value: number };
 
@@ -148,6 +148,12 @@ export async function getRecentSteps(days = 14): Promise<StepPoint[]> {
 export async function fetchDailySteps14d(): Promise<StepPoint[]> {
   console.log('[HealthKit] fetchDailySteps14d(): start');
 
+  // prepare permissions constants from bridge
+  const Constants = getPermissionsConstants?.();
+  if (!Constants) {
+    console.error('[HealthKit] Missing Constants from getPermissionsConstants()');
+  }
+
   if (Platform.OS !== 'ios') {
     console.log('[HealthKit] Non-iOS platform, returning empty array');
     return [];
@@ -171,7 +177,17 @@ export async function fetchDailySteps14d(): Promise<StepPoint[]> {
         console.log('[HealthKit] HealthKit is available, initializing permissions...');
 
         // Step 2: request/read permissions
-        AppleHealthKit.initHealthKit(permissions, (initErr: any) => {
+        const permissionsToRequest = {
+          permissions: {
+            read: [
+              Constants?.Permissions?.Steps,
+              Constants?.Permissions?.StepCount,
+            ].filter(Boolean),
+            write: [],
+          },
+        };
+
+        AppleHealthKit.initHealthKit(permissionsToRequest, (initErr: any) => {
           if (initErr) {
             console.error('[HealthKit] Permission initialization failed:', initErr);
             resolve([]);
