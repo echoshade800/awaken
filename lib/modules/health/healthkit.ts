@@ -255,3 +255,89 @@ export async function fetchDailySteps14d(): Promise<StepPoint[]> {
     }
   });
 }
+
+/**
+ * Fetch fine-grained step samples for the last 24 hours
+ * Used to determine sleep periods based on step activity patterns
+ * @returns {Promise<Array>} Array of step samples: [{ startISO, endISO, value }, ...]
+ */
+export async function fetchStepSamples24h(): Promise<Array<{ startISO: string; endISO: string; value: number }>> {
+  console.log('[HealthKit][StepSamples] fetchStepSamples24h(): start');
+
+  if (Platform.OS !== 'ios') {
+    console.log('[HealthKit][StepSamples] Not iOS platform, returning empty array');
+    return [];
+  }
+
+  if (!AppleHealthKit) {
+    console.log('[HealthKit][StepSamples] AppleHealthKit bridge not available');
+    return [];
+  }
+
+  return new Promise((resolve) => {
+    // Step 1: Check if HealthKit is available
+    if (typeof AppleHealthKit.isAvailable !== 'function') {
+      console.error('[HealthKit][StepSamples] AppleHealthKit.isAvailable is not a function');
+      resolve([]);
+      return;
+    }
+
+    AppleHealthKit.isAvailable((err: any, available: boolean) => {
+      if (err || !available) {
+        console.error('[HealthKit][StepSamples] HealthKit not available:', err);
+        resolve([]);
+        return;
+      }
+
+      console.log('[HealthKit][StepSamples] HealthKit is available');
+
+      // Step 2: Time range (last 24 hours in local timezone)
+      const now = new Date();
+      const endDate = new Date(now);
+      const startDate = new Date(now);
+      startDate.setHours(now.getHours() - 24);
+
+      const options = {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      };
+
+      console.log('[HealthKit][StepSamples] Fetching samples from', options.startDate, 'to', options.endDate);
+
+      // Step 3: Fetch fine-grained step samples
+      if (typeof AppleHealthKit.getStepCountSamples !== 'function') {
+        console.error('[HealthKit][StepSamples] getStepCountSamples is not available');
+        resolve([]);
+        return;
+      }
+
+      AppleHealthKit.getStepCountSamples(options, (stepErr: any, results: any[]) => {
+        if (stepErr) {
+          console.error('[HealthKit][StepSamples] getStepCountSamples error:', stepErr);
+          resolve([]);
+          return;
+        }
+
+        if (!results || results.length === 0) {
+          console.warn('[HealthKit][StepSamples] No step samples available');
+          resolve([]);
+          return;
+        }
+
+        console.log('[HealthKit][StepSamples] Raw samples fetched:', results.length, 'samples');
+
+        // Normalize shape
+        const mapped = results.map((item: any) => ({
+          startISO: item.startDate,
+          endISO: item.endDate,
+          value: Number(item.value || 0),
+        }));
+
+        // Log first 20 samples for debugging
+        console.log('[HealthKit][StepSamples] sample[0..20]:', mapped.slice(0, 20));
+
+        resolve(mapped);
+      });
+    });
+  });
+}
