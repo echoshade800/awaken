@@ -15,18 +15,31 @@ const CHART_WIDTH = SCREEN_WIDTH;
 // Helper function to format ISO time to HH:MM
 function formatTimeHM(iso) {
   if (!iso) return '--:--';
-  const d = new Date(iso);
-  const hours = d.getHours().toString().padStart(2, '0');
-  const mins = d.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${mins}`;
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '--:--';
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    return `${hh}:${mm}`;
+  } catch (e) {
+    return '--:--';
+  }
 }
 
 // Helper function to format duration in minutes to "Xh Ym"
 function formatDuration(minsTotal) {
-  if (!minsTotal && minsTotal !== 0) return '--';
+  if (minsTotal === undefined || minsTotal === null) return '--';
   const h = Math.floor(minsTotal / 60);
   const m = minsTotal % 60;
   return `${h}h ${m}m`;
+}
+
+// Helper function to render a session line
+function renderSessionLine(session) {
+  const startStr = formatTimeHM(session.bedtimeISO);
+  const endStr = formatTimeHM(session.waketimeISO);
+  const durStr = formatDuration(session.durationMin);
+  return `${startStr} – ${endStr} (${durStr})`;
 }
 
 export default function SleepScreen() {
@@ -35,83 +48,65 @@ export default function SleepScreen() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
 
-  // 使用新的 useHealthSteps hook 获取真实 HealthKit 步数
-  const healthSteps = useHealthSteps(14);
+  // Get data from store
+  const sleepSessions = useStore((state) => state.sleepSessions);
   const sleepNeed = useStore((state) => state.sleepNeed);
+  const sleepDebt = useStore((state) => state.sleepDebt);
+  const lastHealthKitSync = useStore((state) => state.lastHealthKitSync);
+  const healthKitAuthorized = useStore((state) => state.healthKitAuthorized);
   const getSleepSessionsForChart = useStore((state) => state.getSleepSessionsForChart);
   const getSleepSessionsForDebtChart = useStore((state) => state.getSleepSessionsForDebtChart);
-  const getAllSleepSessions = useStore((state) => state.getAllSleepSessions);
-  const sleepSessions = useStore((state) => state.sleepSessions);
-  const healthKitAuthorized = useStore((state) => state.healthKitAuthorized);
-  const lastHealthKitSync = useStore((state) => state.lastHealthKitSync);
-  const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
   const syncHealthKitData = useStore((state) => state.syncHealthKitData);
-  const requestHealthKitPermission = useStore((state) => state.requestHealthKitPermission);
-  const checkHealthKitPermission = useStore((state) => state.checkHealthKitPermission);
+
+  // Use HealthKit steps hook
+  const healthSteps = useHealthSteps(14);
 
   const [timesChartData, setTimesChartData] = useState([]);
   const [debtChartData, setDebtChartData] = useState([]);
-  const [allSessions, setAllSessions] = useState([]);
+
+  // Calculate latest session
+  const latestSession = useMemo(() => {
+    if (!sleepSessions || sleepSessions.length === 0) return null;
+    return sleepSessions[sleepSessions.length - 1];
+  }, [sleepSessions]);
 
   useEffect(() => {
     const initializeData = async () => {
       console.log('[Sleep] Initializing data...');
-      console.log('[Sleep] Current sessions:', sleepSessions?.length || 0);
+      console.log('[Sleep] sleepSessions count:', sleepSessions?.length || 0);
       console.log('[Sleep] HealthSteps state:', healthSteps.state);
-      console.log('[Sleep] HealthSteps data points:', healthSteps.steps?.length || 0);
+
       setIsLoading(true);
       try {
-        // 优先使用真实 HealthKit 数据（如果已授权且有数据）
         const hasRealData = sleepSessions && sleepSessions.length > 0 &&
           sleepSessions.some(s => s.source !== 'demo');
 
         if (hasRealData) {
-          console.log('[Sleep] Already have real sleep data, loading charts');
-          // 直接加载现有数据到图表
+          console.log('[Sleep] Already have real sleep data');
           const timesData = getSleepSessionsForChart();
           const debtData = getSleepSessionsForDebtChart();
-          const allSessionsData = getAllSleepSessions();
-          if (timesData) setTimesChartData(timesData);
-          if (debtData) setDebtChartData(debtData);
-          if (allSessionsData) setAllSessions(allSessionsData);
+          setTimesChartData(timesData || []);
+          setDebtChartData(debtData || []);
           setIsLoading(false);
           return;
         }
 
-        // 检查 useHealthSteps 的状态
+        // Check if we need to sync
         if (healthSteps.state === 'ready' && healthSteps.steps.length > 0) {
-          console.log('[Sleep] Real HealthKit steps available, syncing...');
-          // 有真实步数数据，同步睡眠会话
+          console.log('[Sleep] Syncing HealthKit data...');
           const syncResult = await syncHealthKitData();
           console.log('[Sleep] Sync result:', syncResult);
-        } else if (healthSteps.state === 'denied') {
-          console.log('[Sleep] HealthKit permission denied - no demo fallback');
-          // 权限被拒绝：不使用 demo 数据，显示提示信息
-        } else if (healthSteps.state === 'empty') {
-          console.log('[Sleep] HealthKit authorized but no steps data');
-          // 已授权但无步数数据
-        } else if (healthSteps.state === 'error') {
-          console.error('[Sleep] HealthKit error:', healthSteps.error);
         }
 
-        // 加载图表数据（可能为空）
+        // Load chart data (may be empty)
         const timesData = getSleepSessionsForChart();
         const debtData = getSleepSessionsForDebtChart();
-        const allSessionsData = getAllSleepSessions();
-        console.log('[Sleep] Chart data loaded:', {
-          timesDataLength: timesData?.length,
-          debtDataLength: debtData?.length,
-          allSessionsLength: allSessionsData?.length,
-        });
-
-        if (timesData) setTimesChartData(timesData);
-        if (debtData) setDebtChartData(debtData);
-        if (allSessionsData) setAllSessions(allSessionsData);
+        setTimesChartData(timesData || []);
+        setDebtChartData(debtData || []);
       } catch (error) {
-        console.error('[Sleep] Failed to initialize sleep data:', error);
+        console.error('[Sleep] Failed to initialize:', error);
         setTimesChartData([]);
         setDebtChartData([]);
-        setAllSessions([]);
       } finally {
         setIsLoading(false);
       }
@@ -120,38 +115,23 @@ export default function SleepScreen() {
   }, [healthSteps.state, healthSteps.steps]);
 
   useEffect(() => {
-    console.log('[Sleep] sleepSessions changed, updating charts');
+    console.log('[Sleep] sleepSessions changed, count:', sleepSessions?.length || 0);
     try {
       const timesData = getSleepSessionsForChart();
       const debtData = getSleepSessionsForDebtChart();
-      const allSessionsData = getAllSleepSessions();
-      console.log('[Sleep] Updated chart data:', {
-        timesDataLength: timesData?.length,
-        debtDataLength: debtData?.length,
-        allSessionsLength: allSessionsData?.length,
-      });
-
-      if (timesData) setTimesChartData(timesData);
-      if (debtData) setDebtChartData(debtData);
-      if (allSessionsData) setAllSessions(allSessionsData);
+      setTimesChartData(timesData || []);
+      setDebtChartData(debtData || []);
     } catch (error) {
-      console.error('Failed to update sleep data:', error);
+      console.error('[Sleep] Failed to update charts:', error);
     }
   }, [sleepSessions]);
 
-
   const processedTimesData = useMemo(() => {
-    console.log('[Sleep] Processing times data:', {
-      hasTimesChartData: !!timesChartData,
-      timesChartDataLength: timesChartData?.length,
-    });
     if (!timesChartData || timesChartData.length === 0) return [];
-
     return timesChartData.map((item) => {
       try {
         const date = new Date(item.date);
         if (isNaN(date.getTime())) {
-          console.warn('Invalid date in timesChartData:', item.date);
           return { ...item, fullDate: item.dayLabel || 'Unknown' };
         }
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -160,38 +140,24 @@ export default function SleepScreen() {
           fullDate: `${item.dayLabel}, ${months[date.getMonth()]} ${date.getDate()}`,
         };
       } catch (error) {
-        console.error('Error processing times data:', error);
         return { ...item, fullDate: item.dayLabel || 'Unknown' };
       }
     });
   }, [timesChartData]);
 
   const processedDebtData = useMemo(() => {
-    console.log('[Sleep] Processing debt data:', {
-      hasDebtChartData: !!debtChartData,
-      debtChartDataLength: debtChartData?.length,
-      sleepNeed,
-    });
     if (!debtChartData || debtChartData.length === 0) return [];
-
     return debtChartData.map((item) => {
       try {
         const date = new Date(item.date);
-        if (isNaN(date.getTime())) {
-          console.warn('Invalid date in debtChartData:', item.date);
-          return null;
-        }
+        if (isNaN(date.getTime())) return null;
 
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
         const slept = typeof item.slept === 'number' ? item.slept : 0;
         const debt = sleepNeed - slept;
 
-        if (!isFinite(debt)) {
-          console.warn('Invalid debt calculation:', { sleepNeed, slept, debt });
-          return null;
-        }
+        if (!isFinite(debt)) return null;
 
         return {
           date: item.date,
@@ -202,7 +168,6 @@ export default function SleepScreen() {
           sleptDisplay: item.duration || '0h 0m',
         };
       } catch (error) {
-        console.error('Error processing debt data:', error, item);
         return null;
       }
     }).filter(item => item !== null);
@@ -237,12 +202,11 @@ export default function SleepScreen() {
   };
 
   const getDataSourceInfo = () => {
-    // 优先使用 useHealthSteps 状态
     if (Platform.OS === 'ios') {
       if (healthSteps.state === 'denied') {
         return {
           show: true,
-          message: '⚠️ 请在 设置→隐私与安全性→健康→应用 中为本应用打开“步数”读取权限',
+          message: '⚠️ 请在 设置→隐私与安全性→健康→应用 中为本应用打开"步数"读取权限',
           type: 'no-permission',
           showButton: true,
         };
@@ -267,7 +231,6 @@ export default function SleepScreen() {
       }
     }
 
-    // Android 平台提示
     if (Platform.OS === 'android') {
       return {
         show: true,
@@ -276,7 +239,6 @@ export default function SleepScreen() {
       };
     }
 
-    // 检查现有睡眠会话数据
     const hasHealthKitData = sleepSessions.some(s => s.source === 'healthkit');
     const hasInferredData = sleepSessions.some(s => s.source === 'healthkit-inferred');
 
@@ -316,14 +278,10 @@ export default function SleepScreen() {
 
     try {
       console.log('[Sleep] Manual sync triggered');
-
-      // 先刷新 HealthKit 步数数据
       await healthSteps.refresh();
 
-      // 再同步睡眠会话
       if (healthSteps.isAuthorized) {
         const result = await syncHealthKitData();
-
         if (result.success) {
           setSyncMessage(`已同步 ${result.count || 0} 条睡眠记录`);
         } else {
@@ -346,15 +304,10 @@ export default function SleepScreen() {
     try {
       const firstDate = new Date(timesChartData[0].date);
       const lastDate = new Date(timesChartData[timesChartData.length - 1].date);
-
-      if (isNaN(firstDate.getTime()) || isNaN(lastDate.getTime())) {
-        return '';
-      }
-
+      if (isNaN(firstDate.getTime()) || isNaN(lastDate.getTime())) return '';
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${months[firstDate.getMonth()]} ${firstDate.getDate()}–${lastDate.getDate()}`;
     } catch (error) {
-      console.error('Error calculating date range:', error);
       return '';
     }
   }, [timesChartData]);
@@ -394,7 +347,7 @@ export default function SleepScreen() {
                 {isSyncing ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.syncButtonText}>🔄 Sync HealthKit</Text>
+                  <Text style={styles.syncButtonText}>🔄 Sync</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -417,7 +370,7 @@ export default function SleepScreen() {
                     onPress={handleSyncHealthKit}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.openHealthButtonText}>Open Health Permissions</Text>
+                    <Text style={styles.openHealthButtonText}>Sync Now</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -449,65 +402,80 @@ export default function SleepScreen() {
 
           <View style={styles.chartSection}>
             {activeTab === 'times' ? (
-              <>
-                <SleepTimesChart data={processedTimesData} chartWidth={CHART_WIDTH} />
-                <Text style={styles.chartMessage}>{getTimesMessage()}</Text>
-              </>
+              processedTimesData && processedTimesData.length > 0 ? (
+                <>
+                  <SleepTimesChart data={processedTimesData} chartWidth={CHART_WIDTH} />
+                  <Text style={styles.chartMessage}>{getTimesMessage()}</Text>
+                </>
+              ) : (
+                <View style={styles.emptyChartContainer}>
+                  <Text style={styles.emptyChartText}>No sleep times data yet</Text>
+                  <Text style={styles.emptyChartSubtext}>Sync HealthKit to load your sleep history</Text>
+                </View>
+              )
             ) : (
-              <>
-                <SleepDebtChart
-                  data={processedDebtData}
-                  sleepNeed={sleepNeed}
-                  chartWidth={CHART_WIDTH}
-                />
-                <Text style={styles.chartMessage}>{getDebtMessage()}</Text>
-              </>
+              processedDebtData && processedDebtData.length > 0 ? (
+                <>
+                  <SleepDebtChart
+                    data={processedDebtData}
+                    sleepNeed={sleepNeed}
+                    chartWidth={CHART_WIDTH}
+                  />
+                  <Text style={styles.chartMessage}>{getDebtMessage()}</Text>
+                </>
+              ) : (
+                <View style={styles.emptyChartContainer}>
+                  <Text style={styles.emptyChartText}>No sleep debt data yet</Text>
+                  <Text style={styles.emptyChartSubtext}>Sync HealthKit to calculate your sleep debt</Text>
+                </View>
+              )
             )}
           </View>
 
           <View style={styles.listSection}>
             <Text style={styles.listTitle}>All Sleep Times</Text>
 
-            {!allSessions || allSessions.length === 0 ? (
-              <Text style={styles.emptyText}>No sleep records yet. Sync HealthKit to load your sleep data.</Text>
-            ) : (
-              allSessions.map((item, index) => {
+            {sleepSessions && sleepSessions.length > 0 ? (
+              sleepSessions.slice().reverse().map((session, index) => {
                 try {
-                  const date = new Date(item.date);
-                  if (isNaN(date.getTime())) {
-                    console.warn('Invalid date in allSessions:', item.date);
-                    return null;
-                  }
+                  const startStr = formatTimeHM(session.bedtimeISO);
+                  const endStr = formatTimeHM(session.waketimeISO);
+                  const durStr = formatDuration(session.durationMin);
 
-                  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                  const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
+                  // Derive weekday label from bedtimeISO
+                  const d = new Date(session.bedtimeISO || session.date);
+                  const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                  const weekdayLabel = weekdayNames[d.getDay()] || session.date;
 
-                  // Log for debugging - shows we're using real data
+                  // Debug log for first item
                   if (index === 0) {
-                    console.log('[Sleep] Rendering session:', {
-                      source: item.source,
-                      sleepTime: item.sleepTime,
-                      wakeTime: item.wakeTime,
-                      duration: item.duration
+                    console.log('[Sleep] Rendering real session:', {
+                      id: session.id,
+                      source: session.source,
+                      bedtime: startStr,
+                      waketime: endStr,
+                      duration: durStr
                     });
                   }
 
                   return (
-                    <View key={`${item.date}-${index}`} style={styles.listItem}>
+                    <View key={session.id || `session-${index}`} style={styles.listItem}>
                       <View style={styles.listItemLeft}>
-                        <Text style={styles.listItemLabel}>{label}</Text>
+                        <Text style={styles.listItemLabel}>{weekdayLabel}</Text>
                         <Text style={styles.listItemTime}>
-                          {item.sleepTime || '--:--'} – {item.wakeTime || '--:--'}
+                          {startStr} – {endStr}
                         </Text>
                       </View>
-                      <Text style={styles.listItemDuration}>{item.duration || '0h 0m'}</Text>
+                      <Text style={styles.listItemDuration}>{durStr}</Text>
                     </View>
                   );
                 } catch (error) {
-                  console.error('Error rendering session:', error, item);
+                  console.error('[Sleep] Error rendering session:', error, session);
                   return null;
                 }
               })
+            ) : (
+              <Text style={styles.emptyText}>No sleep history yet. Sync HealthKit to load your data.</Text>
             )}
           </View>
 
@@ -561,7 +529,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    minWidth: 100,
+    minWidth: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -649,6 +617,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.8)',
     marginTop: 16,
+    textAlign: 'center',
+  },
+  emptyChartContainer: {
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyChartText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyChartSubtext: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.5)',
     textAlign: 'center',
   },
   listSection: {
