@@ -30,17 +30,14 @@
 ### 基本导入
 
 ```typescript
-// 导入 AppleHealthKit 对象
-import AppleHealthKit from '@/lib/modules/health/healthkitBridge';
-
-// 或使用相对路径
+// 使用相对路径导入 AppleHealthKit 对象
 import AppleHealthKit from '../../lib/modules/health/healthkitBridge';
 ```
 
 ### 导入权限常量
 
 ```typescript
-import AppleHealthKit, { HealthKitPermissions, getPermissionsConstants } from '@/lib/modules/health/healthkitBridge';
+import AppleHealthKit, { HealthKitPermissions, getPermissionsConstants } from '../../lib/modules/health/healthkitBridge';
 
 const Constants = getPermissionsConstants();
 ```
@@ -48,7 +45,7 @@ const Constants = getPermissionsConstants();
 ### 检查 HealthKit 可用性
 
 ```typescript
-import { isHealthKitAvailable } from '@/lib/modules/health/healthkitBridge';
+import { isHealthKitAvailable } from '../../lib/modules/health/healthkitBridge';
 
 if (isHealthKitAvailable()) {
   // HealthKit 可用
@@ -58,7 +55,7 @@ if (isHealthKitAvailable()) {
 ### 完整示例
 
 ```typescript
-import AppleHealthKit, { getPermissionsConstants } from '@/lib/modules/health/healthkitBridge';
+import AppleHealthKit, { getPermissionsConstants } from '../../lib/modules/health/healthkitBridge';
 
 const Constants = getPermissionsConstants();
 
@@ -107,20 +104,6 @@ AppleHealthKit.getDailyStepCountSamples(options, (err, results) => {
 2. **lib/modules/health/healthkit.ts** - TypeScript HealthKit 工具函数
 3. **lib/modules/health/healthkit.js** - JavaScript HealthKit 工具函数
 4. **lib/healthPermissions.js** - HealthKit 权限管理
-
-## 路径别名配置
-
-项目已配置路径别名 `@/`，可以从项目根目录导入模块：
-
-```typescript
-// 这两种导入方式等效
-import AppleHealthKit from '@/lib/modules/health/healthkitBridge';
-import AppleHealthKit from '../../lib/modules/health/healthkitBridge';
-```
-
-配置文件：
-- `tsconfig.json` - TypeScript 路径映射
-- `babel.config.js` - Babel 模块解析器配置
 
 ## 测试方式
 

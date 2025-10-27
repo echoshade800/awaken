@@ -5,7 +5,7 @@
  *
  * 使用方式：
  * ```typescript
- * import AppleHealthKit, { HealthKitPermissions } from '@/lib/modules/health/healthkitBridge';
+ * import AppleHealthKit, { HealthKitPermissions } from '../../lib/modules/health/healthkitBridge';
  *
  * // 初始化 HealthKit
  * AppleHealthKit.initHealthKit(permissions, (err) => {
