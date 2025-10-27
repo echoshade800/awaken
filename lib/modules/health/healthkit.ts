@@ -291,52 +291,77 @@ export async function fetchStepSamples24h(): Promise<Array<{ startISO: string; e
 
       console.log('[HealthKit][StepSamples] HealthKit is available');
 
-      // Step 2: Time range (last 24 hours in local timezone)
-      const now = new Date();
-      const endDate = new Date(now);
-      const startDate = new Date(now);
-      startDate.setHours(now.getHours() - 24);
-
-      const options = {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+      // Step 2: Initialize HealthKit with step permissions
+      const Constants = getPermissionsConstants?.();
+      const permissionsToRequest = {
+        permissions: {
+          read: [
+            Constants?.Permissions?.Steps,
+            Constants?.Permissions?.StepCount,
+          ].filter(Boolean),
+          write: [],
+        },
       };
 
-      console.log('[HealthKit][StepSamples] Fetching samples from', options.startDate, 'to', options.endDate);
-
-      // Step 3: Fetch fine-grained step samples
-      if (typeof AppleHealthKit.getStepCountSamples !== 'function') {
-        console.error('[HealthKit][StepSamples] getStepCountSamples is not available');
-        resolve([]);
-        return;
-      }
-
-      AppleHealthKit.getStepCountSamples(options, (stepErr: any, results: any[]) => {
-        if (stepErr) {
-          console.error('[HealthKit][StepSamples] getStepCountSamples error:', stepErr);
+      AppleHealthKit.initHealthKit(permissionsToRequest, (initErr: any) => {
+        if (initErr) {
+          console.error('[HealthKit][StepSamples] Permission initialization failed:', initErr);
           resolve([]);
           return;
         }
 
-        if (!results || results.length === 0) {
-          console.warn('[HealthKit][StepSamples] No step samples available');
+        // Step 3: Time range (last 24 hours in local timezone)
+        const now = new Date();
+        const endDate = new Date(now);
+        const startDate = new Date(now);
+        startDate.setHours(now.getHours() - 24);
+
+        // Use getDailyStepCountSamples without period parameter to get raw samples
+        // or with very small period to get fine-grained data
+        const options = {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          ascending: true,
+          // Don't specify period to get individual samples instead of daily aggregation
+        };
+
+        console.log('[HealthKit][StepSamples] Fetching samples from', options.startDate, 'to', options.endDate);
+
+        // Step 4: Fetch fine-grained step samples
+        // react-native-health: getDailyStepCountSamples without period gives raw samples
+        if (typeof AppleHealthKit.getDailyStepCountSamples !== 'function') {
+          console.error('[HealthKit][StepSamples] getDailyStepCountSamples is not available');
           resolve([]);
           return;
         }
 
-        console.log('[HealthKit][StepSamples] Raw samples fetched:', results.length, 'samples');
+        AppleHealthKit.getDailyStepCountSamples(options, (stepErr: any, results: any[]) => {
+          if (stepErr) {
+            console.error('[HealthKit][StepSamples] getDailyStepCountSamples error:', stepErr);
+            resolve([]);
+            return;
+          }
 
-        // Normalize shape
-        const mapped = results.map((item: any) => ({
-          startISO: item.startDate,
-          endISO: item.endDate,
-          value: Number(item.value || 0),
-        }));
+          if (!results || results.length === 0) {
+            console.warn('[HealthKit][StepSamples] No step samples available');
+            resolve([]);
+            return;
+          }
 
-        // Log first 20 samples for debugging
-        console.log('[HealthKit][StepSamples] sample[0..20]:', mapped.slice(0, 20));
+          console.log('[HealthKit][StepSamples] Raw samples fetched:', results.length, 'samples');
 
-        resolve(mapped);
+          // Normalize shape
+          const mapped = results.map((item: any) => ({
+            startISO: item.startDate,
+            endISO: item.endDate,
+            value: Number(item.value || 0),
+          }));
+
+          // Log first 20 samples for debugging
+          console.log('[HealthKit][StepSamples] sample[0..20]:', mapped.slice(0, 20));
+
+          resolve(mapped);
+        });
       });
     });
   });
