@@ -1,15 +1,5 @@
 import { Platform } from 'react-native';
-
-// Dynamic import for iOS only
-let AppleHealthKit: any = null;
-
-if (Platform.OS === 'ios') {
-  try {
-    AppleHealthKit = require('react-native-health').default;
-  } catch (error) {
-    console.warn('[HealthKit] react-native-health not available:', error);
-  }
-}
+import AppleHealthKit from './healthkitBridge';
 
 export type StepPoint = { date: string; value: number };
 

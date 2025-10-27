@@ -1,17 +1,11 @@
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, NativeModules, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Activity, TestTube } from 'lucide-react-native';
 
-// HealthKit integration using the specified import method
-import BrokenHealthKit, { HealthKitPermissions } from "react-native-health";
-const AppleHealthKit = NativeModules.AppleHealthKit;
-
-// Only set Constants if AppleHealthKit is available
-if (AppleHealthKit && BrokenHealthKit.Constants) {
-  AppleHealthKit.Constants = BrokenHealthKit.Constants;
-}
+// 使用统一的 HealthKit bridge
+import AppleHealthKit from '../../lib/modules/health/healthkitBridge';
 
 export default function WelcomeScreen() {
   const router = useRouter();

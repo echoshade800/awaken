@@ -39,11 +39,11 @@
     "expo-system-ui": "~6.0.7",
     "expo-web-browser": "~15.0.7",
     "lucide-react-native": "^0.544.0",
-    "react-native-health": "^1.19.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.4",
     "react-native-gesture-handler": "~2.28.0",
+    "react-native-health": "^1.19.0",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
@@ -54,11 +54,12 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.888.0",
     "@babel/core": "^7.25.2",
     "@react-native-community/cli": "^20.0.2",
     "@react-native/metro-config": "^0.81.4",
     "@types/react": "~19.1.10",
-    "@aws-sdk/client-s3": "^3.888.0",
+    "babel-plugin-module-resolver": "^5.0.2",
     "typescript": "~5.9.2"
   }
 }
