@@ -11,6 +11,7 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   const [shouldNavigate, setShouldNavigate] = useState(false);
   const initialize = useStore((state) => state.initialize);
+  const hasOnboarded = useStore((state) => state.hasOnboarded);
 
   useEffect(() => {
     const startOnboarding = async () => {
@@ -46,13 +47,22 @@ export default function RootLayout() {
   // Navigate after layout is mounted
   useEffect(() => {
     if (isReady && shouldNavigate) {
-      console.log('[Root] Redirecting to onboarding...');
-      const timer = setTimeout(() => {
-        router.replace('/onboarding/welcome');
-      }, 100);
-      return () => clearTimeout(timer);
+      // Check if user has completed onboarding
+      if (hasOnboarded) {
+        console.log('[Root] User has completed onboarding, redirecting to main app...');
+        const timer = setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 100);
+        return () => clearTimeout(timer);
+      } else {
+        console.log('[Root] First time user, redirecting to onboarding...');
+        const timer = setTimeout(() => {
+          router.replace('/onboarding/welcome');
+        }, 100);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isReady, shouldNavigate]);
+  }, [isReady, shouldNavigate, hasOnboarded]);
 
   if (!isReady) {
     return (
