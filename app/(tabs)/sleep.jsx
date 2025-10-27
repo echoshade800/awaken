@@ -12,6 +12,23 @@ import { useHealthSteps } from '../../hooks/useHealthSteps';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH;
 
+// Helper function to format ISO time to HH:MM
+function formatTimeHM(iso) {
+  if (!iso) return '--:--';
+  const d = new Date(iso);
+  const hours = d.getHours().toString().padStart(2, '0');
+  const mins = d.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${mins}`;
+}
+
+// Helper function to format duration in minutes to "Xh Ym"
+function formatDuration(minsTotal) {
+  if (!minsTotal && minsTotal !== 0) return '--';
+  const h = Math.floor(minsTotal / 60);
+  const m = minsTotal % 60;
+  return `${h}h ${m}m`;
+}
+
 export default function SleepScreen() {
   const [activeTab, setActiveTab] = useState('times');
   const [isLoading, setIsLoading] = useState(true);
@@ -452,7 +469,7 @@ export default function SleepScreen() {
             <Text style={styles.listTitle}>All Sleep Times</Text>
 
             {!allSessions || allSessions.length === 0 ? (
-              <Text style={styles.emptyText}>No sleep records yet. Add your first sleep session below.</Text>
+              <Text style={styles.emptyText}>No sleep records yet. Sync HealthKit to load your sleep data.</Text>
             ) : (
               allSessions.map((item, index) => {
                 try {
@@ -464,6 +481,16 @@ export default function SleepScreen() {
 
                   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                   const label = item.isLastNight ? 'Last night' : dayNames[date.getDay()];
+
+                  // Log for debugging - shows we're using real data
+                  if (index === 0) {
+                    console.log('[Sleep] Rendering session:', {
+                      source: item.source,
+                      sleepTime: item.sleepTime,
+                      wakeTime: item.wakeTime,
+                      duration: item.duration
+                    });
+                  }
 
                   return (
                     <View key={`${item.date}-${index}`} style={styles.listItem}>
