@@ -4,8 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Activity, TestTube } from 'lucide-react-native';
 
-// 使用统一的 HealthKit bridge
-import AppleHealthKit from '../../lib/modules/health/healthkitBridge';
+// 使用统一的 HealthKit 函数
+import { fetchDailySteps14d, fetchStepSamples24h } from '../../lib/modules/health/healthkit';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -62,120 +62,69 @@ export default function WelcomeScreen() {
       return;
     }
 
-    if (!AppleHealthKit) {
-      Alert.alert(
-        'HealthKit Not Available',
-        'HealthKit library is not properly installed or linked.',
-        [{ text: 'OK' }]
-      );
-      setIsTesting(false);
-      return;
-    }
-
     try {
-      // First check if HealthKit is available on this device
-      AppleHealthKit.isAvailable((err, available) => {
-        if (err || !available) {
-          console.error('[Welcome] HealthKit not available:', err);
-          Alert.alert(
-            'HealthKit Not Available',
-            'HealthKit is not available on this device.',
-            [{ text: 'OK' }]
-          );
-          setIsTesting(false);
-          return;
-        }
+      // 1. 获取最近 14 天的每日步数（和 sleep 页面相同的逻辑）
+      console.log('[Welcome] Fetching daily steps for last 14 days...');
+      const dailySteps = await fetchDailySteps14d();
+      console.log('[Welcome][DailySteps14d]', dailySteps);
 
-        console.log('[Welcome] HealthKit is available, requesting permission...');
-
-        // Request permissions
-        const permissions = {
-          permissions: {
-            read: [
-              AppleHealthKit.Constants.Permissions.Steps,
-              AppleHealthKit.Constants.Permissions.StepCount,
-            ],
-            write: [],
-          },
-        };
-
-        AppleHealthKit.initHealthKit(permissions, (initErr) => {
-          if (initErr) {
-            console.error('[Welcome] Permission request failed:', initErr);
-            Alert.alert(
-              'Permission Request Failed',
-              `Could not request HealthKit permission: ${initErr.message || 'Unknown error'}`,
-              [{ text: 'OK' }]
-            );
-            setIsTesting(false);
-            return;
-          }
-
-          console.log('[Welcome] Permission granted, fetching step data...');
-
-          // Get step data for the last 7 days
-          const endDate = new Date();
-          const startDate = new Date();
-          startDate.setDate(endDate.getDate() - 6); // Last 7 days
-
-          const options = {
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
-            period: 60 * 24, // Daily aggregation
-            ascending: true,
-          };
-
-          AppleHealthKit.getDailyStepCountSamples(options, (stepErr, results) => {
-            setIsTesting(false);
-
-            if (stepErr) {
-              console.error('[Welcome] Error fetching step data:', stepErr);
-              Alert.alert(
-                'Data Fetch Error',
-                `Could not fetch step data: ${stepErr.message || 'Unknown error'}`,
-                [{ text: 'OK' }]
-              );
-              return;
-            }
-
-            console.log('[Welcome] Step data fetched successfully:', results);
-
-            if (!results || results.length === 0) {
-              setTestResult({
-                success: false,
-                message: 'No step data found for the last 7 days.',
-                data: []
-              });
-              return;
-            }
-
-            const totalSteps = results.reduce((sum, day) => sum + (day.value || 0), 0);
-            const avgSteps = Math.round(totalSteps / results.length);
-
-            setTestResult({
-              success: true,
-              message: `Found ${results.length} days of step data`,
-              data: results,
-              totalSteps,
-              avgSteps
-            });
-
-            // Show success alert with summary
-            Alert.alert(
-              'HealthKit Test Successful! 🎉',
-              `✅ Found ${results.length} days of step data\n📊 Total steps: ${totalSteps.toLocaleString()}\n📈 Daily average: ${avgSteps.toLocaleString()} steps`,
-              [{ text: 'Great!' }]
-            );
-          });
+      if (!dailySteps || dailySteps.length === 0) {
+        setTestResult({
+          success: false,
+          message: 'No daily step data found for the last 14 days.',
+          data: []
         });
+        Alert.alert(
+          'No Data Found',
+          'Could not find step data for the last 14 days. Please check HealthKit permissions.',
+          [{ text: 'OK' }]
+        );
+        setIsTesting(false);
+        return;
+      }
+
+      const totalSteps = dailySteps.reduce((sum, day) => sum + (day.value || 0), 0);
+      const avgSteps = Math.round(totalSteps / dailySteps.length);
+
+      setTestResult({
+        success: true,
+        message: `Found ${dailySteps.length} days of step data`,
+        data: dailySteps,
+        totalSteps,
+        avgSteps
       });
-    } catch (error) {
-      console.error('[Welcome] Unexpected error during HealthKit test:', error);
+
       Alert.alert(
-        'Unexpected Error',
-        `An unexpected error occurred: ${error.message || 'Unknown error'}`,
+        'HealthKit Test Successful! 🎉',
+        `✅ Found ${dailySteps.length} days of step data\n📊 Total steps: ${totalSteps.toLocaleString()}\n📈 Daily average: ${avgSteps.toLocaleString()} steps`,
+        [{ text: 'Great!' }]
+      );
+
+      // 2. 获取最近 24 小时的细粒度步数样本（用于调试）
+      console.log('[Welcome] Fetching granular step samples for last 24h...');
+      const recentSamples = await fetchStepSamples24h();
+      console.log('[Welcome][RecentStepSamples] count:', recentSamples.length);
+      console.log('[Welcome][RecentStepSamples] first20:', recentSamples.slice(0, 20));
+
+      if (recentSamples.length === 0) {
+        console.log('[Welcome] No granular samples yet');
+      } else {
+        console.log('[Welcome] Got granular samples');
+      }
+
+    } catch (error) {
+      console.error('[Welcome] Error during HealthKit test:', error);
+      Alert.alert(
+        'Error',
+        `Could not fetch step data: ${error.message || 'Unknown error'}`,
         [{ text: 'OK' }]
       );
+      setTestResult({
+        success: false,
+        message: error.message || 'Unknown error occurred',
+        data: []
+      });
+    } finally {
       setIsTesting(false);
     }
   };
