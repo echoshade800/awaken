@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Brain, Activity, Moon, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { initializeSleepData } from '../../lib/sleepInference';
 import { checkStepsAuthorized } from '../../lib/modules/health/healthkit';
 import useStore from '../../lib/store';
 import StorageUtils from '../../lib/StorageUtils';
@@ -11,14 +10,15 @@ import StorageUtils from '../../lib/StorageUtils';
 export default function InitializingScreen() {
   const router = useRouter();
   const insertDemoSleepData = useStore((state) => state.insertDemoSleepData);
+  const performInitial14DaySync = useStore((state) => state.performInitial14DaySync);
   const [currentStep, setCurrentStep] = useState(0);
   const [error, setError] = useState(null);
 
   const steps = [
-    { icon: Activity, label: 'Analyzing step data', duration: 2000 },
-    { icon: Moon, label: 'Detecting sleep patterns', duration: 2000 },
-    { icon: Brain, label: 'Calculating sleep need', duration: 1500 },
-    { icon: TrendingUp, label: 'Building circadian rhythm', duration: 1500 },
+    { icon: Activity, label: 'Fetching 14 days of step data', duration: 2000 },
+    { icon: Moon, label: 'Inferring sleep patterns', duration: 2500 },
+    { icon: Brain, label: 'Analyzing sleep quality', duration: 1500 },
+    { icon: TrendingUp, label: 'Building sleep history', duration: 1500 },
   ];
 
   useEffect(() => {
@@ -40,17 +40,13 @@ export default function InitializingScreen() {
         const hasPermission = await checkStepsAuthorized();
 
         if (hasPermission) {
-          console.log('[Initializing] HealthKit access granted, fetching real step data...');
-          const result = await initializeSleepData();
+          console.log('[Initializing] HealthKit access granted, performing 14-day sleep sync...');
+          const result = await performInitial14DaySync();
 
-          // Load the saved sessions into store
-          const sessions = await StorageUtils.getSleepSessions();
-          if (sessions && sessions.length > 0) {
-            console.log('[Initializing] Loaded', sessions.length, 'sleep sessions into store');
-            const store = useStore.getState();
-            store.sleepSessions = sessions;
+          if (result.success && result.count > 0) {
+            console.log('[Initializing] Successfully synced', result.count, 'sleep sessions');
           } else {
-            console.log('[Initializing] No sleep sessions found, will use demo data');
+            console.log('[Initializing] Sync failed or no sessions, using demo data:', result.message);
             await insertDemoSleepData();
           }
         } else {

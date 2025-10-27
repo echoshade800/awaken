@@ -257,6 +257,105 @@ export async function fetchDailySteps14d(): Promise<StepPoint[]> {
 }
 
 /**
+ * Fetch hourly step samples for the last 14 days
+ * Used for initial sleep data sync
+ * @returns {Promise<Array>} Array of step samples: [{ startISO, endISO, value }, ...]
+ */
+export async function fetchStepSamples14d(): Promise<Array<{ startISO: string; endISO: string; value: number }>> {
+  console.log('[HealthKit][StepSamples] fetchStepSamples14d(): start');
+
+  if (Platform.OS !== 'ios') {
+    console.log('[HealthKit][StepSamples] Not iOS platform, returning empty array');
+    return [];
+  }
+
+  if (!AppleHealthKit) {
+    console.log('[HealthKit][StepSamples] AppleHealthKit bridge not available');
+    return [];
+  }
+
+  return new Promise((resolve) => {
+    if (typeof AppleHealthKit.isAvailable !== 'function') {
+      console.error('[HealthKit][StepSamples] AppleHealthKit.isAvailable is not a function');
+      resolve([]);
+      return;
+    }
+
+    AppleHealthKit.isAvailable((err: any, available: boolean) => {
+      if (err || !available) {
+        console.error('[HealthKit][StepSamples] HealthKit not available:', err);
+        resolve([]);
+        return;
+      }
+
+      console.log('[HealthKit][StepSamples] HealthKit is available');
+
+      const Constants = getPermissionsConstants?.();
+      const permissionsToRequest = {
+        permissions: {
+          read: [
+            Constants?.Permissions?.Steps,
+            Constants?.Permissions?.StepCount,
+          ].filter(Boolean),
+          write: [],
+        },
+      };
+
+      AppleHealthKit.initHealthKit(permissionsToRequest, (initErr: any) => {
+        if (initErr) {
+          console.error('[HealthKit][StepSamples] Permission initialization failed:', initErr);
+          resolve([]);
+          return;
+        }
+
+        const now = new Date();
+        const endDate = new Date(now);
+        const startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 14);
+
+        const options = {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          ascending: true,
+        };
+
+        console.log('[HealthKit][StepSamples] Fetching 14 days from', options.startDate, 'to', options.endDate);
+
+        if (typeof AppleHealthKit.getDailyStepCountSamples !== 'function') {
+          console.error('[HealthKit][StepSamples] getDailyStepCountSamples is not available');
+          resolve([]);
+          return;
+        }
+
+        AppleHealthKit.getDailyStepCountSamples(options, (stepErr: any, results: any[]) => {
+          if (stepErr) {
+            console.error('[HealthKit][StepSamples] getDailyStepCountSamples error:', stepErr);
+            resolve([]);
+            return;
+          }
+
+          if (!results || results.length === 0) {
+            console.warn('[HealthKit][StepSamples] No step samples available for 14 days');
+            resolve([]);
+            return;
+          }
+
+          console.log('[HealthKit][StepSamples] Fetched 14d samples:', results.length, 'samples');
+
+          const mapped = results.map((item: any) => ({
+            startISO: item.startDate,
+            endISO: item.endDate,
+            value: Number(item.value || 0),
+          }));
+
+          resolve(mapped);
+        });
+      });
+    });
+  });
+}
+
+/**
  * Fetch fine-grained step samples for the last 24 hours
  * Used to determine sleep periods based on step activity patterns
  * @returns {Promise<Array>} Array of step samples: [{ startISO, endISO, value }, ...]
