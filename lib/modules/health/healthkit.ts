@@ -441,12 +441,14 @@ function getTimezoneInfo(): string {
 }
 
 /**
- * Fetch fine-grained step samples for the last 24 hours
+ * Fetch fine-grained step samples for the last 48 hours
  * Used to determine sleep periods based on step activity patterns
+ * Extended to 48 hours to ensure we capture the most recent sleep session,
+ * even if it occurred in the early morning hours (e.g., 1AM-7AM)
  * @returns {Promise<Array>} Array of step samples: [{ startISO, endISO, value }, ...]
  */
 export async function fetchStepSamples24h(): Promise<Array<{ startISO: string; endISO: string; value: number }>> {
-  console.log('[HealthKit][StepSamples] fetchStepSamples24h(): start');
+  console.log('[HealthKit][StepSamples] fetchStepSamples24h(): start (fetching 48h data)');
   console.log('[HealthKit][StepSamples] Device timezone:', getTimezoneInfo());
 
   if (Platform.OS !== 'ios') {
@@ -495,11 +497,11 @@ export async function fetchStepSamples24h(): Promise<Array<{ startISO: string; e
           return;
         }
 
-        // Step 3: Time range (last 24 hours in local timezone)
-        // ✅ 使用本地时间，从当前时刻往前推 24 小时
+        // Step 3: Time range (last 48 hours in local timezone)
+        // ✅ 使用本地时间，从当前时刻往前推 48 小时（扩展以捕获凌晨睡眠）
         const now = new Date();
         const endDate = new Date(now);
-        const startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 精确的 24 小时前
+        const startDate = new Date(now.getTime() - 48 * 60 * 60 * 1000); // 精确的 48 小时前
 
         // ✅ 使用保留本地时区的 ISO 字符串
         const options = {
@@ -509,7 +511,7 @@ export async function fetchStepSamples24h(): Promise<Array<{ startISO: string; e
           // Don't specify period to get individual samples instead of daily aggregation
         };
 
-        console.log('[HealthKit][StepSamples] ⏰ Fetching 24h samples:');
+        console.log('[HealthKit][StepSamples] ⏰ Fetching 48h samples (for sleep inference):');
         console.log('[HealthKit][StepSamples]   Start:', formatLocalDateTime(startDate));
         console.log('[HealthKit][StepSamples]   End:  ', formatLocalDateTime(endDate));
         console.log('[HealthKit][StepSamples]   Start ISO:', options.startDate);
