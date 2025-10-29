@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
@@ -12,60 +13,211 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
 import useStore from '../../lib/store';
-import { BROADCAST_MODULES, VOICE_PACKAGES } from '../../lib/broadcastModules';
+import { BROADCAST_MODULES, BROADCAST_TEMPLATES } from '../../lib/broadcastModules';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function BroadcastEditor() {
   const router = useRouter();
   const { currentAlarmDraft, updateDraft } = useStore();
+  const textInputRef = useRef(null);
 
-  const [customModules, setCustomModules] = useState(
-    currentAlarmDraft?.customModules || [
-      BROADCAST_MODULES[0],
-      BROADCAST_MODULES[1],
-      BROADCAST_MODULES[3],
-    ]
+  // Initialize with custom template or saved content
+  const [broadcastContent, setBroadcastContent] = useState(
+    currentAlarmDraft?.broadcastContent || []
   );
-  const [selectedVoicePackage, setSelectedVoicePackage] = useState(
-    currentAlarmDraft?.voicePackage || VOICE_PACKAGES[2].id
-  );
+  const [selectedTemplate, setSelectedTemplate] = useState('custom');
+  const [cursorPosition, setCursorPosition] = useState(0);
 
-  const addModule = (module) => {
-    if (!customModules.find((m) => m.id === module.id)) {
-      setCustomModules([...customModules, module]);
+  // Handle template selection
+  const selectTemplate = (templateId) => {
+    const template = BROADCAST_TEMPLATES.find((t) => t.id === templateId);
+    if (template) {
+      setSelectedTemplate(templateId);
+      setBroadcastContent([...template.content]);
     }
   };
 
-  const removeModule = (moduleId) => {
-    setCustomModules(customModules.filter((m) => m.id !== moduleId));
+  // Insert module at cursor position
+  const insertModule = (module) => {
+    const newContent = [...broadcastContent];
+    const insertIndex = findInsertIndex(cursorPosition);
+
+    newContent.splice(insertIndex, 0, {
+      type: 'module',
+      moduleId: module.id,
+    });
+
+    setBroadcastContent(newContent);
+  };
+
+  // Find the correct index in content array based on cursor position in rendered text
+  const findInsertIndex = (cursor) => {
+    let charCount = 0;
+    for (let i = 0; i < broadcastContent.length; i++) {
+      const item = broadcastContent[i];
+      if (item.type === 'text') {
+        charCount += item.value.length;
+      } else {
+        charCount += 1; // Module counts as 1 character position
+      }
+      if (charCount >= cursor) {
+        return i + 1;
+      }
+    }
+    return broadcastContent.length;
+  };
+
+  // Handle text changes (including deletions)
+  const handleTextChange = (newText) => {
+    // For now, we'll handle this by reconstructing the content
+    // This is a simplified approach - a production app would need more sophisticated handling
+    const plainText = getPlainText();
+
+    if (newText.length < plainText.length) {
+      // Deletion occurred
+      handleDeletion(plainText, newText);
+    } else {
+      // Addition occurred
+      handleAddition(plainText, newText);
+    }
+  };
+
+  const handleDeletion = (oldText, newText) => {
+    const deletedAtIndex = findDeletionIndex(oldText, newText);
+    const contentIndex = findContentIndexFromTextIndex(deletedAtIndex);
+
+    const newContent = [...broadcastContent];
+    const item = newContent[contentIndex];
+
+    if (item?.type === 'text') {
+      // Calculate position within this text item
+      const textStartIndex = getTextIndexBeforeContent(contentIndex);
+      const posInText = deletedAtIndex - textStartIndex;
+
+      // Remove character from text
+      const newValue = item.value.slice(0, posInText) + item.value.slice(posInText + 1);
+
+      if (newValue.length === 0) {
+        newContent.splice(contentIndex, 1);
+      } else {
+        newContent[contentIndex] = { ...item, value: newValue };
+      }
+    } else if (item?.type === 'module') {
+      // Delete the entire module
+      newContent.splice(contentIndex, 1);
+    }
+
+    setBroadcastContent(newContent);
+  };
+
+  const handleAddition = (oldText, newText) => {
+    const addedAtIndex = findAdditionIndex(oldText, newText);
+    const addedChar = newText[addedAtIndex];
+    const contentIndex = findContentIndexFromTextIndex(addedAtIndex);
+
+    const newContent = [...broadcastContent];
+
+    if (contentIndex >= newContent.length) {
+      // Append to end
+      if (newContent.length > 0 && newContent[newContent.length - 1].type === 'text') {
+        newContent[newContent.length - 1].value += addedChar;
+      } else {
+        newContent.push({ type: 'text', value: addedChar });
+      }
+    } else {
+      const item = newContent[contentIndex];
+
+      if (item?.type === 'text') {
+        const textStartIndex = getTextIndexBeforeContent(contentIndex);
+        const posInText = addedAtIndex - textStartIndex;
+
+        const newValue = item.value.slice(0, posInText) + addedChar + item.value.slice(posInText);
+        newContent[contentIndex] = { ...item, value: newValue };
+      } else {
+        // Insert before module
+        if (contentIndex > 0 && newContent[contentIndex - 1].type === 'text') {
+          newContent[contentIndex - 1].value += addedChar;
+        } else {
+          newContent.splice(contentIndex, 0, { type: 'text', value: addedChar });
+        }
+      }
+    }
+
+    setBroadcastContent(newContent);
+  };
+
+  const findDeletionIndex = (oldText, newText) => {
+    for (let i = 0; i < oldText.length; i++) {
+      if (oldText[i] !== newText[i]) {
+        return i;
+      }
+    }
+    return oldText.length - 1;
+  };
+
+  const findAdditionIndex = (oldText, newText) => {
+    for (let i = 0; i < newText.length; i++) {
+      if (oldText[i] !== newText[i]) {
+        return i;
+      }
+    }
+    return newText.length - 1;
+  };
+
+  const findContentIndexFromTextIndex = (textIndex) => {
+    let charCount = 0;
+    for (let i = 0; i < broadcastContent.length; i++) {
+      const item = broadcastContent[i];
+      if (item.type === 'text') {
+        if (charCount + item.value.length > textIndex) {
+          return i;
+        }
+        charCount += item.value.length;
+      } else {
+        if (charCount === textIndex) {
+          return i;
+        }
+        charCount += 1;
+      }
+    }
+    return broadcastContent.length;
+  };
+
+  const getTextIndexBeforeContent = (contentIndex) => {
+    let charCount = 0;
+    for (let i = 0; i < contentIndex; i++) {
+      const item = broadcastContent[i];
+      if (item.type === 'text') {
+        charCount += item.value.length;
+      } else {
+        charCount += 1;
+      }
+    }
+    return charCount;
+  };
+
+  // Get plain text representation (for TextInput)
+  const getPlainText = () => {
+    return broadcastContent
+      .map((item) => {
+        if (item.type === 'text') {
+          return item.value;
+        } else {
+          // Module represented as a special character
+          return '\u200B'; // Zero-width space as placeholder
+        }
+      })
+      .join('');
   };
 
   const handleComplete = () => {
     updateDraft({
-      customModules,
-      voicePackage: selectedVoicePackage,
+      broadcastContent,
+      selectedTemplate,
     });
     router.back();
   };
-
-  const renderPreviewContent = () => {
-    const content = [];
-    content.push({ type: 'text', value: "Boot complete. It's " });
-
-    customModules.forEach((module, index) => {
-      content.push({ type: 'tag', module });
-      if (index < customModules.length - 1) {
-        content.push({ type: 'text', value: '. ' });
-      } else {
-        content.push({ type: 'text', value: '. Outside is ' });
-      }
-    });
-
-    return content;
-  };
-
-  const previewContent = renderPreviewContent();
 
   return (
     <View style={styles.container}>
@@ -90,51 +242,75 @@ export default function BroadcastEditor() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* Editable Preview Card */}
           <View style={styles.previewCard}>
-            <View style={styles.previewTextWrapper}>
-              {previewContent.map((item, index) => {
-                if (item.type === 'text') {
-                  return (
-                    <Text key={`text-${index}`} style={styles.previewText}>
-                      {item.value}
-                    </Text>
-                  );
-                } else {
-                  const IconComponent = item.module.icon;
-                  return (
-                    <View key={`tag-${index}`} style={styles.previewTag}>
-                      <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
-                      <Text style={styles.previewTagText}>{item.module.label}</Text>
-                    </View>
-                  );
-                }
-              })}
-            </View>
+            <ScrollView
+              style={styles.previewScrollArea}
+              showsVerticalScrollIndicator={true}
+            >
+              <View style={styles.contentWrapper}>
+                {broadcastContent.map((item, index) => {
+                  if (item.type === 'text') {
+                    return (
+                      <Text key={`text-${index}`} style={styles.editableText}>
+                        {item.value}
+                      </Text>
+                    );
+                  } else {
+                    const module = BROADCAST_MODULES.find((m) => m.id === item.moduleId);
+                    if (!module) return null;
+                    const IconComponent = module.icon;
+                    return (
+                      <View key={`module-${index}`} style={styles.moduleTag}>
+                        <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
+                        <Text style={styles.moduleTagText}>{module.label}</Text>
+                      </View>
+                    );
+                  }
+                })}
+              </View>
+
+              {/* Hidden TextInput for keyboard input */}
+              <TextInput
+                ref={textInputRef}
+                style={styles.hiddenInput}
+                value={getPlainText()}
+                onChangeText={handleTextChange}
+                onSelectionChange={(e) => setCursorPosition(e.nativeEvent.selection.start)}
+                multiline
+                autoFocus
+              />
+            </ScrollView>
           </View>
 
-          <View style={styles.voiceStyleCard}>
+          {/* Voice Style Templates - Horizontal Scroll */}
+          <View style={styles.templateSection}>
             <Text style={styles.sectionTitle}>Voice Style</Text>
-            <View style={styles.voiceStyleGrid}>
-              {VOICE_PACKAGES.map((pkg) => {
-                const isSelected = selectedVoicePackage === pkg.id;
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.templateScrollContent}
+            >
+              {BROADCAST_TEMPLATES.map((template) => {
+                const isSelected = selectedTemplate === template.id;
                 return (
                   <TouchableOpacity
-                    key={pkg.id}
+                    key={template.id}
                     style={[
-                      styles.voiceStyleOption,
-                      isSelected && styles.voiceStyleOptionSelected,
+                      styles.templateCard,
+                      isSelected && styles.templateCardSelected,
                     ]}
-                    onPress={() => setSelectedVoicePackage(pkg.id)}
+                    onPress={() => selectTemplate(template.id)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.voiceStyleEmoji}>{pkg.emoji}</Text>
-                    <Text style={styles.voiceStyleLabel}>{pkg.label}</Text>
+                    <Text style={styles.templateLabel}>{template.label}</Text>
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
 
+          {/* Insert Modules */}
           <View style={styles.modulesCard}>
             <Text style={styles.sectionTitle}>Insert Modules</Text>
             <View style={styles.modulesGrid}>
@@ -144,7 +320,7 @@ export default function BroadcastEditor() {
                   <TouchableOpacity
                     key={module.id}
                     style={styles.moduleButton}
-                    onPress={() => addModule(module)}
+                    onPress={() => insertModule(module)}
                     activeOpacity={0.7}
                   >
                     <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
@@ -152,31 +328,6 @@ export default function BroadcastEditor() {
                   </TouchableOpacity>
                 );
               })}
-            </View>
-          </View>
-
-          <View style={styles.customVoiceCard}>
-            <Text style={styles.sectionTitle}>Custom Voice Area</Text>
-            <View style={styles.customModulesArea}>
-              {customModules.length > 0 ? (
-                <View style={styles.customModulesWrapper}>
-                  {customModules.map((module) => {
-                    const IconComponent = module.icon;
-                    return (
-                      <TouchableOpacity
-                        key={module.id}
-                        style={styles.customModuleTag}
-                        onPress={() => removeModule(module.id)}
-                        activeOpacity={0.7}
-                      >
-                        <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
-                        <Text style={styles.customModuleText}>{module.label}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ) : null}
-              <Text style={styles.dragPlaceholder}>+ Drag modules here</Text>
             </View>
           </View>
         </ScrollView>
@@ -244,22 +395,26 @@ const styles = StyleSheet.create({
   previewCard: {
     backgroundColor: '#F5F5F7',
     borderRadius: 24,
-    padding: 24,
+    padding: 20,
     minHeight: 180,
+    maxHeight: 240,
   },
-  previewTextWrapper: {
+  previewScrollArea: {
+    flex: 1,
+  },
+  contentWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     gap: 6,
   },
-  previewText: {
+  editableText: {
     fontSize: 18,
     color: '#1C1C1E',
     lineHeight: 32,
     fontWeight: '400',
   },
-  previewTag: {
+  moduleTag: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFE8DC',
@@ -270,54 +425,56 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#FFD4C0',
   },
-  previewTagText: {
+  moduleTagText: {
     fontSize: 15,
     color: '#1C1C1E',
     fontWeight: '500',
   },
-  voiceStyleCard: {
-    backgroundColor: '#F5F5F7',
-    borderRadius: 24,
-    padding: 20,
+  hiddenInput: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
+  templateSection: {
+    marginTop: 8,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 16,
+    color: '#FFFFFF',
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
-  voiceStyleGrid: {
-    flexDirection: 'row',
+  templateScrollContent: {
+    paddingRight: 20,
     gap: 12,
   },
-  voiceStyleOption: {
-    flex: 1,
-    alignItems: 'center',
+  templateCard: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    minWidth: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  voiceStyleOptionSelected: {
+  templateCardSelected: {
     backgroundColor: '#5B8DD6',
     borderColor: '#5B8DD6',
   },
-  voiceStyleEmoji: {
-    fontSize: 36,
-  },
-  voiceStyleLabel: {
-    fontSize: 12,
+  templateLabel: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#1C1C1E',
-    textAlign: 'center',
   },
   modulesCard: {
     backgroundColor: '#F5F5F7',
     borderRadius: 24,
     padding: 20,
+    marginTop: 8,
   },
   modulesGrid: {
     flexDirection: 'row',
@@ -337,48 +494,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1C1C1E',
     fontWeight: '500',
-  },
-  customVoiceCard: {
-    backgroundColor: '#F5F5F7',
-    borderRadius: 24,
-    padding: 20,
-  },
-  customModulesArea: {
-    minHeight: 100,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
-    borderStyle: 'dashed',
-  },
-  customModulesWrapper: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 12,
-  },
-  customModuleTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFE8DC',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 18,
-    gap: 6,
-    borderWidth: 1.5,
-    borderColor: '#E67E5D',
-  },
-  customModuleText: {
-    fontSize: 14,
-    color: '#1C1C1E',
-    fontWeight: '500',
-  },
-  dragPlaceholder: {
-    fontSize: 15,
-    color: '#999999',
-    textAlign: 'center',
-    fontWeight: '400',
   },
   bottomActions: {
     flexDirection: 'row',
