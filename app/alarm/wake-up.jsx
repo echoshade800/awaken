@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import useStore from '../../lib/store';
 import { stopAllSounds, playAlarmRingtone, speakWakeMessage } from '../../lib/audioManager';
 import { scheduleSnooze } from '../../lib/alarmScheduler';
+import { stopBackgroundAlarmAudio, isAlarmAudioActive } from '../../lib/alarmService';
 import { Accelerometer } from 'expo-sensors';
 
 const SHAKE_THRESHOLD = 2.5;
@@ -134,6 +135,7 @@ export default function WakeUpScreen() {
 
   const handleImUp = async () => {
     await stopAllSounds();
+    await stopBackgroundAlarmAudio();
 
     if (alarm && !alarm.repeat) {
       const updateAlarm = useStore.getState().updateAlarm;
@@ -145,6 +147,7 @@ export default function WakeUpScreen() {
 
   const handleSnooze = async () => {
     await stopAllSounds();
+    await stopBackgroundAlarmAudio();
 
     if (alarm) {
       await scheduleSnooze(alarm, 5);

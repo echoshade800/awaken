@@ -6,6 +6,7 @@ import { useFrameworkReady } from '../hooks/useFrameworkReady';
 import useStore from '../lib/store';
 import { initializeNotificationHandler, registerNotificationCategories } from '../lib/alarmScheduler';
 import { setupNotificationListeners, registerBackgroundTask } from '../lib/backgroundAlarmTask';
+import { initializeAlarmService, checkAndResumeAlarmAudio } from '../lib/alarmService';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -18,6 +19,14 @@ export default function RootLayout() {
     const startOnboarding = async () => {
       try {
         console.log('[Root] Starting initialization...');
+
+        // Initialize alarm service (must be first for audio session)
+        await initializeAlarmService();
+        console.log('[Root] Alarm service initialized');
+
+        // Check and resume any active alarm audio
+        await checkAndResumeAlarmAudio();
+        console.log('[Root] Checked for active alarms');
 
         // Initialize notification system
         await initializeNotificationHandler();
