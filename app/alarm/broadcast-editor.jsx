@@ -12,8 +12,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Volume2 } from 'lucide-react-native';
 import useStore from '../../lib/store';
-import { BROADCAST_MODULES, VOICE_PACKAGES, replaceTags } from '../../lib/broadcastModules';
-import { BROADCAST_TEMPLATES } from '../../lib/broadcastTemplates';
+import { BROADCAST_MODULES, VOICE_PACKAGES } from '../../lib/broadcastModules';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -21,46 +20,59 @@ export default function BroadcastEditor() {
   const router = useRouter();
   const { currentAlarmDraft, updateDraft } = useStore();
 
-  const [selectedModules, setSelectedModules] = useState(
-    currentAlarmDraft?.selectedModules || []
+  const [customModules, setCustomModules] = useState(
+    currentAlarmDraft?.customModules || [
+      BROADCAST_MODULES[0],
+      BROADCAST_MODULES[1],
+      BROADCAST_MODULES[3],
+    ]
   );
   const [selectedVoicePackage, setSelectedVoicePackage] = useState(
-    currentAlarmDraft?.voicePackage || VOICE_PACKAGES[0].id
-  );
-  const [selectedTemplate, setSelectedTemplate] = useState(
-    currentAlarmDraft?.broadcastTemplate || BROADCAST_TEMPLATES[0].id
+    currentAlarmDraft?.voicePackage || VOICE_PACKAGES[2].id
   );
 
-
-  const toggleModule = (module) => {
-    const exists = selectedModules.find((m) => m.id === module.id);
-    if (exists) {
-      setSelectedModules(selectedModules.filter((m) => m.id !== module.id));
-    } else {
-      setSelectedModules([...selectedModules, module]);
+  const addModule = (module) => {
+    if (!customModules.find((m) => m.id === module.id)) {
+      setCustomModules([...customModules, module]);
     }
   };
 
-  const isModuleSelected = (moduleId) => {
-    return selectedModules.some((m) => m.id === moduleId);
+  const removeModule = (moduleId) => {
+    setCustomModules(customModules.filter((m) => m.id !== moduleId));
   };
 
   const handleComplete = () => {
     updateDraft({
-      selectedModules,
+      customModules,
       voicePackage: selectedVoicePackage,
-      broadcastTemplate: selectedTemplate,
     });
     router.back();
   };
 
-  const currentTemplate = BROADCAST_TEMPLATES.find(t => t.id === selectedTemplate) || BROADCAST_TEMPLATES[0];
-  const displayText = replaceTags(currentTemplate.content);
+  const renderPreviewContent = () => {
+    const content = [];
+    content.push({ type: 'text', value: "Boot complete. It's " });
+
+    customModules.forEach((module, index) => {
+      content.push({ type: 'tag', module });
+      if (index < customModules.length - 1) {
+        content.push({ type: 'text', value: '. ' });
+      } else {
+        content.push({ type: 'text', value: '. Outside is ' });
+      }
+    });
+
+    return content;
+  };
+
+  const previewContent = renderPreviewContent();
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#5B6FBC', '#8B5FB8', '#E67E5D']}
+        colors={['#5B7BC4', '#9B6FB8', '#E67E5D']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={styles.backgroundGradient}
       />
 
@@ -73,163 +85,98 @@ export default function BroadcastEditor() {
           <View style={{ width: 24 }} />
         </View>
 
-        <View style={styles.fixedDisplaySection}>
-          <View style={styles.displayCard}>
-            <ScrollView
-              style={styles.displayScrollView}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={styles.displayText}>
-                {displayText}
-              </Text>
-            </ScrollView>
-          </View>
-        </View>
-
         <ScrollView
           style={styles.scrollableContent}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.templateSection}>
-            <Text style={styles.sectionTitle}>Broadcast Template</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.templateScroll}
-            >
-              {BROADCAST_TEMPLATES.map((template) => {
-                const isSelected = selectedTemplate === template.id;
-                return (
-                  <TouchableOpacity
-                    key={template.id}
-                    style={[
-                      styles.templateCard,
-                      isSelected && styles.templateCardSelected,
-                    ]}
-                    onPress={() => setSelectedTemplate(template.id)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.templateAvatar}>
-                      <Text style={styles.templateEmoji}>{template.emoji}</Text>
+          <View style={styles.previewCard}>
+            <View style={styles.previewTextWrapper}>
+              {previewContent.map((item, index) => {
+                if (item.type === 'text') {
+                  return (
+                    <Text key={`text-${index}`} style={styles.previewText}>
+                      {item.value}
+                    </Text>
+                  );
+                } else {
+                  const IconComponent = item.module.icon;
+                  return (
+                    <View key={`tag-${index}`} style={styles.previewTag}>
+                      <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
+                      <Text style={styles.previewTagText}>{item.module.label}</Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.templateName,
-                        isSelected && styles.templateNameSelected,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {template.name}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.templateSubtitle,
-                        isSelected && styles.templateSubtitleSelected,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {template.subtitle}
-                    </Text>
-                  </TouchableOpacity>
-                );
+                  );
+                }
               })}
-            </ScrollView>
+            </View>
           </View>
 
-          <View style={styles.voiceStyleSection}>
+          <View style={styles.voiceStyleCard}>
             <Text style={styles.sectionTitle}>Voice Style</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.voiceStyleScroll}
-            >
+            <View style={styles.voiceStyleGrid}>
               {VOICE_PACKAGES.map((pkg) => {
                 const isSelected = selectedVoicePackage === pkg.id;
                 return (
                   <TouchableOpacity
                     key={pkg.id}
                     style={[
-                      styles.voiceStyleCard,
-                      isSelected && styles.voiceStyleCardSelected,
+                      styles.voiceStyleOption,
+                      isSelected && styles.voiceStyleOptionSelected,
                     ]}
                     onPress={() => setSelectedVoicePackage(pkg.id)}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.voiceStyleAvatar}>
-                      <Text style={styles.voiceStyleEmoji}>
-                        {pkg.id === 'energetic-girl' ? '🧑' :
-                         pkg.id === 'calm-man' ? '🧚' :
-                         pkg.id === 'gentle-lady' ? '🦸' : '🐶'}
-                      </Text>
-                    </View>
-                    <Text
-                      style={[
-                        styles.voiceStyleLabel,
-                        isSelected && styles.voiceStyleLabelSelected,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {pkg.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          <View style={styles.modulesSection}>
-            <Text style={styles.sectionTitle}>Insert Modules</Text>
-            <View style={styles.modulesGrid}>
-              {BROADCAST_MODULES.map((module) => {
-                const IconComponent = module.icon;
-                const isSelected = isModuleSelected(module.id);
-                return (
-                  <TouchableOpacity
-                    key={module.id}
-                    style={[
-                      styles.moduleCard,
-                      isSelected && styles.moduleCardSelected,
-                    ]}
-                    onPress={() => toggleModule(module)}
-                    activeOpacity={0.7}
-                  >
-                    <IconComponent size={18} color="#E67E5D" strokeWidth={2} />
-                    <Text style={styles.moduleLabel} numberOfLines={1}>
-                      {module.label}
-                    </Text>
+                    <Text style={styles.voiceStyleEmoji}>{pkg.emoji}</Text>
+                    <Text style={styles.voiceStyleLabel}>{pkg.label}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
           </View>
 
-          <View style={styles.voicePackageSection}>
-            <Text style={styles.sectionTitle}>Voice Package</Text>
-            <View style={styles.voicePackageButtons}>
-              {VOICE_PACKAGES.slice(0, 3).map((pkg) => {
-                const isSelected = selectedVoicePackage === pkg.id;
+          <View style={styles.modulesCard}>
+            <Text style={styles.sectionTitle}>Insert Modules</Text>
+            <View style={styles.modulesGrid}>
+              {BROADCAST_MODULES.map((module) => {
+                const IconComponent = module.icon;
                 return (
                   <TouchableOpacity
-                    key={pkg.id}
-                    style={[
-                      styles.voicePackageButton,
-                      isSelected && styles.voicePackageButtonSelected,
-                    ]}
-                    onPress={() => setSelectedVoicePackage(pkg.id)}
+                    key={module.id}
+                    style={styles.moduleButton}
+                    onPress={() => addModule(module)}
                     activeOpacity={0.7}
                   >
-                    <Text
-                      style={[
-                        styles.voicePackageButtonText,
-                        isSelected && styles.voicePackageButtonTextSelected,
-                      ]}
-                    >
-                      {pkg.label}
-                    </Text>
+                    <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
+                    <Text style={styles.moduleLabel}>{module.label}</Text>
                   </TouchableOpacity>
                 );
               })}
+            </View>
+          </View>
+
+          <View style={styles.customVoiceCard}>
+            <Text style={styles.sectionTitle}>Custom Voice Area</Text>
+            <View style={styles.customModulesArea}>
+              {customModules.length > 0 ? (
+                <View style={styles.customModulesWrapper}>
+                  {customModules.map((module) => {
+                    const IconComponent = module.icon;
+                    return (
+                      <TouchableOpacity
+                        key={module.id}
+                        style={styles.customModuleTag}
+                        onPress={() => removeModule(module.id)}
+                        activeOpacity={0.7}
+                      >
+                        <IconComponent size={16} color="#E67E5D" strokeWidth={2} />
+                        <Text style={styles.customModuleText}>{module.label}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : null}
+              <Text style={styles.dragPlaceholder}>+ Drag modules here</Text>
             </View>
           </View>
         </ScrollView>
@@ -274,7 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 20,
   },
   backButton: {
@@ -286,192 +233,157 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
-  fixedDisplaySection: {
-    height: '45%',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  displayCard: {
-    backgroundColor: '#F5F5F7',
-    borderRadius: 24,
-    padding: 20,
-    flex: 1,
-  },
-  displayScrollView: {
-    flex: 1,
-  },
   scrollableContent: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+    gap: 16,
   },
-  displayText: {
-    fontSize: 16,
+  previewCard: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 24,
+    padding: 24,
+    minHeight: 180,
+  },
+  previewTextWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+  },
+  previewText: {
+    fontSize: 18,
     color: '#1C1C1E',
-    lineHeight: 28,
+    lineHeight: 32,
+    fontWeight: '400',
   },
-  templateSection: {
-    marginBottom: 24,
+  previewTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFE8DC',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#FFD4C0',
   },
-  voiceStyleSection: {
-    marginBottom: 24,
+  previewTagText: {
+    fontSize: 15,
+    color: '#1C1C1E',
+    fontWeight: '500',
+  },
+  voiceStyleCard: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 24,
+    padding: 20,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#1C1C1E',
     marginBottom: 16,
   },
-  templateScroll: {
+  voiceStyleGrid: {
+    flexDirection: 'row',
     gap: 12,
-    paddingHorizontal: 4,
   },
-  templateCard: {
+  voiceStyleOption: {
+    flex: 1,
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 8,
     borderRadius: 16,
-    width: 110,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  templateCardSelected: {
-    backgroundColor: '#E67E5D',
-    borderColor: '#FFFFFF',
-  },
-  templateAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  templateEmoji: {
-    fontSize: 28,
-  },
-  templateName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  templateNameSelected: {
-    color: '#FFFFFF',
-  },
-  templateSubtitle: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: 'rgba(255, 255, 255, 0.75)',
-    textAlign: 'center',
-  },
-  templateSubtitleSelected: {
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  voiceStyleScroll: {
-    gap: 12,
-    paddingHorizontal: 4,
-  },
-  voiceStyleCard: {
-    alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    minWidth: 90,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  voiceStyleCardSelected: {
+  voiceStyleOptionSelected: {
     backgroundColor: '#5B8DD6',
-    borderColor: '#FFFFFF',
-  },
-  voiceStyleAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: '#5B8DD6',
   },
   voiceStyleEmoji: {
-    fontSize: 32,
+    fontSize: 36,
   },
   voiceStyleLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1C1C1E',
     textAlign: 'center',
   },
-  voiceStyleLabelSelected: {
-    fontWeight: '600',
-  },
-  modulesSection: {
-    marginBottom: 24,
+  modulesCard: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 24,
+    padding: 20,
   },
   modulesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
   },
-  moduleCard: {
+  moduleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFE8DC',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 20,
-    gap: 8,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  moduleCardSelected: {
-    borderColor: '#E67E5D',
-    backgroundColor: '#FFD4C0',
+    borderRadius: 18,
+    gap: 6,
   },
   moduleLabel: {
     fontSize: 14,
     color: '#1C1C1E',
     fontWeight: '500',
   },
-  voicePackageSection: {
-    marginBottom: 24,
+  customVoiceCard: {
+    backgroundColor: '#F5F5F7',
+    borderRadius: 24,
+    padding: 20,
   },
-  voicePackageButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  voicePackageButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 16,
+  customModulesArea: {
+    minHeight: 100,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    alignItems: 'center',
+    padding: 16,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#E5E5EA',
+    borderStyle: 'dashed',
   },
-  voicePackageButtonSelected: {
+  customModulesWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
+  },
+  customModuleTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFE8DC',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 18,
+    gap: 6,
+    borderWidth: 1.5,
     borderColor: '#E67E5D',
   },
-  voicePackageButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  customModuleText: {
+    fontSize: 14,
+    color: '#1C1C1E',
+    fontWeight: '500',
   },
-  voicePackageButtonTextSelected: {
-    color: '#E67E5D',
+  dragPlaceholder: {
+    fontSize: 15,
+    color: '#999999',
+    textAlign: 'center',
+    fontWeight: '400',
   },
   bottomActions: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingBottom: 20,
     gap: 12,
   },
   previewButton: {
@@ -497,7 +409,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#E67E5D',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
