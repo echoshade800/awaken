@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { useFrameworkReady } from '../hooks/useFrameworkReady';
 import useStore from '../lib/store';
+import { initializeNotificationHandler, registerNotificationCategories } from '../lib/alarmScheduler';
+import { setupNotificationListeners, registerBackgroundTask } from '../lib/backgroundAlarmTask';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -16,6 +18,13 @@ export default function RootLayout() {
     const startOnboarding = async () => {
       try {
         console.log('[Root] Starting initialization...');
+
+        // Initialize notification system
+        await initializeNotificationHandler();
+        await registerNotificationCategories();
+        setupNotificationListeners(router);
+        await registerBackgroundTask();
+        console.log('[Root] Notification system initialized');
 
         // Initialize store
         await initialize();

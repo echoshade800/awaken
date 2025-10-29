@@ -1,0 +1,4 @@
+This is a placeholder for the default alarm sound file.
+In a production app, you would include an actual MP3 file here.
+
+For testing purposes, the app will fall back to system sounds if this file is missing.
