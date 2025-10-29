@@ -17,6 +17,7 @@ const PERIOD_LABELS = {
 const WAKE_MODE_LABELS = {
   voice: '语音播报',
   ringtone: '铃声',
+  vibration: '震动',
 };
 
 const VOICE_PACKAGE_LABELS = {
@@ -47,6 +48,7 @@ const PERIOD_OPTIONS = [
 const WAKE_MODE_OPTIONS = [
   { label: '语音播报', value: 'voice' },
   { label: '铃声', value: 'ringtone' },
+  { label: '震动', value: 'vibration' },
 ];
 
 const VOICE_PACKAGE_OPTIONS = [
@@ -96,6 +98,14 @@ export default function AlarmDetail() {
   // Ensure alarm has wakeMode set
   const alarm = foundAlarm ? { ...foundAlarm, wakeMode: foundAlarm.wakeMode || 'voice' } : null;
 
+  console.log('[AlarmDetail] Alarm data:', {
+    id: alarm?.id,
+    time: alarm?.time,
+    wakeMode: alarm?.wakeMode,
+    period: alarm?.period,
+    hasAlarm: !!alarm
+  });
+
   if (!alarm && !isDeleting) {
     return (
       <View style={styles.container}>
@@ -124,6 +134,7 @@ export default function AlarmDetail() {
   };
 
   const openModal = (type, options) => {
+    console.log('[AlarmDetail] Opening modal:', type, 'with options:', options);
     setModalType(type);
     setModalOptions(options);
     setModalVisible(true);
@@ -280,9 +291,13 @@ export default function AlarmDetail() {
 
           <View style={styles.divider} />
 
+          {/* Wake Up Method - Should always be visible */}
           <TouchableOpacity
             style={styles.detailRow}
-            onPress={() => openModal('wakeMode', WAKE_MODE_OPTIONS)}
+            onPress={() => {
+              console.log('[AlarmDetail] Wake Up Method clicked');
+              openModal('wakeMode', WAKE_MODE_OPTIONS);
+            }}
             activeOpacity={0.7}
           >
             <View style={styles.detailLeft}>
