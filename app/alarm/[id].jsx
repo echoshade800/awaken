@@ -171,6 +171,30 @@ export default function AlarmDetail() {
     setModalVisible(false);
   };
 
+  const handleToggleDay = async (day) => {
+    // Convert period-based alarms to custom selection
+    let currentDays = [];
+    if (alarm.period === 'everyday') {
+      currentDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    } else if (alarm.period === 'workday') {
+      currentDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    } else if (alarm.period === 'weekend') {
+      currentDays = ['sunday', 'saturday'];
+    } else {
+      currentDays = alarm.customDays || [];
+    }
+
+    // Toggle the selected day
+    const newDays = currentDays.includes(day)
+      ? currentDays.filter(d => d !== day)
+      : [...currentDays, day];
+
+    await updateAlarm(id, {
+      period: 'custom',
+      customDays: newDays
+    });
+  };
+
   const handleEditTime = () => {
     const [hour, minute] = alarm.time.split(':');
     setSelectedHour(hour);
@@ -274,20 +298,49 @@ export default function AlarmDetail() {
 
         {/* 详细信息卡片 */}
         <View style={styles.detailCard}>
-          <TouchableOpacity
-            style={styles.detailRow}
-            onPress={() => openModal('period', PERIOD_OPTIONS)}
-            activeOpacity={0.7}
-          >
+          {/* Repeat - Week Day Selector */}
+          <View style={styles.repeatSection}>
             <View style={styles.detailLeft}>
               <Calendar size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Repeat</Text>
             </View>
-            <View style={styles.detailRight}>
-              <Text style={styles.detailValue}>{PERIOD_LABELS[alarm.period] || 'Everyday'}</Text>
-              <ChevronRight size={16} color="#999" />
+            <View style={styles.weekDaySelector}>
+              {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => {
+                const dayValues = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+                // Determine if day is selected based on period type
+                let isSelected = false;
+                if (alarm.period === 'everyday') {
+                  isSelected = true;
+                } else if (alarm.period === 'workday') {
+                  isSelected = index >= 1 && index <= 5; // Mon-Fri
+                } else if (alarm.period === 'weekend') {
+                  isSelected = index === 0 || index === 6; // Sun & Sat
+                } else if (alarm.period === 'custom' || !alarm.period) {
+                  isSelected = alarm.customDays?.includes(dayValues[index]);
+                }
+
+                return (
+                  <TouchableOpacity
+                    key={dayValues[index]}
+                    style={[
+                      styles.dayCircle,
+                      isSelected && styles.dayCircleSelected
+                    ]}
+                    onPress={() => handleToggleDay(dayValues[index])}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.dayText,
+                      isSelected && styles.dayTextSelected
+                    ]}>
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-          </TouchableOpacity>
+          </View>
 
           <View style={styles.divider} />
 
@@ -722,6 +775,38 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#E5E5EA',
+  },
+  repeatSection: {
+    paddingVertical: 12,
+  },
+  weekDaySelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 4,
+  },
+  dayCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 154, 118, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 154, 118, 0.3)',
+  },
+  dayCircleSelected: {
+    backgroundColor: '#FF9A76',
+    borderColor: '#FF9A76',
+  },
+  dayText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#8B7355',
+  },
+  dayTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   broadcastPreview: {
     flexDirection: 'row',
