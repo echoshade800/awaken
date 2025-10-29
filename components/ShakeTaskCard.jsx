@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
 const SHAKE_THRESHOLD = 2.5;
-const REQUIRED_SHAKES = 10;
+const REQUIRED_SHAKES = 3;
 
 export default function ShakeTaskCard({ onComplete, onProgress }) {
   const [shakeCount, setShakeCount] = useState(0);
