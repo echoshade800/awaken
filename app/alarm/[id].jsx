@@ -213,6 +213,22 @@ export default function AlarmDetail() {
     router.push('/alarm/broadcast-editor');
   };
 
+  const handleOpenVoiceBroadcast = async () => {
+    await updateAlarm(id, { wakeMode: 'voice' });
+    loadAlarmForEdit(id);
+    router.push('/alarm/broadcast-editor');
+  };
+
+  const handleOpenRingtone = async () => {
+    await updateAlarm(id, { wakeMode: 'ringtone' });
+    loadAlarmForEdit(id);
+    router.push('/alarm/ringtone-selector');
+  };
+
+  const handleSelectVibration = async () => {
+    await updateAlarm(id, { wakeMode: 'vibration' });
+  };
+
   const handleDelete = () => {
     setDeleteModalVisible(true);
   };
@@ -344,60 +360,93 @@ export default function AlarmDetail() {
 
           <View style={styles.divider} />
 
-          {/* Wake Up Method - Should always be visible */}
-          <TouchableOpacity
-            style={styles.detailRow}
-            onPress={() => {
-              console.log('[AlarmDetail] Wake Up Method clicked');
-              openModal('wakeMode', WAKE_MODE_OPTIONS);
-            }}
-            activeOpacity={0.7}
-          >
+          {/* Wake Up Method - Three Options */}
+          <View style={styles.wakeMethodSection}>
             <View style={styles.detailLeft}>
               <Bell size={20} color="#FF9A76" />
               <Text style={styles.detailLabel}>Wake Up Method</Text>
             </View>
-            <View style={styles.detailRight}>
-              <Text style={styles.detailValue}>
-                {WAKE_MODE_LABELS[alarm.wakeMode] || '语音播报'}
-              </Text>
-              <ChevronRight size={16} color="#999" />
-            </View>
-          </TouchableOpacity>
 
-          {alarm.wakeMode === 'voice' && (
-            <>
-              <View style={styles.divider} />
-              <TouchableOpacity style={styles.detailColumn} onPress={handleEditBroadcast} activeOpacity={0.7}>
-                <View style={styles.detailLeft}>
-                  <Volume2 size={20} color="#FF9A76" />
-                  <Text style={styles.detailLabel}>Broadcast</Text>
-                  <ChevronRight size={16} color="#999" style={{ marginLeft: 'auto' }} />
-                </View>
-                <View style={styles.detailValueContainer}>
-                  {renderBroadcastPreview()}
-                </View>
-              </TouchableOpacity>
-
-              <View style={styles.divider} />
+            <View style={styles.wakeMethodOptions}>
+              {/* Voice Broadcast Option */}
               <TouchableOpacity
-                style={styles.detailRow}
-                onPress={() => openModal('voicePackage', VOICE_PACKAGE_OPTIONS)}
+                style={[
+                  styles.wakeMethodCard,
+                  alarm.wakeMode === 'voice' && styles.wakeMethodCardSelected
+                ]}
+                onPress={handleOpenVoiceBroadcast}
                 activeOpacity={0.7}
               >
-                <View style={styles.detailLeft}>
-                  <Volume2 size={20} color="#FF9A76" />
-                  <Text style={styles.detailLabel}>Voice Pack</Text>
-                </View>
-                <View style={styles.detailRight}>
-                  <Text style={styles.detailValue}>
-                    {VOICE_PACKAGE_LABELS[alarm.voicePackage] || 'Energetic Girl'}
-                  </Text>
-                  <ChevronRight size={16} color="#999" />
-                </View>
+                <Volume2
+                  size={24}
+                  color={alarm.wakeMode === 'voice' ? '#FF9A76' : '#8B7355'}
+                />
+                <Text style={[
+                  styles.wakeMethodLabel,
+                  alarm.wakeMode === 'voice' && styles.wakeMethodLabelSelected
+                ]}>
+                  语音播报
+                </Text>
+                {alarm.wakeMode === 'voice' && (
+                  <View style={styles.selectedBadge}>
+                    <Check size={14} color="#FFF" />
+                  </View>
+                )}
               </TouchableOpacity>
-            </>
-          )}
+
+              {/* Ringtone Option */}
+              <TouchableOpacity
+                style={[
+                  styles.wakeMethodCard,
+                  alarm.wakeMode === 'ringtone' && styles.wakeMethodCardSelected
+                ]}
+                onPress={handleOpenRingtone}
+                activeOpacity={0.7}
+              >
+                <Bell
+                  size={24}
+                  color={alarm.wakeMode === 'ringtone' ? '#FF9A76' : '#8B7355'}
+                />
+                <Text style={[
+                  styles.wakeMethodLabel,
+                  alarm.wakeMode === 'ringtone' && styles.wakeMethodLabelSelected
+                ]}>
+                  铃声
+                </Text>
+                {alarm.wakeMode === 'ringtone' && (
+                  <View style={styles.selectedBadge}>
+                    <Check size={14} color="#FFF" />
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Vibration Option */}
+              <TouchableOpacity
+                style={[
+                  styles.wakeMethodCard,
+                  alarm.wakeMode === 'vibration' && styles.wakeMethodCardSelected
+                ]}
+                onPress={handleSelectVibration}
+                activeOpacity={0.7}
+              >
+                <Zap
+                  size={24}
+                  color={alarm.wakeMode === 'vibration' ? '#FF9A76' : '#8B7355'}
+                />
+                <Text style={[
+                  styles.wakeMethodLabel,
+                  alarm.wakeMode === 'vibration' && styles.wakeMethodLabelSelected
+                ]}>
+                  震动
+                </Text>
+                {alarm.wakeMode === 'vibration' && (
+                  <View style={styles.selectedBadge}>
+                    <Check size={14} color="#FFF" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.divider} />
 
@@ -807,6 +856,53 @@ const styles = StyleSheet.create({
   dayTextSelected: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  wakeMethodSection: {
+    paddingVertical: 8,
+  },
+  wakeMethodOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  wakeMethodCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(139, 115, 85, 0.2)',
+    minHeight: 100,
+    position: 'relative',
+  },
+  wakeMethodCardSelected: {
+    backgroundColor: 'rgba(255, 154, 118, 0.15)',
+    borderColor: '#FF9A76',
+    borderWidth: 2,
+  },
+  wakeMethodLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#8B7355',
+    textAlign: 'center',
+  },
+  wakeMethodLabelSelected: {
+    color: '#FF9A76',
+    fontWeight: '600',
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FF9A76',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   broadcastPreview: {
     flexDirection: 'row',
