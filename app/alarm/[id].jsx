@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import useStore from '../../lib/store';
 import StarBackground from '../../components/StarBackground';
-import { BROADCAST_MODULES } from '../../lib/broadcastModules';
+import { BROADCAST_MODULES, BROADCAST_TEMPLATES } from '../../lib/broadcastModules';
 
 const PERIOD_LABELS = {
   everyday: '每天',
@@ -47,7 +47,6 @@ const PERIOD_OPTIONS = [
 const WAKE_MODE_OPTIONS = [
   { label: '语音播报', value: 'voice' },
   { label: '铃声', value: 'ringtone' },
-  { label: '震动', value: 'vibration' },
 ];
 
 const VOICE_PACKAGE_OPTIONS = [
@@ -119,6 +118,16 @@ export default function AlarmDetail() {
       setModalType('customDays');
       return;
     }
+
+    // If selecting voice broadcast, close modal and navigate to editor
+    if (modalType === 'wakeMode' && value === 'voice') {
+      setModalVisible(false);
+      await updateAlarm(id, { wakeMode: value });
+      loadAlarmForEdit(id);
+      router.push('/alarm/broadcast-editor');
+      return;
+    }
+
     await updateAlarm(id, { [modalType]: value });
     setModalVisible(false);
   };
@@ -168,21 +177,36 @@ export default function AlarmDetail() {
   };
 
   const renderBroadcastPreview = () => {
-    if (!alarm.customModules || alarm.customModules.length === 0) {
-      return <Text style={styles.detailValue}>Default broadcast (tap to customize)</Text>;
+    if (!alarm.broadcastContent || alarm.broadcastContent.length === 0) {
+      return <Text style={styles.detailValue}>Tap to customize broadcast</Text>;
     }
 
     return (
       <View style={styles.broadcastPreview}>
-        {alarm.customModules.map((module, index) => {
-          const IconComponent = module.icon;
-          return (
-            <View key={index} style={styles.broadcastTag}>
-              {IconComponent && <IconComponent size={14} color="#FF9A76" strokeWidth={2} />}
-              <Text style={styles.broadcastTagText}>{module.label}</Text>
-            </View>
-          );
+        {alarm.broadcastContent.slice(0, 5).map((item, index) => {
+          if (item.type === 'text') {
+            const displayText = item.value.length > 20 ? item.value.slice(0, 20) + '...' : item.value;
+            return (
+              <Text key={`text-${index}`} style={styles.broadcastText}>
+                {displayText}
+              </Text>
+            );
+          } else if (item.type === 'module') {
+            const module = BROADCAST_MODULES.find((m) => m.id === item.moduleId);
+            if (!module) return null;
+            const IconComponent = module.icon;
+            return (
+              <View key={`module-${index}`} style={styles.broadcastTag}>
+                {IconComponent && <IconComponent size={14} color="#FF9A76" strokeWidth={2} />}
+                <Text style={styles.broadcastTagText}>{module.label}</Text>
+              </View>
+            );
+          }
+          return null;
         })}
+        {alarm.broadcastContent.length > 5 && (
+          <Text style={styles.broadcastText}>...</Text>
+        )}
       </View>
     );
   };
@@ -246,11 +270,11 @@ export default function AlarmDetail() {
           >
             <View style={styles.detailLeft}>
               <Bell size={20} color="#FF9A76" />
-              <Text style={styles.detailLabel}>Wake Mode</Text>
+              <Text style={styles.detailLabel}>Wake Up Method</Text>
             </View>
             <View style={styles.detailRight}>
               <Text style={styles.detailValue}>
-                {WAKE_MODE_LABELS[alarm.wakeMode] || 'Voice'}
+                {WAKE_MODE_LABELS[alarm.wakeMode] || '语音播报'}
               </Text>
               <ChevronRight size={16} color="#999" />
             </View>
@@ -339,7 +363,7 @@ export default function AlarmDetail() {
               <Text style={styles.modalTitle}>
                 {modalType === 'period' && '重复周期'}
                 {modalType === 'customDays' && '选择星期'}
-                {modalType === 'wakeMode' && '唤醒模式'}
+                {modalType === 'wakeMode' && '叫醒方式'}
                 {modalType === 'voicePackage' && '语音包'}
                 {modalType === 'task' && '起床任务'}
               </Text>
