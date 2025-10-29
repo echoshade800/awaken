@@ -93,16 +93,30 @@ export default function AlarmDetail() {
 
   const foundAlarm = alarms.find((a) => a.id === id) || deletedAlarm;
 
-  if (!foundAlarm && !isDeleting) {
+  // Ensure alarm has wakeMode set
+  const alarm = foundAlarm ? { ...foundAlarm, wakeMode: foundAlarm.wakeMode || 'voice' } : null;
+
+  if (!alarm && !isDeleting) {
     return (
       <View style={styles.container}>
-        <Text>闹钟不存在</Text>
+        <LinearGradient
+          colors={['#3D5A80', '#5A7BA5', '#7A9BC4', '#FFB88C', '#E8F4FF', '#F0F8FF', '#FAFCFF']}
+          locations={[0, 0.25, 0.4, 0.5, 0.65, 0.82, 1]}
+          style={styles.backgroundGradient}
+        />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Alarm Not Found</Text>
+          <View style={{ width: 36 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 16, color: '#4A5F8F' }}>This alarm does not exist</Text>
+        </View>
       </View>
     );
   }
-
-  // Ensure alarm has wakeMode set
-  const alarm = foundAlarm ? { ...foundAlarm, wakeMode: foundAlarm.wakeMode || 'voice' } : null;
 
   const handleEdit = () => {
     loadAlarmForEdit(id);
