@@ -91,15 +91,18 @@ export default function AlarmDetail() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletedAlarm, setDeletedAlarm] = useState(null);
 
-  const alarm = alarms.find((a) => a.id === id) || deletedAlarm;
+  const foundAlarm = alarms.find((a) => a.id === id) || deletedAlarm;
 
-  if (!alarm && !isDeleting) {
+  if (!foundAlarm && !isDeleting) {
     return (
       <View style={styles.container}>
         <Text>闹钟不存在</Text>
       </View>
     );
   }
+
+  // Ensure alarm has wakeMode set
+  const alarm = foundAlarm ? { ...foundAlarm, wakeMode: foundAlarm.wakeMode || 'voice' } : null;
 
   const handleEdit = () => {
     loadAlarmForEdit(id);
