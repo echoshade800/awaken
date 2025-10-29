@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import useStore from '../../lib/store';
 import StarBackground from '../../components/StarBackground';
+import { BROADCAST_MODULES } from '../../lib/broadcastModules';
 
 const PERIOD_LABELS = {
   everyday: '每天',
@@ -19,10 +20,11 @@ const WAKE_MODE_LABELS = {
 };
 
 const VOICE_PACKAGE_LABELS = {
-  'energetic-girl': '元气少女🎀',
-  'calm-man': '沉稳大叔🧠',
-  'ancient-style': '古风公子🌙',
-  'cat': '小猫咪🐱',
+  'the-host': 'The Host 👨‍💼',
+  'fairy-morning': 'Fairy Morning 🧚',
+  'hero-mode': 'Hero Mode 🦸‍♂️',
+  'pet-buddy': 'Pet Buddy 🐶',
+  'dream-voice': 'Dream Voice 💬',
 };
 
 const TASK_LABELS = {
@@ -49,10 +51,11 @@ const WAKE_MODE_OPTIONS = [
 ];
 
 const VOICE_PACKAGE_OPTIONS = [
-  { label: '元气少女🎀', value: 'energetic-girl' },
-  { label: '沉稳大叔🧠', value: 'calm-man' },
-  { label: '古风公子🌙', value: 'ancient-style' },
-  { label: '小猫咪🐱', value: 'cat' },
+  { label: 'The Host 👨‍💼', value: 'the-host' },
+  { label: 'Fairy Morning 🧚', value: 'fairy-morning' },
+  { label: 'Hero Mode 🦸‍♂️', value: 'hero-mode' },
+  { label: 'Pet Buddy 🐶', value: 'pet-buddy' },
+  { label: 'Dream Voice 💬', value: 'dream-voice' },
 ];
 
 const TASK_OPTIONS = [
@@ -165,54 +168,20 @@ export default function AlarmDetail() {
   };
 
   const renderBroadcastPreview = () => {
-    if (!alarm.broadcastContent) {
-      return <Text style={styles.detailValue}>默认播报内容</Text>;
-    }
-
-    const parts = [];
-    let lastIndex = 0;
-    const regex = /\{(时间|日期|天气|最高温|最低温|平均温|湿度|穿衣|梦境|节律|电量|日程|幸运色|彩蛋)\}/g;
-    let match;
-
-    while ((match = regex.exec(alarm.broadcastContent)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({
-          type: 'text',
-          content: alarm.broadcastContent.substring(lastIndex, match.index),
-        });
-      }
-
-      parts.push({
-        type: 'tag',
-        label: match[1],
-      });
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < alarm.broadcastContent.length) {
-      parts.push({
-        type: 'text',
-        content: alarm.broadcastContent.substring(lastIndex),
-      });
+    if (!alarm.customModules || alarm.customModules.length === 0) {
+      return <Text style={styles.detailValue}>Default broadcast (tap to customize)</Text>;
     }
 
     return (
       <View style={styles.broadcastPreview}>
-        {parts.map((part, index) => {
-          if (part.type === 'text') {
-            return (
-              <Text key={index} style={styles.broadcastText}>
-                {part.content}
-              </Text>
-            );
-          } else {
-            return (
-              <View key={index} style={styles.broadcastTag}>
-                <Text style={styles.broadcastTagText}>{part.label}</Text>
-              </View>
-            );
-          }
+        {alarm.customModules.map((module, index) => {
+          const IconComponent = module.icon;
+          return (
+            <View key={index} style={styles.broadcastTag}>
+              {IconComponent && <IconComponent size={14} color="#FF9A76" strokeWidth={2} />}
+              <Text style={styles.broadcastTagText}>{module.label}</Text>
+            </View>
+          );
         })}
       </View>
     );
@@ -702,7 +671,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   broadcastText: {
     fontSize: 15,
@@ -710,17 +679,20 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   broadcastTag: {
-    backgroundColor: 'rgba(255, 154, 118, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 154, 118, 0.3)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 154, 118, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 154, 118, 0.4)',
+    gap: 6,
   },
   broadcastTagText: {
     fontSize: 13,
     color: '#FF9A76',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   actionContainer: {
     paddingTop: 8,
